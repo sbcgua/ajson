@@ -130,3 +130,180 @@ class lcl_json_parser implementation.
   endmethod.
 
 endclass.
+
+**********************************************************************
+* JSON_TO_ABAP
+**********************************************************************
+
+class lcl_json_to_abap definition final.
+  public section.
+
+    methods find_loc
+      importing
+        iv_path type string
+        iv_name type string optional " not mandatory
+        iv_append_tables type abap_bool default abap_false
+      returning
+        value(r_ref) type ref to data
+      raising
+        zcx_ajson_error.
+
+    class-methods bind
+      changing
+        c_obj type any
+      returning
+        value(ro_instance) type ref to lcl_json_to_abap.
+
+    methods to_abap
+      importing
+        it_nodes type zcl_ajson=>ty_nodes_tt
+      raising
+        zcx_ajson_error.
+
+  private section.
+    data mr_obj type ref to data.
+endclass.
+
+class lcl_json_to_abap implementation.
+
+  method bind.
+    create object ro_instance.
+    get reference of c_obj into ro_instance->mr_obj.
+  endmethod.
+
+  method to_abap.
+
+    data ref type ref to data.
+    data lv_type type c.
+    data lx type ref to cx_root.
+    field-symbols <n> like line of it_nodes.
+    field-symbols <value> type any.
+
+    try.
+      loop at it_nodes assigning <n>.
+        ref = find_loc(
+          iv_append_tables = abap_true
+          iv_path = <n>-path
+          iv_name = <n>-name ).
+        assign ref->* to <value>.
+        assert sy-subrc = 0.
+        describe field <value> type lv_type.
+
+        case <n>-type.
+          when 'null'.
+            " Do nothing
+          when 'bool'.
+            <value> = boolc( <n>-value = 'true' ).
+          when 'num'.
+            <value> = <n>-value.
+          when 'str'.
+            <value> = <n>-value.
+          when 'object'.
+            if not lv_type co 'uv'.
+              raise exception type zcx_ajson_error
+                exporting
+                  message  = 'Expected structure'
+                  location = <n>-path && <n>-name.
+            endif.
+          when 'array'.
+            if not lv_type co 'h'.
+              raise exception type zcx_ajson_error
+                exporting
+                  message  = 'Expected table'
+                  location = <n>-path && <n>-name.
+            endif.
+          when others.
+            raise exception type zcx_ajson_error
+              exporting
+                message  = |Unexpected JSON type [{ <n>-type }]|
+                location = <n>-path && <n>-name.
+        endcase.
+
+      endloop.
+    catch cx_sy_conversion_no_number into lx.
+      raise exception type zcx_ajson_error
+        exporting
+          message  = |Source is not a number|
+          location = <n>-path && <n>-name.
+    endtry.
+
+  endmethod.
+
+  method find_loc.
+
+    data lt_path type string_table.
+    data lv_trace type string.
+    data lv_type type c.
+    data lv_size type i.
+    data lv_index type i.
+    field-symbols <struc> type any.
+    field-symbols <table> type standard table.
+    field-symbols <value> type any.
+    field-symbols <seg> like line of lt_path.
+
+    split iv_path at '/' into table lt_path.
+    delete lt_path where table_line is initial.
+    if iv_name is not initial.
+      append iv_name to lt_path.
+    endif.
+
+    r_ref = mr_obj.
+
+    loop at lt_path assigning <seg>.
+      lv_trace = lv_trace && '/' && <seg>.
+
+      assign r_ref->* to <struc>.
+      assert sy-subrc = 0.
+      describe field <struc> type lv_type.
+
+      if lv_type ca 'lr'. " data/obj ref
+        " TODO maybe in future
+        raise exception type zcx_ajson_error
+          exporting
+            message  = 'Cannot assign to ref'
+            location = lv_trace.
+
+      elseif lv_type = 'h'. " table
+        if not <seg> co '0123456789'.
+          raise exception type zcx_ajson_error
+            exporting
+              message  = 'Need index to access tables'
+              location = lv_trace.
+        endif.
+        lv_index = <seg>.
+        assign r_ref->* to <table>.
+        assert sy-subrc = 0.
+
+        lv_size = lines( <table> ).
+        if iv_append_tables = abap_true and lv_index = lv_size + 1.
+          append initial line to <table>.
+        endif.
+
+        read table <table> index lv_index assigning <value>.
+        if sy-subrc <> 0.
+          raise exception type zcx_ajson_error
+            exporting
+              message  = 'Index not found in table'
+              location = lv_trace.
+        endif.
+
+      elseif lv_type ca 'uv'. " structure
+        assign component <seg> of structure <struc> to <value>.
+        if sy-subrc <> 0.
+          raise exception type zcx_ajson_error
+            exporting
+              message  = 'Path not found'
+              location = lv_trace.
+        endif.
+      else.
+        raise exception type zcx_ajson_error
+          exporting
+            message  = 'Target is not deep'
+            location = lv_trace.
+      endif.
+      get reference of <value> into r_ref.
+    endloop.
+
+  endmethod.
+
+endclass.

@@ -1,3 +1,8 @@
+
+**********************************************************************
+* PARSER
+**********************************************************************
+
 class ltcl_parser_test definition final
   for testing
   risk level harmless
@@ -422,6 +427,375 @@ class ltcl_parser_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->members( '/issues/1/start/' )
       exp = lt_exp ).
+
+  endmethod.
+
+endclass.
+
+**********************************************************************
+* JSON TO ABAP
+**********************************************************************
+
+class ltcl_json_to_abap definition
+  for testing
+  risk level harmless
+  duration short
+  final.
+
+  public section.
+
+  private section.
+
+    types:
+      begin of ty_struc,
+        a type string,
+        b type i,
+      end of ty_struc,
+      tty_struc type standard table of ty_struc with default key,
+      begin of ty_complex,
+        str type string,
+        int type i,
+        float type f,
+        bool type abap_bool,
+        obj type ty_struc,
+        tab type tty_struc,
+        oref type ref to object,
+      end of ty_complex.
+
+    methods find_loc for testing raising zcx_ajson_error.
+    methods find_loc_negative for testing.
+    methods find_loc_append for testing raising zcx_ajson_error.
+    methods to_abap for testing raising zcx_ajson_error.
+    methods to_abap_negative for testing.
+
+    methods prepare_cut
+      exporting
+        eo_cut type ref to lcl_json_to_abap
+        e_elem type ty_struc
+        e_mock type ty_complex.
+
+    data mt_nodes type zcl_ajson=>ty_nodes_tt.
+    methods _node
+      importing
+        iv_str type string.
+
+endclass.
+
+class ltcl_json_to_abap implementation.
+
+  method _node.
+
+    field-symbols <n> like line of mt_nodes.
+    data lv_children type string.
+
+    append initial line to mt_nodes assigning <n>.
+
+    split iv_str at '|' into
+      <n>-path
+      <n>-name
+      <n>-type
+      <n>-value
+      lv_children.
+    condense <n>-path.
+    condense <n>-name.
+    condense <n>-type.
+    condense <n>-value.
+    <n>-children = lv_children.
+
+  endmethod.
+
+  method prepare_cut.
+
+    e_mock-str = 'Hello'.
+    e_mock-int = 10.
+    e_mock-obj-a = 'World'.
+    e_elem-a = 'One'.
+    e_elem-b = 1.
+    append e_elem to e_mock-tab.
+    e_elem-a = 'two'.
+    e_elem-b = 2.
+    append e_elem to e_mock-tab.
+
+    eo_cut = lcl_json_to_abap=>bind( changing c_obj = e_mock ).
+
+  endmethod.
+
+  method find_loc.
+
+    data last_elem type ty_struc.
+    data mock type ty_complex.
+    data lo_cut type ref to lcl_json_to_abap.
+
+    prepare_cut(
+      importing
+        eo_cut = lo_cut
+        e_mock = mock
+        e_elem = last_elem ).
+
+    data ref type ref to data.
+    field-symbols <val> type any.
+
+    ref = lo_cut->find_loc( 'str' ). " Relative also works but from root
+    assign ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = 'Hello' ).
+
+    ref = lo_cut->find_loc( '/str' ).
+    assign ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = 'Hello' ).
+
+    ref = lo_cut->find_loc( '/int' ).
+    assign ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = 10 ).
+
+    ref = lo_cut->find_loc( '/obj/a' ).
+    assign ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = 'World' ).
+
+    ref = lo_cut->find_loc( iv_path = '/obj' iv_name = 'a' ).
+    assign ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = 'World' ).
+
+    ref = lo_cut->find_loc( '/obj' ).
+    assign ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = mock-obj ).
+
+    ref = lo_cut->find_loc( '/' ).
+    assign ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = mock ).
+
+    ref = lo_cut->find_loc( '/tab/2' ).
+    assign ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = last_elem ).
+
+    ref = lo_cut->find_loc( '/tab/1/a' ).
+    assign ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = 'One' ).
+
+  endmethod.
+
+  method find_loc_append.
+
+    data last_elem type ty_struc.
+    data mock type ty_complex.
+    data lo_cut type ref to lcl_json_to_abap.
+    data lx type ref to zcx_ajson_error.
+
+    prepare_cut(
+      importing
+        eo_cut = lo_cut
+        e_mock = mock
+        e_elem = last_elem ).
+
+    data ref type ref to data.
+    field-symbols <val> type any.
+
+    ref = lo_cut->find_loc( '/tab/1/a' ).
+    assign ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = 'One' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( mock-tab )
+      exp = 2 ).
+
+    try.
+      lo_cut->find_loc( '/tab/3/a' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Index not found in table' ).
+    endtry.
+
+    ref = lo_cut->find_loc( iv_path = '/tab/3/a' iv_append_tables = abap_true ).
+    assign ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = '' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( mock-tab )
+      exp = 3 ).
+
+    try.
+      lo_cut->find_loc( '/tab/5/a' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Index not found in table' ).
+    endtry.
+
+  endmethod.
+
+  method find_loc_negative.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lx type ref to zcx_ajson_error.
+    data mock type ty_complex.
+
+    prepare_cut(
+      importing
+        e_mock = mock " Must be here to keep reference alive
+        eo_cut = lo_cut ).
+
+    try.
+      lo_cut->find_loc( '/xyz' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path not found' ).
+    endtry.
+
+    try.
+      lo_cut->find_loc( '/oref/xyz' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot assign to ref' ).
+    endtry.
+
+    try.
+      lo_cut->find_loc( '/tab/xyz' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Need index to access tables' ).
+    endtry.
+
+    try.
+      lo_cut->find_loc( '/tab/5' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Index not found in table' ).
+    endtry.
+
+  endmethod.
+
+  method to_abap.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data mock type ty_complex.
+    lo_cut = lcl_json_to_abap=>bind( changing c_obj = mock ).
+
+    clear mt_nodes.
+    _node( '/    |      |object |       ' ).
+    _node( '/    |str   |str    |hello  ' ).
+    _node( '/    |int   |num    |5      ' ).
+    _node( '/    |float |num    |5.5    ' ).
+    _node( '/    |bool  |bool   |true   ' ).
+    _node( '/    |obj   |object |       ' ).
+    _node( '/obj |a     |str    |world  ' ).
+    _node( '/    |tab   |array  |       ' ).
+    _node( '/tab   |1     |object |       ' ).
+    _node( '/tab/1 |a     |str    | One   ' ).
+    _node( '/tab   |2     |object |       ' ).
+    _node( '/tab/2 |a     |str    | Two   ' ).
+
+    lo_cut->to_abap( mt_nodes ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = mock-str
+      exp = 'hello' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = mock-int
+      exp = 5 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = mock-float
+      exp = '5.5' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = mock-bool
+      exp = abap_true ).
+    cl_abap_unit_assert=>assert_equals(
+      act = mock-obj-a
+      exp = 'world' ).
+
+    data elem like line of mock-tab.
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( mock-tab )
+      exp = 2 ).
+
+    read table mock-tab into elem index 1.
+    cl_abap_unit_assert=>assert_equals(
+      act = elem-a
+      exp = 'One' ).
+    read table mock-tab into elem index 2.
+    cl_abap_unit_assert=>assert_equals(
+      act = elem-a
+      exp = 'Two' ).
+
+  endmethod.
+
+  method to_abap_negative.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lx type ref to zcx_ajson_error.
+    data mock type ty_complex.
+    lo_cut = lcl_json_to_abap=>bind( changing c_obj = mock ).
+
+
+    try.
+      clear mt_nodes.
+      _node( '/    |      |object | ' ).
+      _node( '/    |str   |object | ' ).
+
+      lo_cut->to_abap( mt_nodes ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Expected structure' ).
+    endtry.
+
+    try.
+      clear mt_nodes.
+      _node( '/    |      |object | ' ).
+      _node( '/    |str   |array  | ' ).
+
+      lo_cut->to_abap( mt_nodes ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Expected table' ).
+    endtry.
+
+    try.
+      clear mt_nodes.
+      _node( '/    |      |object |      ' ).
+      _node( '/    |int   |str    |hello ' ).
+
+      lo_cut->to_abap( mt_nodes ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Source is not a number' ).
+    endtry.
+
 
   endmethod.
 
