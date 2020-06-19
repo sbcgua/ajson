@@ -80,12 +80,43 @@ class ltcl_integrated definition
 
     methods reader for testing raising zcx_ajson_error.
 
-
     methods array_index for testing raising zcx_ajson_error.
+    methods array_simple for testing raising zcx_ajson_error.
 
 endclass.
 
 class ltcl_integrated implementation.
+
+  method array_simple.
+
+    data lt_act type string_table.
+    data lt_exp type string_table.
+    data exp type string.
+
+    data lv_src type string.
+    lv_src = '['.
+    do 10 times.
+      if sy-index <> 1.
+        lv_src = lv_src && `, `.
+      endif.
+      lv_src = lv_src && |"{ sy-index }"|.
+      exp = |{ sy-index }|.
+      append exp to lt_exp.
+    enddo.
+    lv_src = lv_src && ']'.
+
+    data lo_cut type ref to zcl_ajson.
+    data li_reader type ref to zif_ajson_reader.
+
+    lo_cut = zcl_ajson=>parse( lv_src ).
+    li_reader = lo_cut.
+    li_reader->to_abap( importing ev_container = lt_act ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = lt_exp ).
+
+  endmethod.
 
   method array_index.
 
