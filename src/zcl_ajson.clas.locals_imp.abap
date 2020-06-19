@@ -69,6 +69,7 @@ class lcl_json_parser implementation.
 
             if lr_stack_top->type = 'array'.
               <item>-name = |{ lr_stack_top->children }|.
+              <item>-index = lr_stack_top->children.
             else.
               lt_attributes = lo_open->get_attributes( ).
               loop at lt_attributes into lo_attr.
@@ -180,7 +181,7 @@ class lcl_json_to_abap implementation.
     field-symbols <value> type any.
 
     try.
-      loop at it_nodes assigning <n>.
+      loop at it_nodes assigning <n> using key array_index.
         ref = find_loc(
           iv_append_tables = abap_true
           iv_path = <n>-path

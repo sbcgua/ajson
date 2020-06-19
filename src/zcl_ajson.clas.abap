@@ -12,12 +12,15 @@ class zcl_ajson definition
         name type string,
         type type string,
         value type string,
+        index type i,
         children type i,
       end of ty_node .
     types:
       ty_nodes_tt type standard table of ty_node with key path name .
     types:
-      ty_nodes_ts type sorted table of ty_node with unique key path name .
+      ty_nodes_ts type sorted table of ty_node
+        with unique key path name
+        with non-unique sorted key array_index components path index .
 
     class-methods parse
       importing
