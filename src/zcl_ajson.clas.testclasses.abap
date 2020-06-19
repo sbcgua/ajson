@@ -198,11 +198,6 @@ class ltcl_parser_test definition final
     methods members for testing raising zcx_ajson_error.
     methods slice for testing raising zcx_ajson_error.
 
-    data mt_exp type zcl_ajson=>ty_nodes_tt.
-    methods _exp
-      importing
-        iv_str type string.
-
 endclass.
 
 class zcl_ajson definition local friends ltcl_parser_test.
@@ -338,158 +333,136 @@ class ltcl_parser_test implementation.
 
   endmethod.
 
-  method _exp.
-
-    field-symbols <exp> like line of mt_exp.
-    data lv_children type string.
-
-    append initial line to mt_exp assigning <exp>.
-
-    split iv_str at '|' into
-      <exp>-path
-      <exp>-name
-      <exp>-type
-      <exp>-value
-      lv_children.
-    condense <exp>-path.
-    condense <exp>-name.
-    condense <exp>-type.
-    condense <exp>-value.
-    <exp>-children = lv_children.
-
-  endmethod.
-
   method parse.
 
     data lo_cut type ref to lcl_json_parser.
     data lt_act type zcl_ajson=>ty_nodes_tt.
+    data nodes type ref to lcl_nodes_helper.
 
-    clear mt_exp.
-    _exp( '                 |         |object |                        |8' ).
-    _exp( '/                |string   |str    |abc                     |0' ).
-    _exp( '/                |number   |num    |123                     |0' ).
-    _exp( '/                |float    |num    |123.45                  |0' ).
-    _exp( '/                |boolean  |bool   |true                    |0' ).
-    _exp( '/                |false    |bool   |false                   |0' ).
-    _exp( '/                |null     |null   |                        |0' ).
-    _exp( '/                |date     |str    |2020-03-15              |0' ).
-    _exp( '/                |issues   |array  |                        |2' ).
-    _exp( '/issues/         |1        |object |                        |5' ).
-    _exp( '/issues/1/       |message  |str    |Indentation problem ... |0' ).
-    _exp( '/issues/1/       |key      |str    |indentation             |0' ).
-    _exp( '/issues/1/       |start    |object |                        |2' ).
-    _exp( '/issues/1/start/ |row      |num    |4                       |0' ).
-    _exp( '/issues/1/start/ |col      |num    |3                       |0' ).
-    _exp( '/issues/1/       |end      |object |                        |2' ).
-    _exp( '/issues/1/end/   |row      |num    |4                       |0' ).
-    _exp( '/issues/1/end/   |col      |num    |26                      |0' ).
-    _exp( '/issues/1/       |filename |str    |./zxxx.prog.abap        |0' ).
-    _exp( '/issues/         |2        |object |                        |5' ).
-    _exp( '/issues/2/       |message  |str    |Remove space before XXX |0' ).
-    _exp( '/issues/2/       |key      |str    |space_before_dot        |0' ).
-    _exp( '/issues/2/       |start    |object |                        |2' ).
-    _exp( '/issues/2/start/ |row      |num    |3                       |0' ).
-    _exp( '/issues/2/start/ |col      |num    |21                      |0' ).
-    _exp( '/issues/2/       |end      |object |                        |2' ).
-    _exp( '/issues/2/end/   |row      |num    |3                       |0' ).
-    _exp( '/issues/2/end/   |col      |num    |22                      |0' ).
-    _exp( '/issues/2/       |filename |str    |./zxxx.prog.abap        |0' ).
+    create object nodes.
+    nodes->add( '                 |         |object |                        |8' ).
+    nodes->add( '/                |string   |str    |abc                     |0' ).
+    nodes->add( '/                |number   |num    |123                     |0' ).
+    nodes->add( '/                |float    |num    |123.45                  |0' ).
+    nodes->add( '/                |boolean  |bool   |true                    |0' ).
+    nodes->add( '/                |false    |bool   |false                   |0' ).
+    nodes->add( '/                |null     |null   |                        |0' ).
+    nodes->add( '/                |date     |str    |2020-03-15              |0' ).
+    nodes->add( '/                |issues   |array  |                        |2' ).
+    nodes->add( '/issues/         |1        |object |                        |5' ).
+    nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |0' ).
+    nodes->add( '/issues/1/       |key      |str    |indentation             |0' ).
+    nodes->add( '/issues/1/       |start    |object |                        |2' ).
+    nodes->add( '/issues/1/start/ |row      |num    |4                       |0' ).
+    nodes->add( '/issues/1/start/ |col      |num    |3                       |0' ).
+    nodes->add( '/issues/1/       |end      |object |                        |2' ).
+    nodes->add( '/issues/1/end/   |row      |num    |4                       |0' ).
+    nodes->add( '/issues/1/end/   |col      |num    |26                      |0' ).
+    nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |0' ).
+    nodes->add( '/issues/         |2        |object |                        |5' ).
+    nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |0' ).
+    nodes->add( '/issues/2/       |key      |str    |space_before_dot        |0' ).
+    nodes->add( '/issues/2/       |start    |object |                        |2' ).
+    nodes->add( '/issues/2/start/ |row      |num    |3                       |0' ).
+    nodes->add( '/issues/2/start/ |col      |num    |21                      |0' ).
+    nodes->add( '/issues/2/       |end      |object |                        |2' ).
+    nodes->add( '/issues/2/end/   |row      |num    |3                       |0' ).
+    nodes->add( '/issues/2/end/   |col      |num    |22                      |0' ).
+    nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |0' ).
 
     create object lo_cut.
     lt_act = lo_cut->parse( gv_sample ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
-      exp = mt_exp ).
+      exp = nodes->mt_nodes ).
 
   endmethod.
 
   method slice.
 
     data lo_cut type ref to zcl_ajson.
+    data nodes type ref to lcl_nodes_helper.
 
-    clear mt_exp.
-    _exp( '          |         |array  |                        |2' ).
-    _exp( '/         |1        |object |                        |5' ).
-    _exp( '/1/       |message  |str    |Indentation problem ... |0' ).
-    _exp( '/1/       |key      |str    |indentation             |0' ).
-    _exp( '/1/       |start    |object |                        |2' ).
-    _exp( '/1/start/ |row      |num    |4                       |0' ).
-    _exp( '/1/start/ |col      |num    |3                       |0' ).
-    _exp( '/1/       |end      |object |                        |2' ).
-    _exp( '/1/end/   |row      |num    |4                       |0' ).
-    _exp( '/1/end/   |col      |num    |26                      |0' ).
-    _exp( '/1/       |filename |str    |./zxxx.prog.abap        |0' ).
-    _exp( '/         |2        |object |                        |5' ).
-    _exp( '/2/       |message  |str    |Remove space before XXX |0' ).
-    _exp( '/2/       |key      |str    |space_before_dot        |0' ).
-    _exp( '/2/       |start    |object |                        |2' ).
-    _exp( '/2/start/ |row      |num    |3                       |0' ).
-    _exp( '/2/start/ |col      |num    |21                      |0' ).
-    _exp( '/2/       |end      |object |                        |2' ).
-    _exp( '/2/end/   |row      |num    |3                       |0' ).
-    _exp( '/2/end/   |col      |num    |22                      |0' ).
-    _exp( '/2/       |filename |str    |./zxxx.prog.abap        |0' ).
-    sort mt_exp by path name. " Imitate sorted tab
+    create object nodes.
+    nodes->add( '          |         |array  |                        |2' ).
+    nodes->add( '/         |1        |object |                        |5' ).
+    nodes->add( '/1/       |message  |str    |Indentation problem ... |0' ).
+    nodes->add( '/1/       |key      |str    |indentation             |0' ).
+    nodes->add( '/1/       |start    |object |                        |2' ).
+    nodes->add( '/1/start/ |row      |num    |4                       |0' ).
+    nodes->add( '/1/start/ |col      |num    |3                       |0' ).
+    nodes->add( '/1/       |end      |object |                        |2' ).
+    nodes->add( '/1/end/   |row      |num    |4                       |0' ).
+    nodes->add( '/1/end/   |col      |num    |26                      |0' ).
+    nodes->add( '/1/       |filename |str    |./zxxx.prog.abap        |0' ).
+    nodes->add( '/         |2        |object |                        |5' ).
+    nodes->add( '/2/       |message  |str    |Remove space before XXX |0' ).
+    nodes->add( '/2/       |key      |str    |space_before_dot        |0' ).
+    nodes->add( '/2/       |start    |object |                        |2' ).
+    nodes->add( '/2/start/ |row      |num    |3                       |0' ).
+    nodes->add( '/2/start/ |col      |num    |21                      |0' ).
+    nodes->add( '/2/       |end      |object |                        |2' ).
+    nodes->add( '/2/end/   |row      |num    |3                       |0' ).
+    nodes->add( '/2/end/   |col      |num    |22                      |0' ).
+    nodes->add( '/2/       |filename |str    |./zxxx.prog.abap        |0' ).
 
     lo_cut = zcl_ajson=>parse( gv_sample ).
     lo_cut ?= lo_cut->zif_ajson_reader~slice( '/issues' ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = mt_exp ).
+      exp = nodes->sorted( ) ).
 
     " **********************************************************************
 
-    clear mt_exp.
-    _exp( '                 |         |object |                        |8' ).
-    _exp( '/                |string   |str    |abc                     |0' ).
-    _exp( '/                |number   |num    |123                     |0' ).
-    _exp( '/                |float    |num    |123.45                  |0' ).
-    _exp( '/                |boolean  |bool   |true                    |0' ).
-    _exp( '/                |false    |bool   |false                   |0' ).
-    _exp( '/                |null     |null   |                        |0' ).
-    _exp( '/                |date     |str    |2020-03-15              |0' ).
-    _exp( '/                |issues   |array  |                        |2' ).
-    _exp( '/issues/         |1        |object |                        |5' ).
-    _exp( '/issues/1/       |message  |str    |Indentation problem ... |0' ).
-    _exp( '/issues/1/       |key      |str    |indentation             |0' ).
-    _exp( '/issues/1/       |start    |object |                        |2' ).
-    _exp( '/issues/1/start/ |row      |num    |4                       |0' ).
-    _exp( '/issues/1/start/ |col      |num    |3                       |0' ).
-    _exp( '/issues/1/       |end      |object |                        |2' ).
-    _exp( '/issues/1/end/   |row      |num    |4                       |0' ).
-    _exp( '/issues/1/end/   |col      |num    |26                      |0' ).
-    _exp( '/issues/1/       |filename |str    |./zxxx.prog.abap        |0' ).
-    _exp( '/issues/         |2        |object |                        |5' ).
-    _exp( '/issues/2/       |message  |str    |Remove space before XXX |0' ).
-    _exp( '/issues/2/       |key      |str    |space_before_dot        |0' ).
-    _exp( '/issues/2/       |start    |object |                        |2' ).
-    _exp( '/issues/2/start/ |row      |num    |3                       |0' ).
-    _exp( '/issues/2/start/ |col      |num    |21                      |0' ).
-    _exp( '/issues/2/       |end      |object |                        |2' ).
-    _exp( '/issues/2/end/   |row      |num    |3                       |0' ).
-    _exp( '/issues/2/end/   |col      |num    |22                      |0' ).
-    _exp( '/issues/2/       |filename |str    |./zxxx.prog.abap        |0' ).
-    sort mt_exp by path name. " Imitate sorted tab
+    create object nodes.
+    nodes->add( '                 |         |object |                        |8' ).
+    nodes->add( '/                |string   |str    |abc                     |0' ).
+    nodes->add( '/                |number   |num    |123                     |0' ).
+    nodes->add( '/                |float    |num    |123.45                  |0' ).
+    nodes->add( '/                |boolean  |bool   |true                    |0' ).
+    nodes->add( '/                |false    |bool   |false                   |0' ).
+    nodes->add( '/                |null     |null   |                        |0' ).
+    nodes->add( '/                |date     |str    |2020-03-15              |0' ).
+    nodes->add( '/                |issues   |array  |                        |2' ).
+    nodes->add( '/issues/         |1        |object |                        |5' ).
+    nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |0' ).
+    nodes->add( '/issues/1/       |key      |str    |indentation             |0' ).
+    nodes->add( '/issues/1/       |start    |object |                        |2' ).
+    nodes->add( '/issues/1/start/ |row      |num    |4                       |0' ).
+    nodes->add( '/issues/1/start/ |col      |num    |3                       |0' ).
+    nodes->add( '/issues/1/       |end      |object |                        |2' ).
+    nodes->add( '/issues/1/end/   |row      |num    |4                       |0' ).
+    nodes->add( '/issues/1/end/   |col      |num    |26                      |0' ).
+    nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |0' ).
+    nodes->add( '/issues/         |2        |object |                        |5' ).
+    nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |0' ).
+    nodes->add( '/issues/2/       |key      |str    |space_before_dot        |0' ).
+    nodes->add( '/issues/2/       |start    |object |                        |2' ).
+    nodes->add( '/issues/2/start/ |row      |num    |3                       |0' ).
+    nodes->add( '/issues/2/start/ |col      |num    |21                      |0' ).
+    nodes->add( '/issues/2/       |end      |object |                        |2' ).
+    nodes->add( '/issues/2/end/   |row      |num    |3                       |0' ).
+    nodes->add( '/issues/2/end/   |col      |num    |22                      |0' ).
+    nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |0' ).
 
     lo_cut = zcl_ajson=>parse( gv_sample ).
     lo_cut ?= lo_cut->zif_ajson_reader~slice( '/' ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = mt_exp ).
+      exp = nodes->sorted( ) ).
 
     " **********************************************************************
 
-    clear mt_exp.
-    _exp( '  |         |object |                        |2' ).
-    _exp( '/ |row      |num    |3                       |0' ).
-    _exp( '/ |col      |num    |21                      |0' ).
-    sort mt_exp by path name. " Imitate sorted tab
+    create object nodes.
+    nodes->add( '  |         |object |                        |2' ).
+    nodes->add( '/ |row      |num    |3                       |0' ).
+    nodes->add( '/ |col      |num    |21                      |0' ).
 
     lo_cut = zcl_ajson=>parse( gv_sample ).
     lo_cut ?= lo_cut->zif_ajson_reader~slice( '/issues/2/start/' ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = mt_exp ).
+      exp = nodes->sorted( ) ).
 
   endmethod.
 
