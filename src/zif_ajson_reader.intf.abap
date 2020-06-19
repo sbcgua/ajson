@@ -43,6 +43,8 @@ interface zif_ajson_reader
       value(ri_json) type ref to zif_ajson_reader.
   methods to_abap
     exporting
-      ev_container type any.
+      ev_container type any
+    raising
+      zcx_ajson_error.
 
 endinterface.

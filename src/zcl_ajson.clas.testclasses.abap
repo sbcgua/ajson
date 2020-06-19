@@ -1,3 +1,177 @@
+**********************************************************************
+* UTIL
+**********************************************************************
+class lcl_nodes_helper definition final.
+  public section.
+
+    data mt_nodes type zcl_ajson=>ty_nodes_tt.
+    methods add
+      importing
+        iv_str type string.
+    methods sorted
+      returning
+        value(rt_nodes) type zcl_ajson=>ty_nodes_ts.
+
+endclass.
+
+class lcl_nodes_helper implementation.
+  method add.
+
+    field-symbols <n> like line of mt_nodes.
+    data lv_children type string.
+
+    append initial line to mt_nodes assigning <n>.
+
+    split iv_str at '|' into
+      <n>-path
+      <n>-name
+      <n>-type
+      <n>-value
+      lv_children.
+    condense <n>-path.
+    condense <n>-name.
+    condense <n>-type.
+    condense <n>-value.
+    <n>-children = lv_children.
+
+  endmethod.
+  method sorted.
+    rt_nodes = mt_nodes.
+  endmethod.
+endclass.
+
+**********************************************************************
+* INTEGRATED
+**********************************************************************
+class ltcl_integrated definition
+  for testing
+  risk level harmless
+  duration short
+  final.
+
+  private section.
+
+    types:
+      begin of ty_loc,
+        row type i,
+        col type i,
+      end of ty_loc,
+      begin of ty_issue,
+        message type string,
+        key type string,
+        filename type string,
+        start type ty_loc,
+        end type ty_loc,
+      end of ty_issue,
+      tt_issues type standard table of ty_issue with default key,
+      begin of ty_target,
+        string type string,
+        number type i,
+        float type f,
+        boolean type abap_bool,
+        false type abap_bool,
+        null type string,
+        date type string, " ??? TODO
+        issues type tt_issues,
+      end of ty_target.
+
+    methods reader for testing raising zcx_ajson_error.
+
+endclass.
+
+class ltcl_integrated implementation.
+
+  method reader.
+
+    data lv_source type string.
+    lv_source =
+      '{' &&
+      '  "string": "abc",' &&
+      '  "number": 123,' &&
+      '  "float": 123.45,' &&
+      '  "boolean": true,' &&
+      '  "false": false,' &&
+      '  "null": null,' &&
+      '  "date": "2020-03-15",' &&
+      '  "issues": [' &&
+      '    {' &&
+      '      "message": "Indentation problem ...",' &&
+      '      "key": "indentation",' &&
+      '      "start": {' &&
+      '        "row": 4,' &&
+      '        "col": 3' &&
+      '      },' &&
+      '      "end": {' &&
+      '        "row": 4,' &&
+      '        "col": 26' &&
+      '      },' &&
+      '      "filename": "./zxxx.prog.abap"' &&
+      '    },' &&
+      '    {' &&
+      '      "message": "Remove space before XXX",' &&
+      '      "key": "space_before_dot",' &&
+      '      "start": {' &&
+      '        "row": 3,' &&
+      '        "col": 21' &&
+      '      },' &&
+      '      "end": {' &&
+      '        "row": 3,' &&
+      '        "col": 22' &&
+      '      },' &&
+      '      "filename": "./zxxx.prog.abap"' &&
+      '    }' &&
+      '  ]' &&
+      '}'.
+
+    data lo_cut type ref to zcl_ajson.
+    data li_reader type ref to zif_ajson_reader.
+
+    lo_cut = zcl_ajson=>parse( lv_source ).
+    li_reader = lo_cut.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_reader->value( '/string' )
+      exp = 'abc' ).
+
+    data ls_act type ty_target.
+    data ls_exp type ty_target.
+    field-symbols <i> like line of ls_exp-issues.
+
+    ls_exp-string = 'abc'.
+    ls_exp-number = 123.
+    ls_exp-float = '123.45'.
+    ls_exp-boolean = abap_true.
+    ls_exp-false = abap_false.
+    ls_exp-date = '2020-03-15'.
+
+    append initial line to ls_exp-issues assigning <i>.
+    <i>-message  = 'Indentation problem ...'.
+    <i>-key      = 'indentation'.
+    <i>-filename = './zxxx.prog.abap'.
+    <i>-start-row = 4.
+    <i>-start-col = 3.
+    <i>-end-row   = 4.
+    <i>-end-col   = 26.
+
+    append initial line to ls_exp-issues assigning <i>.
+    <i>-message  = 'Remove space before XXX'.
+    <i>-key      = 'space_before_dot'.
+    <i>-filename = './zxxx.prog.abap'.
+    <i>-start-row = 3.
+    <i>-start-col = 21.
+    <i>-end-row   = 3.
+    <i>-end-col   = 22.
+
+    li_reader->to_abap( importing ev_container = ls_act ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_act
+      exp = ls_exp ).
+
+  endmethod.
+
+endclass.
+
 
 **********************************************************************
 * PARSER
@@ -442,8 +616,6 @@ class ltcl_json_to_abap definition
   duration short
   final.
 
-  public section.
-
   private section.
 
     types:
@@ -474,35 +646,9 @@ class ltcl_json_to_abap definition
         e_elem type ty_struc
         e_mock type ty_complex.
 
-    data mt_nodes type zcl_ajson=>ty_nodes_tt.
-    methods _node
-      importing
-        iv_str type string.
-
 endclass.
 
 class ltcl_json_to_abap implementation.
-
-  method _node.
-
-    field-symbols <n> like line of mt_nodes.
-    data lv_children type string.
-
-    append initial line to mt_nodes assigning <n>.
-
-    split iv_str at '|' into
-      <n>-path
-      <n>-name
-      <n>-type
-      <n>-value
-      lv_children.
-    condense <n>-path.
-    condense <n>-name.
-    condense <n>-type.
-    condense <n>-value.
-    <n>-children = lv_children.
-
-  endmethod.
 
   method prepare_cut.
 
@@ -701,21 +847,22 @@ class ltcl_json_to_abap implementation.
     data mock type ty_complex.
     lo_cut = lcl_json_to_abap=>bind( changing c_obj = mock ).
 
-    clear mt_nodes.
-    _node( '/    |      |object |       ' ).
-    _node( '/    |str   |str    |hello  ' ).
-    _node( '/    |int   |num    |5      ' ).
-    _node( '/    |float |num    |5.5    ' ).
-    _node( '/    |bool  |bool   |true   ' ).
-    _node( '/    |obj   |object |       ' ).
-    _node( '/obj |a     |str    |world  ' ).
-    _node( '/    |tab   |array  |       ' ).
-    _node( '/tab   |1     |object |       ' ).
-    _node( '/tab/1 |a     |str    | One   ' ).
-    _node( '/tab   |2     |object |       ' ).
-    _node( '/tab/2 |a     |str    | Two   ' ).
+    data nodes type ref to lcl_nodes_helper.
+    create object nodes.
+    nodes->add( '/    |      |object |       ' ).
+    nodes->add( '/    |str   |str    |hello  ' ).
+    nodes->add( '/    |int   |num    |5      ' ).
+    nodes->add( '/    |float |num    |5.5    ' ).
+    nodes->add( '/    |bool  |bool   |true   ' ).
+    nodes->add( '/    |obj   |object |       ' ).
+    nodes->add( '/obj |a     |str    |world  ' ).
+    nodes->add( '/    |tab   |array  |       ' ).
+    nodes->add( '/tab   |1     |object |       ' ).
+    nodes->add( '/tab/1 |a     |str    | One   ' ).
+    nodes->add( '/tab   |2     |object |       ' ).
+    nodes->add( '/tab/2 |a     |str    | Two   ' ).
 
-    lo_cut->to_abap( mt_nodes ).
+    lo_cut->to_abap( nodes->sorted( ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = mock-str
@@ -756,13 +903,14 @@ class ltcl_json_to_abap implementation.
     data mock type ty_complex.
     lo_cut = lcl_json_to_abap=>bind( changing c_obj = mock ).
 
+    data nodes type ref to lcl_nodes_helper.
 
     try.
-      clear mt_nodes.
-      _node( '/    |      |object | ' ).
-      _node( '/    |str   |object | ' ).
+      create object nodes.
+      nodes->add( '/    |      |object | ' ).
+      nodes->add( '/    |str   |object | ' ).
 
-      lo_cut->to_abap( mt_nodes ).
+      lo_cut->to_abap( nodes->sorted( ) ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(
@@ -771,11 +919,11 @@ class ltcl_json_to_abap implementation.
     endtry.
 
     try.
-      clear mt_nodes.
-      _node( '/    |      |object | ' ).
-      _node( '/    |str   |array  | ' ).
+      create object nodes.
+      nodes->add( '/    |      |object | ' ).
+      nodes->add( '/    |str   |array  | ' ).
 
-      lo_cut->to_abap( mt_nodes ).
+      lo_cut->to_abap( nodes->sorted( ) ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(
@@ -784,11 +932,11 @@ class ltcl_json_to_abap implementation.
     endtry.
 
     try.
-      clear mt_nodes.
-      _node( '/    |      |object |      ' ).
-      _node( '/    |int   |str    |hello ' ).
+      create object nodes.
+      nodes->add( '/    |      |object |      ' ).
+      nodes->add( '/    |int   |str    |hello ' ).
 
-      lo_cut->to_abap( mt_nodes ).
+      lo_cut->to_abap( nodes->sorted( ) ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(

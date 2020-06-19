@@ -156,7 +156,7 @@ class lcl_json_to_abap definition final.
 
     methods to_abap
       importing
-        it_nodes type zcl_ajson=>ty_nodes_tt
+        it_nodes type zcl_ajson=>ty_nodes_ts
       raising
         zcx_ajson_error.
 

@@ -188,7 +188,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method zif_ajson_reader~to_abap.
-    " TODO
+
+    data lo_to_abap type ref to lcl_json_to_abap.
+
+    clear ev_container.
+    lo_to_abap = lcl_json_to_abap=>bind( changing c_obj = ev_container ).
+    lo_to_abap->to_abap( mt_json_tree ).
+
   endmethod.
 
 
