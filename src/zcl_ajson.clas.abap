@@ -5,6 +5,7 @@ class zcl_ajson definition
   public section.
 
     interfaces zif_ajson_reader .
+    interfaces zif_ajson_writer .
 
     types:
       begin of ty_node,
@@ -29,6 +30,11 @@ class zcl_ajson definition
         value(ro_instance) type ref to zcl_ajson
       raising
         zcx_ajson_error .
+
+    class-methods create_empty
+      returning
+        value(ro_instance) type ref to zcl_ajson.
+
   protected section.
 
   private section.
@@ -38,6 +44,8 @@ class zcl_ajson definition
         path type string,
         name type string,
       end of ty_path_name.
+    types:
+      tty_node_stack type standard table of ref to ty_node with default key.
 
     data mt_json_tree type ty_nodes_ts.
 
@@ -56,12 +64,56 @@ class zcl_ajson definition
         iv_path type string
       returning
         value(rv_item) type ref to ty_node.
+    methods prove_path_exists
+      importing
+        iv_path type string
+      returning
+        value(rt_node_stack) type tty_node_stack.
+    methods delete_subtree
+      importing
+        iv_path type string
+        iv_name type string
+      returning
+        value(rv_deleted) type abap_bool.
 
 ENDCLASS.
 
 
 
 CLASS ZCL_AJSON IMPLEMENTATION.
+
+
+  method create_empty.
+    create object ro_instance.
+  endmethod.
+
+
+  method delete_subtree.
+
+    data lv_parent_path type string.
+    data lv_parent_path_len type i.
+    field-symbols <node> like line of mt_json_tree.
+    read table mt_json_tree assigning <node>
+      with key
+        path = iv_path
+        name = iv_name.
+    if sy-subrc = 0. " Found ? delete !
+      if <node>-children > 0. " only for objects and arrays
+        lv_parent_path = iv_path && iv_name && '/'.
+        lv_parent_path_len = strlen( lv_parent_path ).
+        loop at mt_json_tree assigning <node>.
+          if strlen( <node>-path ) >= lv_parent_path_len
+            and substring( val = <node>-path len = lv_parent_path_len ) = lv_parent_path.
+            delete mt_json_tree index sy-tabix.
+          endif.
+        endloop.
+      endif.
+
+      delete mt_json_tree where path = iv_path and name = iv_name.
+      rv_deleted = abap_true.
+    endif.
+
+  endmethod.
 
 
   method get_item.
@@ -105,6 +157,46 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     create object ro_instance.
     create object lo_parser.
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
+
+  endmethod.
+
+
+  method prove_path_exists.
+
+    data lt_path type string_table.
+    data node_ref like line of rt_node_stack.
+    data lv_size type i.
+    data lv_cur_path type string.
+    data lv_cur_name type string.
+    data node_tmp like line of mt_json_tree.
+
+    split iv_path at '/' into table lt_path.
+    delete lt_path where table_line is initial.
+    lv_size = lines( lt_path ).
+
+    do.
+      read table mt_json_tree reference into node_ref
+        with key
+          path = lv_cur_path
+          name = lv_cur_name.
+      if sy-subrc <> 0. " New node, assume it is always object as it has a named child, use touch_array to init array
+        if node_ref is not initial. " if has parent
+          node_ref->children = node_ref->children + 1.
+        endif.
+        node_tmp-path = lv_cur_path.
+        node_tmp-name = lv_cur_name.
+        node_tmp-type = 'object'.
+        insert node_tmp into table mt_json_tree reference into node_ref.
+      endif.
+      insert node_ref into rt_node_stack index 1.
+      lv_cur_path = lv_cur_path && lv_cur_name && '/'.
+      read table lt_path index sy-index into lv_cur_name.
+      if sy-subrc <> 0.
+        exit. " no more segments
+      endif.
+    enddo.
+
+    assert lv_cur_path = iv_path. " Just in case
 
   endmethod.
 
@@ -175,6 +267,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     ls_path_parts      = split_path( lv_normalized_path ).
 
     loop at mt_json_tree into ls_item.
+      " TODO potentially improve performance due to sorted tree (all path started from same prefix go in a row)
       if strlen( ls_item-path ) >= lv_path_len
           and substring( val = ls_item-path len = lv_path_len ) = lv_normalized_path.
         ls_item-path = substring( val = ls_item-path off = lv_path_len - 1 ). " less closing '/'
@@ -257,5 +350,54 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       rv_value = lv_item->value.
     endif.
 
+  endmethod.
+
+
+  method zif_ajson_writer~push.
+  endmethod.
+
+
+  method zif_ajson_writer~set.
+
+    data lt_path type string_table.
+    data lv_split_path type ty_path_name.
+    data parent_ref type ref to ty_node.
+    data lt_node_stack type table of ref to ty_node.
+
+    if iv_val is initial.
+      return. " nothing to assign
+    endif.
+
+    lv_split_path = split_path( iv_path ).
+    if lv_split_path is initial. " Assign root, exceptional processing
+      clear mt_json_tree.
+      " add root
+      return.
+    endif.
+
+    " Ensure whole path exists
+    lt_node_stack = prove_path_exists( lv_split_path-path ).
+    read table lt_node_stack index 1 into parent_ref.
+    assert sy-subrc = 0.
+
+    " delete if exists with subtree
+    if abap_true = delete_subtree(
+      iv_path = lv_split_path-path
+      iv_name = lv_split_path-name ).
+      parent_ref->children = parent_ref->children - 1.
+    endif.
+
+    " convert to json
+
+    " update child count
+
+  endmethod.
+
+
+  method zif_ajson_writer~stringify.
+  endmethod.
+
+
+  method zif_ajson_writer~touch_array.
   endmethod.
 ENDCLASS.

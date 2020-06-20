@@ -860,6 +860,39 @@ class zcl_ajson definition local friends ltcl_writer_test.
 class ltcl_writer_test implementation.
 
   method set.
+
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson_writer.
+    data nodes type ref to lcl_nodes_helper.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    create object nodes.
+    nodes->add( '        |      |object |     ||1' ).
+    nodes->add( '/       |a     |object |     ||1' ).
+    nodes->add( '/a/     |b     |object |     ||1' ).
+    nodes->add( '/a/b/   |c     |object |     ||1' ).
+    nodes->add( '/a/b/c/ |d     |object |     ||0' ).
+
+    li_writer->set(
+      iv_path = '/a/b/c/d/e'
+      iv_val  = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes->sorted( ) ).
+
+    create object nodes.
+    nodes->add( '        |      |object |     ||1' ).
+    nodes->add( '/       |a     |object |     ||0' ).
+
+    li_writer->set(
+      iv_path = '/a/b'
+      iv_val  = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes->sorted( ) ).
+
   endmethod.
 
 endclass.
