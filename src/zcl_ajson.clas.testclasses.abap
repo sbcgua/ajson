@@ -1,3 +1,5 @@
+
+
 **********************************************************************
 * UTIL
 **********************************************************************
@@ -44,115 +46,33 @@ class lcl_nodes_helper implementation.
 endclass.
 
 **********************************************************************
-* INTEGRATED
+* PARSER
 **********************************************************************
-class ltcl_integrated definition
+
+class ltcl_parser_test definition final
   for testing
   risk level harmless
-  duration short
-  final.
+  duration short.
+
+  public section.
+
+    class-methods sample_json
+      returning
+        value(rv_json) type string.
 
   private section.
 
-    types:
-      begin of ty_loc,
-        row type i,
-        col type i,
-      end of ty_loc,
-      begin of ty_issue,
-        message type string,
-        key type string,
-        filename type string,
-        start type ty_loc,
-        end type ty_loc,
-      end of ty_issue,
-      tt_issues type standard table of ty_issue with default key,
-      begin of ty_target,
-        string type string,
-        number type i,
-        float type f,
-        boolean type abap_bool,
-        false type abap_bool,
-        null type string,
-        date type string, " ??? TODO
-        issues type tt_issues,
-      end of ty_target.
-
-    methods reader for testing raising zcx_ajson_error.
-
-    methods array_index for testing raising zcx_ajson_error.
-    methods array_simple for testing raising zcx_ajson_error.
+    methods parse for testing raising zcx_ajson_error.
 
 endclass.
 
-class ltcl_integrated implementation.
+class zcl_ajson definition local friends ltcl_parser_test.
 
-  method array_simple.
+class ltcl_parser_test implementation.
 
-    data lt_act type string_table.
-    data lt_exp type string_table.
-    data exp type string.
+  method sample_json.
 
-    data lv_src type string.
-    lv_src = '['.
-    do 10 times.
-      if sy-index <> 1.
-        lv_src = lv_src && `, `.
-      endif.
-      lv_src = lv_src && |"{ sy-index }"|.
-      exp = |{ sy-index }|.
-      append exp to lt_exp.
-    enddo.
-    lv_src = lv_src && ']'.
-
-    data lo_cut type ref to zcl_ajson.
-    data li_reader type ref to zif_ajson_reader.
-
-    lo_cut = zcl_ajson=>parse( lv_src ).
-    li_reader = lo_cut.
-    li_reader->to_abap( importing ev_container = lt_act ).
-
-    cl_abap_unit_assert=>assert_equals(
-      act = lt_act
-      exp = lt_exp ).
-
-  endmethod.
-
-  method array_index.
-
-    data lt_act type table of ty_loc.
-    data lt_exp type table of ty_loc.
-    data exp type ty_loc.
-
-    data lv_src type string.
-    lv_src = '['.
-    do 10 times.
-      if sy-index <> 1.
-        lv_src = lv_src && `, `.
-      endif.
-      lv_src = lv_src && |\{ "row": { sy-index } \}|.
-      exp-row = sy-index.
-      append exp to lt_exp.
-    enddo.
-    lv_src = lv_src && ']'.
-
-    data lo_cut type ref to zcl_ajson.
-    data li_reader type ref to zif_ajson_reader.
-
-    lo_cut = zcl_ajson=>parse( lv_src ).
-    li_reader = lo_cut.
-    li_reader->to_abap( importing ev_container = lt_act ).
-
-    cl_abap_unit_assert=>assert_equals(
-      act = lt_act
-      exp = lt_exp ).
-
-  endmethod.
-
-  method reader.
-
-    data lv_source type string.
-    lv_source =
+    rv_json =
       '{' &&
       '  "string": "abc",' &&
       '  "number": 123,' &&
@@ -191,86 +111,74 @@ class ltcl_integrated implementation.
       '  ]' &&
       '}'.
 
-    data lo_cut type ref to zcl_ajson.
-    data li_reader type ref to zif_ajson_reader.
+  endmethod.
 
-    lo_cut = zcl_ajson=>parse( lv_source ).
-    li_reader = lo_cut.
+  method parse.
 
+    data lo_cut type ref to lcl_json_parser.
+    data lt_act type zcl_ajson=>ty_nodes_tt.
+    data nodes type ref to lcl_nodes_helper.
+
+    create object nodes.
+    nodes->add( '                 |         |object |                        |  |8' ).
+    nodes->add( '/                |string   |str    |abc                     |  |0' ).
+    nodes->add( '/                |number   |num    |123                     |  |0' ).
+    nodes->add( '/                |float    |num    |123.45                  |  |0' ).
+    nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
+    nodes->add( '/                |false    |bool   |false                   |  |0' ).
+    nodes->add( '/                |null     |null   |                        |  |0' ).
+    nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
+    nodes->add( '/                |issues   |array  |                        |  |2' ).
+    nodes->add( '/issues/         |1        |object |                        |1 |5' ).
+    nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0' ).
+    nodes->add( '/issues/1/       |key      |str    |indentation             |  |0' ).
+    nodes->add( '/issues/1/       |start    |object |                        |  |2' ).
+    nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0' ).
+    nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0' ).
+    nodes->add( '/issues/1/       |end      |object |                        |  |2' ).
+    nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
+    nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
+    nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    nodes->add( '/issues/         |2        |object |                        |2 |5' ).
+    nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0' ).
+    nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0' ).
+    nodes->add( '/issues/2/       |start    |object |                        |  |2' ).
+    nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0' ).
+    nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0' ).
+    nodes->add( '/issues/2/       |end      |object |                        |  |2' ).
+    nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
+    nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
+    nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+
+    create object lo_cut.
+    lt_act = lo_cut->parse( sample_json( ) ).
     cl_abap_unit_assert=>assert_equals(
-      act = li_reader->value( '/string' )
-      exp = 'abc' ).
-
-    data ls_act type ty_target.
-    data ls_exp type ty_target.
-    field-symbols <i> like line of ls_exp-issues.
-
-    ls_exp-string = 'abc'.
-    ls_exp-number = 123.
-    ls_exp-float = '123.45'.
-    ls_exp-boolean = abap_true.
-    ls_exp-false = abap_false.
-    ls_exp-date = '2020-03-15'.
-
-    append initial line to ls_exp-issues assigning <i>.
-    <i>-message  = 'Indentation problem ...'.
-    <i>-key      = 'indentation'.
-    <i>-filename = './zxxx.prog.abap'.
-    <i>-start-row = 4.
-    <i>-start-col = 3.
-    <i>-end-row   = 4.
-    <i>-end-col   = 26.
-
-    append initial line to ls_exp-issues assigning <i>.
-    <i>-message  = 'Remove space before XXX'.
-    <i>-key      = 'space_before_dot'.
-    <i>-filename = './zxxx.prog.abap'.
-    <i>-start-row = 3.
-    <i>-start-col = 21.
-    <i>-end-row   = 3.
-    <i>-end-col   = 22.
-
-    li_reader->to_abap( importing ev_container = ls_act ).
-
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_act
-      exp = ls_exp ).
+      act = lt_act
+      exp = nodes->mt_nodes ).
 
   endmethod.
 
 endclass.
 
-
 **********************************************************************
-* PARSER
+* UTILS
 **********************************************************************
 
-class ltcl_parser_test definition final
+class ltcl_utils_test definition final
   for testing
   risk level harmless
   duration short.
 
   private section.
 
-    class-data gv_sample type string.
-
-    class-methods class_setup.
-
-    methods parse for testing raising zcx_ajson_error.
     methods normalize_path for testing.
     methods split_path for testing.
-    methods get_value for testing raising zcx_ajson_error.
-    methods exists for testing raising zcx_ajson_error.
-    methods value_integer for testing raising zcx_ajson_error.
-    methods value_boolean for testing raising zcx_ajson_error.
-    methods members for testing raising zcx_ajson_error.
-    methods slice for testing raising zcx_ajson_error.
 
 endclass.
 
-class zcl_ajson definition local friends ltcl_parser_test.
+class zcl_ajson definition local friends ltcl_utils_test.
 
-class ltcl_parser_test implementation.
+class ltcl_utils_test implementation.
 
   method normalize_path.
 
@@ -358,93 +266,31 @@ class ltcl_parser_test implementation.
 
   endmethod.
 
-  method class_setup.
+endclass.
 
-    gv_sample =
-      '{' &&
-      '  "string": "abc",' &&
-      '  "number": 123,' &&
-      '  "float": 123.45,' &&
-      '  "boolean": true,' &&
-      '  "false": false,' &&
-      '  "null": null,' &&
-      '  "date": "2020-03-15",' &&
-      '  "issues": [' &&
-      '    {' &&
-      '      "message": "Indentation problem ...",' &&
-      '      "key": "indentation",' &&
-      '      "start": {' &&
-      '        "row": 4,' &&
-      '        "col": 3' &&
-      '      },' &&
-      '      "end": {' &&
-      '        "row": 4,' &&
-      '        "col": 26' &&
-      '      },' &&
-      '      "filename": "./zxxx.prog.abap"' &&
-      '    },' &&
-      '    {' &&
-      '      "message": "Remove space before XXX",' &&
-      '      "key": "space_before_dot",' &&
-      '      "start": {' &&
-      '        "row": 3,' &&
-      '        "col": 21' &&
-      '      },' &&
-      '      "end": {' &&
-      '        "row": 3,' &&
-      '        "col": 22' &&
-      '      },' &&
-      '      "filename": "./zxxx.prog.abap"' &&
-      '    }' &&
-      '  ]' &&
-      '}'.
+**********************************************************************
+* READER
+**********************************************************************
 
-  endmethod.
+class ltcl_reader_test definition final
+  for testing
+  risk level harmless
+  duration short.
 
-  method parse.
+  private section.
 
-    data lo_cut type ref to lcl_json_parser.
-    data lt_act type zcl_ajson=>ty_nodes_tt.
-    data nodes type ref to lcl_nodes_helper.
+    methods get_value for testing raising zcx_ajson_error.
+    methods exists for testing raising zcx_ajson_error.
+    methods value_integer for testing raising zcx_ajson_error.
+    methods value_boolean for testing raising zcx_ajson_error.
+    methods members for testing raising zcx_ajson_error.
+    methods slice for testing raising zcx_ajson_error.
 
-    create object nodes.
-    nodes->add( '                 |         |object |                        |  |8' ).
-    nodes->add( '/                |string   |str    |abc                     |  |0' ).
-    nodes->add( '/                |number   |num    |123                     |  |0' ).
-    nodes->add( '/                |float    |num    |123.45                  |  |0' ).
-    nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
-    nodes->add( '/                |false    |bool   |false                   |  |0' ).
-    nodes->add( '/                |null     |null   |                        |  |0' ).
-    nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
-    nodes->add( '/                |issues   |array  |                        |  |2' ).
-    nodes->add( '/issues/         |1        |object |                        |1 |5' ).
-    nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0' ).
-    nodes->add( '/issues/1/       |key      |str    |indentation             |  |0' ).
-    nodes->add( '/issues/1/       |start    |object |                        |  |2' ).
-    nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0' ).
-    nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0' ).
-    nodes->add( '/issues/1/       |end      |object |                        |  |2' ).
-    nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
-    nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
-    nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
-    nodes->add( '/issues/         |2        |object |                        |2 |5' ).
-    nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0' ).
-    nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0' ).
-    nodes->add( '/issues/2/       |start    |object |                        |  |2' ).
-    nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0' ).
-    nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0' ).
-    nodes->add( '/issues/2/       |end      |object |                        |  |2' ).
-    nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
-    nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
-    nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+endclass.
 
-    create object lo_cut.
-    lt_act = lo_cut->parse( gv_sample ).
-    cl_abap_unit_assert=>assert_equals(
-      act = lt_act
-      exp = nodes->mt_nodes ).
+class zcl_ajson definition local friends ltcl_reader_test.
 
-  endmethod.
+class ltcl_reader_test implementation.
 
   method slice.
 
@@ -475,7 +321,7 @@ class ltcl_parser_test implementation.
     nodes->add( '/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
 
 
-    lo_cut = zcl_ajson=>parse( gv_sample ).
+    lo_cut = zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
     lo_cut ?= lo_cut->zif_ajson_reader~slice( '/issues' ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
@@ -514,7 +360,7 @@ class ltcl_parser_test implementation.
     nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
     nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
 
-    lo_cut = zcl_ajson=>parse( gv_sample ).
+    lo_cut = zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
     lo_cut ?= lo_cut->zif_ajson_reader~slice( '/' ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
@@ -527,7 +373,7 @@ class ltcl_parser_test implementation.
     nodes->add( '/ |row      |num    |3                       | |0' ).
     nodes->add( '/ |col      |num    |21                      | |0' ).
 
-    lo_cut = zcl_ajson=>parse( gv_sample ).
+    lo_cut = zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
     lo_cut ?= lo_cut->zif_ajson_reader~slice( '/issues/2/start/' ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
@@ -538,7 +384,7 @@ class ltcl_parser_test implementation.
   method get_value.
 
     data lo_cut type ref to zif_ajson_reader.
-    lo_cut ?= zcl_ajson=>parse( gv_sample ).
+    lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->value( '/string' )
@@ -561,7 +407,7 @@ class ltcl_parser_test implementation.
   method exists.
 
     data lo_cut type ref to zif_ajson_reader.
-    lo_cut ?= zcl_ajson=>parse( gv_sample ).
+    lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
 
     cl_abap_unit_assert=>assert_equals(
@@ -585,7 +431,7 @@ class ltcl_parser_test implementation.
   method value_integer.
 
     data lo_cut type ref to zif_ajson_reader.
-    lo_cut ?= zcl_ajson=>parse( gv_sample ).
+    lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->value_integer( '/string' )
@@ -604,7 +450,7 @@ class ltcl_parser_test implementation.
   method value_boolean.
 
     data lo_cut type ref to zif_ajson_reader.
-    lo_cut ?= zcl_ajson=>parse( gv_sample ).
+    lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->value_boolean( '/string' )
@@ -628,7 +474,7 @@ class ltcl_parser_test implementation.
 
     data lt_exp type string_table.
     data lo_cut type ref to zif_ajson_reader.
-    lo_cut ?= zcl_ajson=>parse( gv_sample ).
+    lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     clear lt_exp.
     append '1' to lt_exp.
@@ -647,6 +493,7 @@ class ltcl_parser_test implementation.
   endmethod.
 
 endclass.
+
 
 **********************************************************************
 * JSON TO ABAP
@@ -986,6 +833,184 @@ class ltcl_json_to_abap implementation.
         exp = 'Source is not a number' ).
     endtry.
 
+
+  endmethod.
+
+endclass.
+
+**********************************************************************
+* WRITER
+**********************************************************************
+
+class ltcl_writer_test definition final
+  for testing
+  risk level harmless
+  duration short.
+
+  private section.
+
+    class-data gv_sample type string.
+
+    methods set for testing raising zcx_ajson_error.
+
+endclass.
+
+class zcl_ajson definition local friends ltcl_writer_test.
+
+class ltcl_writer_test implementation.
+
+  method set.
+  endmethod.
+
+endclass.
+
+
+**********************************************************************
+* INTEGRATED
+**********************************************************************
+class ltcl_integrated definition
+  for testing
+  risk level harmless
+  duration short
+  final.
+
+  private section.
+
+    types:
+      begin of ty_loc,
+        row type i,
+        col type i,
+      end of ty_loc,
+      begin of ty_issue,
+        message type string,
+        key type string,
+        filename type string,
+        start type ty_loc,
+        end type ty_loc,
+      end of ty_issue,
+      tt_issues type standard table of ty_issue with default key,
+      begin of ty_target,
+        string type string,
+        number type i,
+        float type f,
+        boolean type abap_bool,
+        false type abap_bool,
+        null type string,
+        date type string, " ??? TODO
+        issues type tt_issues,
+      end of ty_target.
+
+    methods reader for testing raising zcx_ajson_error.
+
+    methods array_index for testing raising zcx_ajson_error.
+    methods array_simple for testing raising zcx_ajson_error.
+
+endclass.
+
+class ltcl_integrated implementation.
+
+  method array_simple.
+
+    data lt_act type string_table.
+    data lt_exp type string_table.
+    data exp type string.
+
+    data lv_src type string.
+    lv_src = '['.
+    do 10 times.
+      if sy-index <> 1.
+        lv_src = lv_src && `, `.
+      endif.
+      lv_src = lv_src && |"{ sy-index }"|.
+      exp = |{ sy-index }|.
+      append exp to lt_exp.
+    enddo.
+    lv_src = lv_src && ']'.
+
+    data li_reader type ref to zif_ajson_reader.
+    li_reader = zcl_ajson=>parse( lv_src ).
+    li_reader->to_abap( importing ev_container = lt_act ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = lt_exp ).
+
+  endmethod.
+
+  method array_index.
+
+    data lt_act type table of ty_loc.
+    data lt_exp type table of ty_loc.
+    data exp type ty_loc.
+
+    data lv_src type string.
+    lv_src = '['.
+    do 10 times.
+      if sy-index <> 1.
+        lv_src = lv_src && `, `.
+      endif.
+      lv_src = lv_src && |\{ "row": { sy-index } \}|.
+      exp-row = sy-index.
+      append exp to lt_exp.
+    enddo.
+    lv_src = lv_src && ']'.
+
+    data li_reader type ref to zif_ajson_reader.
+    li_reader = zcl_ajson=>parse( lv_src ).
+    li_reader->to_abap( importing ev_container = lt_act ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = lt_exp ).
+
+  endmethod.
+
+  method reader.
+
+    data lv_source type string.
+    data li_reader type ref to zif_ajson_reader.
+
+    lv_source = ltcl_parser_test=>sample_json( ).
+    li_reader = zcl_ajson=>parse( lv_source ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_reader->value( '/string' )
+      exp = 'abc' ).
+
+    data ls_act type ty_target.
+    data ls_exp type ty_target.
+    field-symbols <i> like line of ls_exp-issues.
+
+    ls_exp-string = 'abc'.
+    ls_exp-number = 123.
+    ls_exp-float = '123.45'.
+    ls_exp-boolean = abap_true.
+    ls_exp-false = abap_false.
+    ls_exp-date = '2020-03-15'.
+
+    append initial line to ls_exp-issues assigning <i>.
+    <i>-message  = 'Indentation problem ...'.
+    <i>-key      = 'indentation'.
+    <i>-filename = './zxxx.prog.abap'.
+    <i>-start-row = 4.
+    <i>-start-col = 3.
+    <i>-end-row   = 4.
+    <i>-end-col   = 26.
+
+    append initial line to ls_exp-issues assigning <i>.
+    <i>-message  = 'Remove space before XXX'.
+    <i>-key      = 'space_before_dot'.
+    <i>-filename = './zxxx.prog.abap'.
+    <i>-start-row = 3.
+    <i>-start-col = 21.
+    <i>-end-row   = 3.
+    <i>-end-col   = 22.
+
+    li_reader->to_abap( importing ev_container = ls_act ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_act
+      exp = ls_exp ).
 
   endmethod.
 
