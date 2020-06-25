@@ -22,6 +22,11 @@ class zcl_ajson definition
       ty_nodes_ts type sorted table of ty_node
         with unique key path name
         with non-unique sorted key array_index components path index .
+    types:
+      begin of ty_path_name,
+        path type string,
+        name type string,
+      end of ty_path_name.
 
     class-methods parse
       importing
@@ -39,11 +44,6 @@ class zcl_ajson definition
 
   private section.
 
-    types:
-      begin of ty_path_name,
-        path type string,
-        name type string,
-      end of ty_path_name.
     types:
       tty_node_stack type standard table of ref to ty_node with default key.
 
@@ -111,6 +111,16 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
       delete mt_json_tree where path = iv_path and name = iv_name.
       rv_deleted = abap_true.
+
+      data ls_path type ty_path_name.
+      ls_path = split_path( iv_path ).
+      read table mt_json_tree assigning <node>
+        with key
+          path = ls_path-path
+          name = ls_path-name.
+      if sy-subrc = 0.
+        <node>-children = <node>-children - 1.
+      endif.
     endif.
 
   endmethod.
@@ -353,6 +363,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson_writer~clear.
+    clear mt_json_tree.
+  endmethod.
+
+
   method zif_ajson_writer~push.
   endmethod.
 
@@ -360,7 +375,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method zif_ajson_writer~set.
 
     data lt_path type string_table.
-    data lv_split_path type ty_path_name.
+    data ls_split_path type ty_path_name.
     data parent_ref type ref to ty_node.
     data lt_node_stack type table of ref to ty_node.
 
@@ -368,28 +383,33 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       return. " nothing to assign
     endif.
 
-    lv_split_path = split_path( iv_path ).
-    if lv_split_path is initial. " Assign root, exceptional processing
-      clear mt_json_tree.
-      " add root
+    ls_split_path = split_path( iv_path ).
+    if ls_split_path is initial. " Assign root, exceptional processing
+      mt_json_tree = lcl_abap_to_json=>convert(
+        iv_data   = iv_val
+        is_prefix = ls_split_path ).
       return.
     endif.
 
     " Ensure whole path exists
-    lt_node_stack = prove_path_exists( lv_split_path-path ).
+    lt_node_stack = prove_path_exists( ls_split_path-path ).
     read table lt_node_stack index 1 into parent_ref.
     assert sy-subrc = 0.
 
     " delete if exists with subtree
-    if abap_true = delete_subtree(
-      iv_path = lv_split_path-path
-      iv_name = lv_split_path-name ).
-      parent_ref->children = parent_ref->children - 1.
-    endif.
+    delete_subtree(
+      iv_path = ls_split_path-path
+      iv_name = ls_split_path-name ).
 
     " convert to json
+    data lt_new_nodes type ty_nodes_tt.
+    lt_new_nodes = lcl_abap_to_json=>convert(
+      iv_data   = iv_val
+      is_prefix = ls_split_path ).
 
-    " update child count
+    " update data
+    parent_ref->children = parent_ref->children + 1.
+    insert lines of lt_new_nodes into table mt_json_tree.
 
   endmethod.
 

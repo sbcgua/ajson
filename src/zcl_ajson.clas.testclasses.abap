@@ -851,7 +851,9 @@ class ltcl_writer_test definition final
 
     class-data gv_sample type string.
 
-    methods set for testing raising zcx_ajson_error.
+    methods set_ajson for testing raising zcx_ajson_error.
+    methods prove_path_exists for testing raising zcx_ajson_error.
+    methods delete_subtree for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -859,36 +861,130 @@ class zcl_ajson definition local friends ltcl_writer_test.
 
 class ltcl_writer_test implementation.
 
-  method set.
+  method prove_path_exists.
 
     data lo_cut type ref to zcl_ajson.
-    data li_writer type ref to zif_ajson_writer.
-    data nodes type ref to lcl_nodes_helper.
+    data nodes_exp type ref to lcl_nodes_helper.
 
+    lo_cut = zcl_ajson=>create_empty( ).
+
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |a     |object |     ||1' ).
+    nodes_exp->add( '/a/     |b     |object |     ||1' ).
+    nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
+    nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
+
+    lo_cut->prove_path_exists( '/a/b/c/d/' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+    create object nodes_exp.
+    nodes_exp->add( '         |      |object |     ||1' ).
+    nodes_exp->add( '/        |a     |object |     ||1' ).
+    nodes_exp->add( '/a/      |b     |object |     ||1' ).
+    nodes_exp->add( '/a/b/    |c     |object |     ||1' ).
+    nodes_exp->add( '/a/b/c/  |d     |object |     ||1' ).
+    nodes_exp->add( '/a/b/c/d |e     |object |     ||0' ).
+    lo_cut->prove_path_exists( '/a/b/c/d/e/' ).
+
+  endmethod.
+
+  method delete_subtree.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes_exp type ref to lcl_nodes_helper.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |a     |object |     ||1' ).
+    nodes_exp->add( '/a/     |b     |object |     ||1' ).
+    nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
+    nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
+
+    lo_cut->mt_json_tree = nodes_exp->mt_nodes.
+
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |a     |object |     ||0' ).
+
+    lo_cut->delete_subtree(
+      iv_path = '/a/'
+      iv_name = 'b' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method set_ajson.
+
+    data nodes type ref to lcl_nodes_helper.
+    data lo_src type ref to zcl_ajson.
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson_writer.
+
+    lo_src = zcl_ajson=>create_empty( ).
     lo_cut = zcl_ajson=>create_empty( ).
     li_writer = lo_cut.
 
+    " Prepare source
     create object nodes.
     nodes->add( '        |      |object |     ||1' ).
-    nodes->add( '/       |a     |object |     ||1' ).
-    nodes->add( '/a/     |b     |object |     ||1' ).
-    nodes->add( '/a/b/   |c     |object |     ||1' ).
-    nodes->add( '/a/b/c/ |d     |object |     ||0' ).
+    nodes->add( '/       |x     |object |     ||1' ).
+    nodes->add( '/x/     |b     |str    |abc  ||0' ).
+    nodes->add( '/x/     |c     |num    |10   ||0' ).
+    lo_src->mt_json_tree = nodes->mt_nodes.
 
+    " Test 1 - assign root
     li_writer->set(
-      iv_path = '/a/b/c/d/e'
-      iv_val  = 1 ).
+      iv_path = ''
+      iv_val  = lo_src ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
       exp = nodes->sorted( ) ).
 
+    li_writer->set(
+      iv_path = '/'
+      iv_val  = lo_src ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes->sorted( ) ).
+
+    " Test 2 - assign deep
     create object nodes.
     nodes->add( '        |      |object |     ||1' ).
-    nodes->add( '/       |a     |object |     ||0' ).
+    nodes->add( '/       |a     |object |     ||1' ).
+    nodes->add( '/a/     |b     |object |     ||1' ).
+    nodes->add( '/a/b/     |c     |object |     ||1' ).
+    nodes->add( '/a/b/c/   |x     |object |     ||1' ).
+    nodes->add( '/a/b/c/x/ |b     |str    |abc  ||0' ).
+    nodes->add( '/a/b/c/x/ |c     |num    |10   ||0' ).
+
+    li_writer->clear( ).
+    li_writer->set(
+      iv_path = '/a/b/c'
+      iv_val  = lo_src ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes->sorted( ) ).
+
+    " Test 3 - assign rewrite
+    create object nodes.
+    nodes->add( '        |      |object |     ||1' ).
+    nodes->add( '/       |a     |object |     ||1' ).
+    nodes->add( '/a/       |b     |object |     ||1' ).
+    nodes->add( '/a/b/     |x     |object |     ||1' ).
+    nodes->add( '/a/b/x/   |b     |str    |abc  ||0' ).
+    nodes->add( '/a/b/x/   |c     |num    |10   ||0' ).
 
     li_writer->set(
       iv_path = '/a/b'
-      iv_val  = 1 ).
+      iv_val  = lo_src ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
       exp = nodes->sorted( ) ).
@@ -1044,6 +1140,52 @@ class ltcl_integrated implementation.
     cl_abap_unit_assert=>assert_equals(
       act = ls_act
       exp = ls_exp ).
+
+  endmethod.
+
+endclass.
+
+**********************************************************************
+* ABAP TO JSON
+**********************************************************************
+class ltcl_abap_to_json definition
+  for testing
+  risk level harmless
+  duration short
+  final.
+
+  private section.
+
+    methods ajson for testing raising zcx_ajson_error.
+
+endclass.
+
+class zcl_ajson definition local friends ltcl_abap_to_json.
+
+class ltcl_abap_to_json implementation.
+
+  method ajson.
+
+    data nodes type ref to lcl_nodes_helper.
+    data ls_prefix type zcl_ajson=>ty_path_name.
+    data lo_src type ref to zcl_ajson.
+    lo_src = zcl_ajson=>create_empty( ).
+
+    create object nodes.
+    nodes->add( '        |      |object |     ||1' ).
+    nodes->add( '/       |a     |object |     ||1' ).
+    nodes->add( '/a/     |b     |object |     ||1' ).
+    nodes->add( '/a/b/   |c     |object |     ||0' ).
+    lo_src->mt_json_tree = nodes->mt_nodes.
+
+    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+    lt_nodes = lcl_abap_to_json=>convert(
+      iv_data   = lo_src
+      is_prefix = ls_prefix ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes->mt_nodes ).
 
   endmethod.
 

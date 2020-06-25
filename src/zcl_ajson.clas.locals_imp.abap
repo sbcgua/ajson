@@ -308,3 +308,64 @@ class lcl_json_to_abap implementation.
   endmethod.
 
 endclass.
+
+**********************************************************************
+* ABAP_TO_JSON
+**********************************************************************
+
+class lcl_abap_to_json definition final.
+  public section.
+
+    class-methods convert
+      importing
+        iv_data type any
+        is_prefix type zcl_ajson=>ty_path_name
+      returning
+        value(rt_nodes) type zcl_ajson=>ty_nodes_tt.
+    class-methods class_constructor.
+  private section.
+    class-data gv_ajson_absolute_type_name type string.
+endclass.
+
+class zcl_ajson definition local friends lcl_abap_to_json.
+
+class lcl_abap_to_json implementation.
+
+  method class_constructor.
+
+    data lo_dummy type ref to zcl_ajson.
+    data lo_type type ref to cl_abap_refdescr.
+    lo_type ?= cl_abap_typedescr=>describe_by_data( lo_dummy ).
+    gv_ajson_absolute_type_name = lo_type->get_referenced_type( )->absolute_name.
+
+  endmethod.
+
+  method convert.
+
+    data lo_type type ref to cl_abap_typedescr.
+
+    lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
+
+    " check if the input is ajson instance
+    if lo_type->type_kind = cl_abap_typedescr=>typekind_oref
+      and cl_abap_typedescr=>describe_by_object_ref( iv_data )->absolute_name = gv_ajson_absolute_type_name.
+      data lo_ajson type ref to zcl_ajson.
+      lo_ajson ?= iv_data.
+      rt_nodes = lo_ajson->mt_json_tree.
+
+      field-symbols <n> like line of rt_nodes.
+      loop at rt_nodes assigning <n>.
+        if <n>-path is initial and <n>-name is initial. " root node
+          <n>-path = is_prefix-path.
+          <n>-name = is_prefix-name.
+        else.
+          <n>-path = is_prefix-path && is_prefix-name && <n>-path.
+        endif.
+      endloop.
+
+      return.
+    endif.
+
+  endmethod.
+
+endclass.

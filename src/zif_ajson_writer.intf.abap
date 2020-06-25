@@ -24,4 +24,6 @@ interface zif_ajson_writer
     returning
       value(rv_json) type string.
 
+  methods clear.
+
 endinterface.
