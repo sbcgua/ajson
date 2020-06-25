@@ -319,12 +319,38 @@ class lcl_abap_to_json definition final.
     class-methods convert
       importing
         iv_data type any
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zcl_ajson=>ty_path_name optional
       returning
-        value(rt_nodes) type zcl_ajson=>ty_nodes_tt.
+        value(rt_nodes) type zcl_ajson=>ty_nodes_tt
+      raising
+        zcx_ajson_error.
+
     class-methods class_constructor.
+    methods constructor
+      importing
+        is_prefix type zcl_ajson=>ty_path_name.
+
   private section.
+
     class-data gv_ajson_absolute_type_name type string.
+    data ms_prefix type zcl_ajson=>ty_path_name.
+
+    methods convert_ajson
+      importing
+        io_json type ref to zcl_ajson
+      changing
+        ct_nodes type zcl_ajson=>ty_nodes_tt.
+
+    methods convert_value
+      importing
+        iv_data type any
+        iv_type type abap_typekind
+        iv_type_name type abap_abstypename
+      changing
+        ct_nodes type zcl_ajson=>ty_nodes_tt
+      raising
+        zcx_ajson_error.
+
 endclass.
 
 class zcl_ajson definition local friends lcl_abap_to_json.
@@ -340,30 +366,85 @@ class lcl_abap_to_json implementation.
 
   endmethod.
 
+  method constructor.
+    ms_prefix = is_prefix.
+  endmethod.
+
   method convert.
 
     data lo_type type ref to cl_abap_typedescr.
+    data lo_converter type ref to lcl_abap_to_json.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
+    create object lo_converter exporting is_prefix = is_prefix.
 
-    " check if the input is ajson instance
-    if lo_type->type_kind = cl_abap_typedescr=>typekind_oref
-      and cl_abap_typedescr=>describe_by_object_ref( iv_data )->absolute_name = gv_ajson_absolute_type_name.
-      data lo_ajson type ref to zcl_ajson.
-      lo_ajson ?= iv_data.
-      rt_nodes = lo_ajson->mt_json_tree.
+    if lo_type->type_kind = cl_abap_typedescr=>typekind_oref.
 
-      field-symbols <n> like line of rt_nodes.
-      loop at rt_nodes assigning <n>.
-        if <n>-path is initial and <n>-name is initial. " root node
-          <n>-path = is_prefix-path.
-          <n>-name = is_prefix-name.
-        else.
-          <n>-path = is_prefix-path && is_prefix-name && <n>-path.
-        endif.
-      endloop.
+      if cl_abap_typedescr=>describe_by_object_ref( iv_data )->absolute_name = gv_ajson_absolute_type_name.
+        lo_converter->convert_ajson(
+          exporting
+            io_json = iv_data
+          changing
+            ct_nodes = rt_nodes ).
+      else.
+        raise exception type zcx_ajson_error exporting message = 'Unsupported object reference'.
+      endif.
 
-      return.
+    elseif lo_type->kind = cl_abap_typedescr=>kind_elem.
+
+      lo_converter->convert_value(
+        exporting
+          iv_data = iv_data
+          iv_type = lo_type->type_kind
+          iv_type_name = lo_type->absolute_name
+        changing
+          ct_nodes = rt_nodes ).
+
+    endif.
+
+  endmethod.
+
+  method convert_ajson.
+
+    field-symbols <n> like line of ct_nodes.
+
+    ct_nodes = io_json->mt_json_tree.
+
+    loop at ct_nodes assigning <n>.
+      if <n>-path is initial and <n>-name is initial. " root node
+        <n>-path = ms_prefix-path.
+        <n>-name = ms_prefix-name.
+      else.
+        <n>-path = ms_prefix-path && ms_prefix-name && <n>-path.
+      endif.
+    endloop.
+
+  endmethod.
+
+  method convert_value.
+
+    field-symbols <n> like line of ct_nodes.
+
+    append initial line to ct_nodes assigning <n>.
+
+    <n>-path = ms_prefix-path.
+    <n>-name = ms_prefix-name.
+
+    if iv_type_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL' or iv_type_name = '\TYPE=XFELD'.
+      <n>-type = 'bool'.
+      if iv_data is not initial.
+        <n>-value = 'true'.
+      else.
+        <n>-value = 'false'.
+      endif.
+    elseif iv_type co 'CNgXyDT'. " Char like, date/time, xstring
+      <n>-type = 'str'.
+      <n>-value = |{ iv_data }|.
+    elseif iv_type co 'bsI8PaeF'. " Numeric
+      <n>-type = 'num'.
+      <n>-value = |{ iv_data }|.
+    else.
+      raise exception type zcx_ajson_error exporting message = |Unexpected elemetary type [{ iv_type }]|.
     endif.
 
   endmethod.

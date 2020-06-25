@@ -852,6 +852,8 @@ class ltcl_writer_test definition final
     class-data gv_sample type string.
 
     methods set_ajson for testing raising zcx_ajson_error.
+    methods set_value for testing raising zcx_ajson_error.
+    methods set_obj for testing raising zcx_ajson_error.
     methods prove_path_exists for testing raising zcx_ajson_error.
     methods delete_subtree for testing raising zcx_ajson_error.
 
@@ -935,7 +937,7 @@ class ltcl_writer_test implementation.
     " Prepare source
     create object nodes.
     nodes->add( '        |      |object |     ||1' ).
-    nodes->add( '/       |x     |object |     ||1' ).
+    nodes->add( '/       |x     |object |     ||2' ).
     nodes->add( '/x/     |b     |str    |abc  ||0' ).
     nodes->add( '/x/     |c     |num    |10   ||0' ).
     lo_src->mt_json_tree = nodes->mt_nodes.
@@ -961,7 +963,7 @@ class ltcl_writer_test implementation.
     nodes->add( '/       |a     |object |     ||1' ).
     nodes->add( '/a/     |b     |object |     ||1' ).
     nodes->add( '/a/b/     |c     |object |     ||1' ).
-    nodes->add( '/a/b/c/   |x     |object |     ||1' ).
+    nodes->add( '/a/b/c/   |x     |object |     ||2' ).
     nodes->add( '/a/b/c/x/ |b     |str    |abc  ||0' ).
     nodes->add( '/a/b/c/x/ |c     |num    |10   ||0' ).
 
@@ -978,13 +980,72 @@ class ltcl_writer_test implementation.
     nodes->add( '        |      |object |     ||1' ).
     nodes->add( '/       |a     |object |     ||1' ).
     nodes->add( '/a/       |b     |object |     ||1' ).
-    nodes->add( '/a/b/     |x     |object |     ||1' ).
+    nodes->add( '/a/b/     |x     |object |     ||2' ).
     nodes->add( '/a/b/x/   |b     |str    |abc  ||0' ).
     nodes->add( '/a/b/x/   |c     |num    |10   ||0' ).
 
     li_writer->set(
       iv_path = '/a/b'
       iv_val  = lo_src ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes->sorted( ) ).
+
+  endmethod.
+
+  method set_value.
+
+    data nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson_writer.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    " Prepare source
+    create object nodes.
+    nodes->add( '        |      |object |     ||1' ).
+    nodes->add( '/       |x     |object |     ||2' ).
+    nodes->add( '/x/     |b     |str    |abc  ||0' ).
+    nodes->add( '/x/     |c     |num    |10   ||0' ).
+
+    li_writer->set(
+      iv_path = '/x/b'
+      iv_val  = 'abc' ).
+    li_writer->set(
+      iv_path = '/x/c'
+      iv_val  = 10 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes->sorted( ) ).
+
+  endmethod.
+
+  method set_obj.
+
+    data nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson_writer.
+
+    data:
+      begin of ls_struc,
+        b type string value 'abc',
+        c type i value 10,
+      end of ls_struc.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    " Prepare source
+    create object nodes.
+    nodes->add( '        |      |object |     ||1' ).
+    nodes->add( '/       |x     |object |     ||2' ).
+    nodes->add( '/x/     |b     |str    |abc  ||0' ).
+    nodes->add( '/x/     |c     |num    |10   ||0' ).
+
+    li_writer->set(
+      iv_path = '/x'
+      iv_val  = ls_struc ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
       exp = nodes->sorted( ) ).
@@ -1156,7 +1217,17 @@ class ltcl_abap_to_json definition
 
   private section.
 
-    methods ajson for testing raising zcx_ajson_error.
+    types:
+      begin of ty_struc,
+        a type string,
+        b type i,
+        c type abap_bool,
+      end of ty_struc.
+
+    methods set_ajson for testing raising zcx_ajson_error.
+    methods set_value for testing raising zcx_ajson_error.
+    methods set_obj for testing raising zcx_ajson_error.
+    methods prefix for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -1164,10 +1235,9 @@ class zcl_ajson definition local friends ltcl_abap_to_json.
 
 class ltcl_abap_to_json implementation.
 
-  method ajson.
+  method set_ajson.
 
     data nodes type ref to lcl_nodes_helper.
-    data ls_prefix type zcl_ajson=>ty_path_name.
     data lo_src type ref to zcl_ajson.
     lo_src = zcl_ajson=>create_empty( ).
 
@@ -1179,13 +1249,115 @@ class ltcl_abap_to_json implementation.
     lo_src->mt_json_tree = nodes->mt_nodes.
 
     data lt_nodes type zcl_ajson=>ty_nodes_tt.
-    lt_nodes = lcl_abap_to_json=>convert(
-      iv_data   = lo_src
-      is_prefix = ls_prefix ).
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = lo_src ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
       exp = nodes->mt_nodes ).
+
+  endmethod.
+
+  method set_value.
+
+    data nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+
+    " number
+    create object nodes_exp.
+    nodes_exp->add( '        |      |num |1     ||' ).
+
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = 1 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes_exp->mt_nodes ).
+
+    " string
+    create object nodes_exp.
+    nodes_exp->add( '        |      |str |abc     ||' ).
+
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = 'abc' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes_exp->mt_nodes ).
+
+    " true
+    create object nodes_exp.
+    nodes_exp->add( '        |      |bool |true     ||' ).
+
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = abap_true ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes_exp->mt_nodes ).
+
+    " false
+    create object nodes_exp.
+    nodes_exp->add( '        |      |bool |false    ||' ).
+
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = abap_false ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes_exp->mt_nodes ).
+
+    " xfeld
+    data lv_xfeld type xfeld.
+    create object nodes_exp.
+    nodes_exp->add( '        |      |bool |true     ||' ).
+
+    lv_xfeld = 'X'.
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = lv_xfeld ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes_exp->mt_nodes ).
+
+  endmethod.
+
+  method prefix.
+
+    data nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+    data ls_prefix type zcl_ajson=>ty_path_name.
+
+    ls_prefix-path = '/a/'.
+    ls_prefix-name = 'b'.
+    create object nodes_exp.
+    nodes_exp->add( '/a/       |b     |num |1     ||' ).
+
+    lt_nodes = lcl_abap_to_json=>convert(
+      iv_data   = 1
+      is_prefix = ls_prefix ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes_exp->mt_nodes ).
+
+  endmethod.
+
+  method set_obj.
+
+    data nodes_exp type ref to lcl_nodes_helper.
+    data ls_struc type ty_struc.
+    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+
+    ls_struc-a = 'abc'.
+    ls_struc-b = 10.
+    ls_struc-c = abap_true.
+
+    create object nodes_exp.
+    nodes_exp->add( '       |      |object |     ||3' ).
+    nodes_exp->add( '/      |a     |str    |abc  ||0' ).
+    nodes_exp->add( '/      |b     |num    |10   ||0' ).
+    nodes_exp->add( '/      |c     |bool   |true ||0' ).
+
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = ls_struc ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes_exp->mt_nodes ).
 
   endmethod.
 

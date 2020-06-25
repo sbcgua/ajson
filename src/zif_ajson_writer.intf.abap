@@ -4,7 +4,9 @@ interface zif_ajson_writer
   methods set
     importing
       iv_path type string
-      iv_val type any.
+      iv_val type any
+    raising
+      zcx_ajson_error.
   " TODO
   " - ajson instance
   " - abap structure/table
