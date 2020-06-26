@@ -551,7 +551,10 @@ class ltcl_json_to_abap implementation.
     e_elem-b = 2.
     append e_elem to e_mock-tab.
 
-    eo_cut = lcl_json_to_abap=>bind( changing c_obj = e_mock ).
+    lcl_json_to_abap=>bind(
+      changing
+        c_obj = e_mock
+        co_instance = eo_cut ).
 
   endmethod.
 
@@ -734,7 +737,10 @@ class ltcl_json_to_abap implementation.
 
     data lo_cut type ref to lcl_json_to_abap.
     data mock type ty_complex.
-    lo_cut = lcl_json_to_abap=>bind( changing c_obj = mock ).
+    lcl_json_to_abap=>bind(
+      changing
+        c_obj = mock
+        co_instance = lo_cut ).
 
     data nodes type ref to lcl_nodes_helper.
     create object nodes.
@@ -790,7 +796,10 @@ class ltcl_json_to_abap implementation.
     data lo_cut type ref to lcl_json_to_abap.
     data lx type ref to zcx_ajson_error.
     data mock type ty_complex.
-    lo_cut = lcl_json_to_abap=>bind( changing c_obj = mock ).
+    lcl_json_to_abap=>bind(
+      changing
+        c_obj = mock
+        co_instance = lo_cut ).
 
     data nodes type ref to lcl_nodes_helper.
 

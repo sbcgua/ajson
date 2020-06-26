@@ -298,7 +298,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lo_to_abap type ref to lcl_json_to_abap.
 
     clear ev_container.
-    lo_to_abap = lcl_json_to_abap=>bind( changing c_obj = ev_container ).
+    lcl_json_to_abap=>bind(
+      changing
+        c_obj = ev_container
+        co_instance = lo_to_abap ).
     lo_to_abap->to_abap( mt_json_tree ).
 
   endmethod.

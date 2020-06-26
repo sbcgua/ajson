@@ -152,8 +152,7 @@ class lcl_json_to_abap definition final.
     class-methods bind
       changing
         c_obj type any
-      returning
-        value(ro_instance) type ref to lcl_json_to_abap.
+        co_instance type ref to lcl_json_to_abap.
 
     methods to_abap
       importing
@@ -168,8 +167,8 @@ endclass.
 class lcl_json_to_abap implementation.
 
   method bind.
-    create object ro_instance.
-    get reference of c_obj into ro_instance->mr_obj.
+    create object co_instance.
+    get reference of c_obj into co_instance->mr_obj.
   endmethod.
 
   method to_abap.
@@ -252,6 +251,7 @@ class lcl_json_to_abap implementation.
 
     loop at lt_path assigning <seg>.
       lv_trace = lv_trace && '/' && <seg>.
+      <seg> = to_upper( <seg> ).
 
       assign r_ref->* to <struc>.
       assert sy-subrc = 0.
