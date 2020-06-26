@@ -1231,7 +1231,12 @@ class ltcl_abap_to_json definition
         a type string,
         b type i,
         c type abap_bool,
-      end of ty_struc.
+        d type xfeld,
+      end of ty_struc,
+      begin of ty_struc_w_inc.
+        include type ty_struc.
+        types: s type string,
+      end of ty_struc_w_inc.
 
     methods set_ajson for testing raising zcx_ajson_error.
     methods set_value for testing raising zcx_ajson_error.
@@ -1355,14 +1360,38 @@ class ltcl_abap_to_json implementation.
     ls_struc-a = 'abc'.
     ls_struc-b = 10.
     ls_struc-c = abap_true.
+    ls_struc-d = 'X'.
 
     create object nodes_exp.
-    nodes_exp->add( '       |      |object |     ||3' ).
+    nodes_exp->add( '       |      |object |     ||4' ).
     nodes_exp->add( '/      |a     |str    |abc  ||0' ).
     nodes_exp->add( '/      |b     |num    |10   ||0' ).
     nodes_exp->add( '/      |c     |bool   |true ||0' ).
+    nodes_exp->add( '/      |d     |bool   |true ||0' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = ls_struc ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes_exp->mt_nodes ).
+
+    data ls_struc_w_inc type ty_struc_w_inc.
+
+    ls_struc_w_inc-a = 'abc'.
+    ls_struc_w_inc-b = 10.
+    ls_struc_w_inc-c = abap_true.
+    ls_struc_w_inc-d = 'X'.
+    ls_struc_w_inc-s = 'hello'.
+
+    create object nodes_exp.
+    nodes_exp->add( '       |      |object |     ||5' ).
+    nodes_exp->add( '/      |a     |str    |abc  ||0' ).
+    nodes_exp->add( '/      |b     |num    |10   ||0' ).
+    nodes_exp->add( '/      |c     |bool   |true ||0' ).
+    nodes_exp->add( '/      |d     |bool   |true ||0' ).
+    nodes_exp->add( '/      |s     |str    |hello||0' ).
+
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = ls_struc_w_inc ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes

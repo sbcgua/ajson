@@ -326,28 +326,36 @@ class lcl_abap_to_json definition final.
         zcx_ajson_error.
 
     class-methods class_constructor.
-    methods constructor
-      importing
-        is_prefix type zcl_ajson=>ty_path_name.
 
   private section.
 
     class-data gv_ajson_absolute_type_name type string.
-    data ms_prefix type zcl_ajson=>ty_path_name.
 
     methods convert_ajson
       importing
         io_json type ref to zcl_ajson
+        is_prefix type zcl_ajson=>ty_path_name
       changing
         ct_nodes type zcl_ajson=>ty_nodes_tt.
 
     methods convert_value
       importing
         iv_data type any
-        iv_type type abap_typekind
-        iv_type_name type abap_abstypename
+        io_type type ref to cl_abap_typedescr
+        is_prefix type zcl_ajson=>ty_path_name
       changing
         ct_nodes type zcl_ajson=>ty_nodes_tt
+      raising
+        zcx_ajson_error.
+
+    methods convert_struc
+      importing
+        iv_data type any
+        io_type type ref to cl_abap_typedescr
+        is_prefix type zcl_ajson=>ty_path_name
+      changing
+        ct_nodes type zcl_ajson=>ty_nodes_tt
+        cs_root  type zcl_ajson=>ty_node optional
       raising
         zcx_ajson_error.
 
@@ -366,17 +374,13 @@ class lcl_abap_to_json implementation.
 
   endmethod.
 
-  method constructor.
-    ms_prefix = is_prefix.
-  endmethod.
-
   method convert.
 
     data lo_type type ref to cl_abap_typedescr.
     data lo_converter type ref to lcl_abap_to_json.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
-    create object lo_converter exporting is_prefix = is_prefix.
+    create object lo_converter.
 
     if lo_type->type_kind = cl_abap_typedescr=>typekind_oref.
 
@@ -384,6 +388,7 @@ class lcl_abap_to_json implementation.
         lo_converter->convert_ajson(
           exporting
             io_json = iv_data
+            is_prefix = is_prefix
           changing
             ct_nodes = rt_nodes ).
       else.
@@ -395,8 +400,18 @@ class lcl_abap_to_json implementation.
       lo_converter->convert_value(
         exporting
           iv_data = iv_data
-          iv_type = lo_type->type_kind
-          iv_type_name = lo_type->absolute_name
+          io_type = lo_type
+          is_prefix = is_prefix
+        changing
+          ct_nodes = rt_nodes ).
+
+    elseif lo_type->kind = cl_abap_typedescr=>kind_struct.
+
+      lo_converter->convert_struc(
+        exporting
+          iv_data = iv_data
+          io_type = lo_type
+          is_prefix = is_prefix
         changing
           ct_nodes = rt_nodes ).
 
@@ -412,10 +427,10 @@ class lcl_abap_to_json implementation.
 
     loop at ct_nodes assigning <n>.
       if <n>-path is initial and <n>-name is initial. " root node
-        <n>-path = ms_prefix-path.
-        <n>-name = ms_prefix-name.
+        <n>-path = is_prefix-path.
+        <n>-name = is_prefix-name.
       else.
-        <n>-path = ms_prefix-path && ms_prefix-name && <n>-path.
+        <n>-path = is_prefix-path && is_prefix-name && <n>-path.
       endif.
     endloop.
 
@@ -427,25 +442,96 @@ class lcl_abap_to_json implementation.
 
     append initial line to ct_nodes assigning <n>.
 
-    <n>-path = ms_prefix-path.
-    <n>-name = ms_prefix-name.
+    <n>-path = is_prefix-path.
+    <n>-name = is_prefix-name.
 
-    if iv_type_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL' or iv_type_name = '\TYPE=XFELD'.
+    if io_type->absolute_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL' or io_type->absolute_name = '\TYPE=XFELD'.
       <n>-type = 'bool'.
       if iv_data is not initial.
         <n>-value = 'true'.
       else.
         <n>-value = 'false'.
       endif.
-    elseif iv_type co 'CNgXyDT'. " Char like, date/time, xstring
+    elseif io_type->type_kind co 'CNgXyDT'. " Char like, date/time, xstring
       <n>-type = 'str'.
       <n>-value = |{ iv_data }|.
-    elseif iv_type co 'bsI8PaeF'. " Numeric
+    elseif io_type->type_kind co 'bsI8PaeF'. " Numeric
       <n>-type = 'num'.
       <n>-value = |{ iv_data }|.
     else.
-      raise exception type zcx_ajson_error exporting message = |Unexpected elemetary type [{ iv_type }]|.
+      raise exception type zcx_ajson_error exporting message = |Unexpected elemetary type [{ io_type->type_kind }]|.
     endif.
+
+  endmethod.
+
+  method convert_struc.
+
+    data lo_struc type ref to cl_abap_structdescr.
+    data lt_comps type cl_abap_structdescr=>component_table.
+    data ls_next_prefix like is_prefix.
+
+    field-symbols <root> like line of ct_nodes.
+    field-symbols <c> like line of lt_comps.
+    field-symbols <val> type any.
+
+    lo_struc ?= io_type.
+    lt_comps = lo_struc->get_components( ).
+    " get_components is potentially much slower than lo_struc->components
+    " but ! we still need it to identify booleans
+    " and rtti seems to cache type descriptions really well (https://github.com/sbcgua/benchmarks.git)
+    " the structures will be repeated in real life
+
+    if cs_root is supplied. " call for include strcture
+      assign cs_root to <root>.
+    else. " First call
+      append initial line to ct_nodes assigning <root>.
+      <root>-path = is_prefix-path.
+      <root>-name = is_prefix-name.
+      <root>-type = 'object'.
+    endif.
+
+    ls_next_prefix-path = is_prefix-path && is_prefix-name && '/'.
+
+    loop at lt_comps assigning <c>.
+
+      if <c>-as_include = abap_true.
+
+        convert_struc(
+          exporting
+            iv_data   = iv_data
+            io_type   = <c>-type
+            is_prefix = is_prefix
+          changing
+            cs_root  = <root>
+            ct_nodes = ct_nodes ).
+
+      else.
+
+        <root>-children = <root>-children + 1.
+        ls_next_prefix-name = to_lower( <c>-name ).
+
+        if <c>-type->type_kind co 'CNgXyDT' or <c>-type->type_kind co 'bsI8PaeF'. " Charlike of numeric
+          assign component <c>-name of structure iv_data to <val>.
+          assert sy-subrc = 0.
+          convert_value(
+            exporting
+              iv_data   = <val>
+              io_type   = <c>-type
+              is_prefix = ls_next_prefix
+            changing
+              ct_nodes = ct_nodes ).
+*        elseif <c>-type->type_kind co 'uv'. " Struc
+*        elseif <c>-type->type_kind = 'h'. " Table
+        else.
+          " TODO support refs ?
+          raise exception type zcx_ajson_error
+            exporting
+              message = |Unexpected structure comp [{ <c>-type->type_kind }] of { io_type->absolute_name }-{ <c>-name }|.
+        endif.
+
+      endif.
+
+    endloop.
 
   endmethod.
 
