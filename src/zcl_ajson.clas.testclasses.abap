@@ -1241,6 +1241,7 @@ class ltcl_abap_to_json definition
     methods set_ajson for testing raising zcx_ajson_error.
     methods set_value for testing raising zcx_ajson_error.
     methods set_obj for testing raising zcx_ajson_error.
+    methods set_array for testing raising zcx_ajson_error.
     methods prefix for testing raising zcx_ajson_error.
 
 endclass.
@@ -1392,6 +1393,57 @@ class ltcl_abap_to_json implementation.
     nodes_exp->add( '/      |s     |str    |hello||0' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = ls_struc_w_inc ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes_exp->mt_nodes ).
+
+  endmethod.
+
+  method set_array.
+
+    data nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+
+    data lt_tab type table of ty_struc.
+    field-symbols <s> like line of lt_tab.
+
+    append initial line to lt_tab assigning <s>.
+    <s>-a = 'abc'.
+    <s>-b = 10.
+    append initial line to lt_tab assigning <s>.
+    <s>-a = 'bcd'.
+    <s>-b = 20.
+
+    create object nodes_exp.
+    nodes_exp->add( '       |      |array  |     ||2' ).
+    nodes_exp->add( '/      |1     |object |     ||4' ).
+    nodes_exp->add( '/1/    |a     |str    |abc  ||0' ).
+    nodes_exp->add( '/1/    |b     |num    |10   ||0' ).
+    nodes_exp->add( '/1/    |c     |bool   |false||0' ).
+    nodes_exp->add( '/1/    |d     |bool   |false||0' ).
+    nodes_exp->add( '/      |2     |object |     ||4' ).
+    nodes_exp->add( '/2/    |a     |str    |bcd  ||0' ).
+    nodes_exp->add( '/2/    |b     |num    |20   ||0' ).
+    nodes_exp->add( '/2/    |c     |bool   |false||0' ).
+    nodes_exp->add( '/2/    |d     |bool   |false||0' ).
+
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = lt_tab ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes_exp->mt_nodes ).
+
+    data lt_strtab type string_table.
+    append 'abc' to lt_strtab.
+    append 'bcd' to lt_strtab.
+
+    create object nodes_exp.
+    nodes_exp->add( '       |      |array  |     ||2' ).
+    nodes_exp->add( '/      |1     |str    |abc  ||0' ).
+    nodes_exp->add( '/      |2     |str    |bcd  ||0' ).
+
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = lt_strtab ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes

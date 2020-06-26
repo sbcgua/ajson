@@ -359,6 +359,16 @@ class lcl_abap_to_json definition final.
       raising
         zcx_ajson_error.
 
+    methods convert_table
+      importing
+        iv_data type any
+        io_type type ref to cl_abap_typedescr
+        is_prefix type zcl_ajson=>ty_path_name
+      changing
+        ct_nodes type zcl_ajson=>ty_nodes_tt
+      raising
+        zcx_ajson_error.
+
 endclass.
 
 class zcl_ajson definition local friends lcl_abap_to_json.
@@ -382,40 +392,51 @@ class lcl_abap_to_json implementation.
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
     create object lo_converter.
 
-    if lo_type->type_kind = cl_abap_typedescr=>typekind_oref.
-
-      if cl_abap_typedescr=>describe_by_object_ref( iv_data )->absolute_name = gv_ajson_absolute_type_name.
-        lo_converter->convert_ajson(
+    case lo_type->kind.
+      when cl_abap_typedescr=>kind_elem.
+        lo_converter->convert_value(
           exporting
-            io_json = iv_data
+            iv_data   = iv_data
+            io_type   = lo_type
             is_prefix = is_prefix
           changing
             ct_nodes = rt_nodes ).
-      else.
-        raise exception type zcx_ajson_error exporting message = 'Unsupported object reference'.
-      endif.
 
-    elseif lo_type->kind = cl_abap_typedescr=>kind_elem.
+      when cl_abap_typedescr=>kind_struct.
+        lo_converter->convert_struc(
+          exporting
+            iv_data   = iv_data
+            io_type   = lo_type
+            is_prefix = is_prefix
+          changing
+            ct_nodes = rt_nodes ).
 
-      lo_converter->convert_value(
-        exporting
-          iv_data = iv_data
-          io_type = lo_type
-          is_prefix = is_prefix
-        changing
-          ct_nodes = rt_nodes ).
+      when cl_abap_typedescr=>kind_table.
+        lo_converter->convert_table(
+          exporting
+            iv_data   = iv_data
+            io_type   = lo_type
+            is_prefix = is_prefix
+          changing
+            ct_nodes = rt_nodes ).
 
-    elseif lo_type->kind = cl_abap_typedescr=>kind_struct.
+      when others.
 
-      lo_converter->convert_struc(
-        exporting
-          iv_data = iv_data
-          io_type = lo_type
-          is_prefix = is_prefix
-        changing
-          ct_nodes = rt_nodes ).
+        if lo_type->type_kind = cl_abap_typedescr=>typekind_oref
+          and cl_abap_typedescr=>describe_by_object_ref( iv_data )->absolute_name = gv_ajson_absolute_type_name.
+          lo_converter->convert_ajson(
+            exporting
+              io_json = iv_data
+              is_prefix = is_prefix
+            changing
+              ct_nodes = rt_nodes ).
+        else.
+          raise exception type zcx_ajson_error
+            exporting
+              message = |Unsupported type [{ lo_type->type_kind }] @{ is_prefix-path && is_prefix-name }|.
+        endif.
 
-    endif.
+    endcase.
 
   endmethod.
 
@@ -510,7 +531,7 @@ class lcl_abap_to_json implementation.
         <root>-children = <root>-children + 1.
         ls_next_prefix-name = to_lower( <c>-name ).
 
-        if <c>-type->type_kind co 'CNgXyDT' or <c>-type->type_kind co 'bsI8PaeF'. " Charlike of numeric
+        if <c>-type->kind = cl_abap_typedescr=>kind_elem.
           assign component <c>-name of structure iv_data to <val>.
           assert sy-subrc = 0.
           convert_value(
@@ -531,6 +552,68 @@ class lcl_abap_to_json implementation.
 
       endif.
 
+    endloop.
+
+  endmethod.
+
+  method convert_table.
+
+    data lo_table type ref to cl_abap_tabledescr.
+    data lo_ltype type ref to cl_abap_typedescr.
+    data ls_next_prefix like is_prefix.
+
+    field-symbols <root> like line of ct_nodes.
+    field-symbols <tab> type any table.
+    field-symbols <val> type any.
+
+    lo_table ?= io_type.
+    lo_ltype = lo_table->get_table_line_type( ).
+
+    append initial line to ct_nodes assigning <root>.
+    <root>-path = is_prefix-path.
+    <root>-name = is_prefix-name.
+    <root>-type = 'array'.
+
+    ls_next_prefix-path = is_prefix-path && is_prefix-name && '/'.
+    assign iv_data to <tab>.
+
+    loop at <tab> assigning <val>.
+      <root>-children = <root>-children + 1.
+      ls_next_prefix-name = to_lower( |{ sy-tabix }| ).
+
+      case lo_ltype->kind.
+        when cl_abap_typedescr=>kind_elem.
+          convert_value(
+            exporting
+              iv_data   = <val>
+              io_type   = lo_ltype
+              is_prefix = ls_next_prefix
+            changing
+              ct_nodes = ct_nodes ).
+
+        when cl_abap_typedescr=>kind_struct.
+          convert_struc(
+            exporting
+              iv_data   = <val>
+              io_type   = lo_ltype
+              is_prefix = ls_next_prefix
+            changing
+              ct_nodes = ct_nodes ).
+
+        when cl_abap_typedescr=>kind_table.
+          convert_table(
+            exporting
+              iv_data   = <val>
+              io_type   = lo_ltype
+              is_prefix = ls_next_prefix
+            changing
+              ct_nodes = ct_nodes ).
+
+        when others.
+          raise exception type zcx_ajson_error
+            exporting
+              message = |Unexpected table line [{ lo_ltype->kind }] of { io_type->absolute_name }|.
+      endcase.
     endloop.
 
   endmethod.
