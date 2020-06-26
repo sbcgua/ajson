@@ -863,6 +863,7 @@ class ltcl_writer_test definition final
     methods set_ajson for testing raising zcx_ajson_error.
     methods set_value for testing raising zcx_ajson_error.
     methods set_obj for testing raising zcx_ajson_error.
+    methods set_tab for testing raising zcx_ajson_error.
     methods prove_path_exists for testing raising zcx_ajson_error.
     methods delete_subtree for testing raising zcx_ajson_error.
 
@@ -1055,6 +1056,35 @@ class ltcl_writer_test implementation.
     li_writer->set(
       iv_path = '/x'
       iv_val  = ls_struc ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes->sorted( ) ).
+
+  endmethod.
+
+  method set_tab.
+
+    data nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson_writer.
+    data lt_tab type string_table.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    append 'hello' to lt_tab.
+    append 'world' to lt_tab.
+
+    " Prepare source
+    create object nodes.
+    nodes->add( '        |      |object |     ||1' ).
+    nodes->add( '/       |x     |array  |     ||2' ).
+    nodes->add( '/x/     |1     |str    |hello||0' ).
+    nodes->add( '/x/     |2     |str    |world||0' ).
+
+    li_writer->set(
+      iv_path = '/x'
+      iv_val  = lt_tab ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
       exp = nodes->sorted( ) ).
