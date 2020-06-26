@@ -1233,15 +1233,21 @@ class ltcl_abap_to_json definition
         c type abap_bool,
         d type xfeld,
       end of ty_struc,
-      begin of ty_struc_w_inc.
+      tt_struc type standard table of ty_struc with default key,
+      begin of ty_struc_complex.
         include type ty_struc.
-        types: s type string,
-      end of ty_struc_w_inc.
+        types:
+        el type string,
+        struc type ty_struc,
+        tab type tt_struc,
+        stab type string_table,
+      end of ty_struc_complex.
 
     methods set_ajson for testing raising zcx_ajson_error.
     methods set_value for testing raising zcx_ajson_error.
     methods set_obj for testing raising zcx_ajson_error.
     methods set_array for testing raising zcx_ajson_error.
+    methods set_complex_obj for testing raising zcx_ajson_error.
     methods prefix for testing raising zcx_ajson_error.
 
 endclass.
@@ -1376,23 +1382,62 @@ class ltcl_abap_to_json implementation.
       act = lt_nodes
       exp = nodes_exp->mt_nodes ).
 
-    data ls_struc_w_inc type ty_struc_w_inc.
+  endmethod.
 
-    ls_struc_w_inc-a = 'abc'.
-    ls_struc_w_inc-b = 10.
-    ls_struc_w_inc-c = abap_true.
-    ls_struc_w_inc-d = 'X'.
-    ls_struc_w_inc-s = 'hello'.
+  method set_complex_obj.
+
+    data nodes_exp type ref to lcl_nodes_helper.
+    data ls_struc type ty_struc_complex.
+    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+    field-symbols <i> like line of ls_struc-tab.
+
+    ls_struc-a = 'abc'.
+    ls_struc-b = 10.
+    ls_struc-c = abap_true.
+    ls_struc-d = 'X'.
+    ls_struc-el = 'elem'.
+
+    ls_struc-struc-a = 'deep'.
+    ls_struc-struc-b = 123.
+
+    append 'hello' to ls_struc-stab.
+    append 'world' to ls_struc-stab.
+
+    append initial line to ls_struc-tab assigning <i>.
+    <i>-a = 'abc'.
+    append initial line to ls_struc-tab assigning <i>.
+    <i>-a = 'bcd'.
 
     create object nodes_exp.
-    nodes_exp->add( '       |      |object |     ||5' ).
+    nodes_exp->add( '       |      |object |     ||8' ).
     nodes_exp->add( '/      |a     |str    |abc  ||0' ).
     nodes_exp->add( '/      |b     |num    |10   ||0' ).
     nodes_exp->add( '/      |c     |bool   |true ||0' ).
     nodes_exp->add( '/      |d     |bool   |true ||0' ).
-    nodes_exp->add( '/      |s     |str    |hello||0' ).
+    nodes_exp->add( '/      |el    |str    |elem ||0' ).
+    nodes_exp->add( '/      |struc |object |     ||4' ).
+    nodes_exp->add( '/struc/|a     |str    |deep ||0' ).
+    nodes_exp->add( '/struc/|b     |num    |123  ||0' ).
+    nodes_exp->add( '/struc/|c     |bool   |false||0' ).
+    nodes_exp->add( '/struc/|d     |bool   |false||0' ).
 
-    lt_nodes = lcl_abap_to_json=>convert( iv_data = ls_struc_w_inc ).
+    nodes_exp->add( '/      |tab   |array  |     ||2' ).
+    nodes_exp->add( '/tab/  |1     |object |     ||4' ).
+    nodes_exp->add( '/tab/1/|a     |str    |abc  ||0' ).
+    nodes_exp->add( '/tab/1/|b     |num    |0    ||0' ).
+    nodes_exp->add( '/tab/1/|c     |bool   |false||0' ).
+    nodes_exp->add( '/tab/1/|d     |bool   |false||0' ).
+    nodes_exp->add( '/tab/  |2     |object |     ||4' ).
+    nodes_exp->add( '/tab/2/|a     |str    |bcd  ||0' ).
+    nodes_exp->add( '/tab/2/|b     |num    |0    ||0' ).
+    nodes_exp->add( '/tab/2/|c     |bool   |false||0' ).
+    nodes_exp->add( '/tab/2/|d     |bool   |false||0' ).
+
+    nodes_exp->add( '/      |stab  |array  |     ||2' ).
+    nodes_exp->add( '/stab/ |1     |str    |hello||0' ).
+    nodes_exp->add( '/stab/ |2     |str    |world||0' ).
+
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = ls_struc ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
