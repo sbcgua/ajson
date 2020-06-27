@@ -14,7 +14,10 @@ interface zif_ajson_writer
 
   methods touch_array
     importing
-      iv_path type string.
+      iv_path type string
+      iv_clear type abap_bool default abap_false
+    raising
+      zcx_ajson_error.
 
   methods push
     importing

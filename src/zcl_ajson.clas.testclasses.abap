@@ -867,6 +867,8 @@ class ltcl_writer_test definition final
     methods prove_path_exists for testing raising zcx_ajson_error.
     methods delete_subtree for testing raising zcx_ajson_error.
     methods delete for testing raising zcx_ajson_error.
+    methods arrays for testing raising zcx_ajson_error.
+    methods arrays_negative for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -1136,6 +1138,134 @@ class ltcl_writer_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
       exp = nodes->sorted( ) ).
+
+  endmethod.
+
+  method arrays.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson_writer.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    " touch
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |a     |array  |     ||0' ).
+
+    li_writer->touch_array( iv_path = '/a' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+    " add string
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |a     |array  |     ||1' ).
+    nodes_exp->add( '/a/     |1     |str    |hello||0' ).
+
+    li_writer->push(
+      iv_path = '/a'
+      iv_val  = 'hello' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+    " add obj
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |a     |array  |     ||2' ).
+    nodes_exp->add( '/a/     |1     |str    |hello||0' ).
+    nodes_exp->add( '/a/     |2     |object |     ||1' ).
+    nodes_exp->add( '/a/2/   |x     |str    |world||0' ).
+
+    data:
+      begin of ls_dummy,
+        x type string value 'world',
+      end of ls_dummy.
+
+    li_writer->push(
+      iv_path = '/a'
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+    " re-touch
+    li_writer->touch_array( iv_path = '/a' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+    " re-touch with clear
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |a     |array  |     ||0' ).
+
+    li_writer->touch_array(
+      iv_path = '/a'
+      iv_clear = abap_true ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method arrays_negative.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson_writer.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    li_writer->touch_array( iv_path = '/a' ).
+    li_writer->push(
+      iv_path = '/a'
+      iv_val = 123 ).
+
+    " touch another node
+    data lx type ref to zcx_ajson_error.
+    try.
+      li_writer->touch_array( iv_path = '/a/1' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path [/a/1] already used and is not array' ).
+    endtry.
+
+    " push to not array
+    try.
+      li_writer->push(
+        iv_path = '/a/1'
+        iv_val  = 123 ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path [/a/1] is not array' ).
+    endtry.
+
+    " push to not array
+    try.
+      li_writer->push(
+        iv_path = '/x'
+        iv_val  = 123 ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path [/x] does not exist' ).
+    endtry.
 
   endmethod.
 

@@ -384,6 +384,37 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method zif_ajson_writer~push.
+
+    data node_ref type ref to ty_node.
+
+    node_ref = get_item( iv_path ).
+
+    if node_ref is initial.
+      raise exception type zcx_ajson_error
+        exporting
+          message = |Path [{ iv_path }] does not exist|.
+    endif.
+
+    if node_ref->type <> 'array'.
+      raise exception type zcx_ajson_error
+        exporting
+          message = |Path [{ iv_path }] is not array|.
+    endif.
+
+    data lt_new_nodes type ty_nodes_tt.
+    data ls_new_path type ty_path_name.
+
+    ls_new_path-path = normalize_path( iv_path ).
+    ls_new_path-name = |{ node_ref->children + 1 }|.
+
+    lt_new_nodes = lcl_abap_to_json=>convert(
+      iv_data   = iv_val
+      is_prefix = ls_new_path ).
+
+    " update data
+    node_ref->children = node_ref->children + 1.
+    insert lines of lt_new_nodes into table mt_json_tree.
+
   endmethod.
 
 
@@ -434,5 +465,42 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method zif_ajson_writer~touch_array.
+
+    data node_ref type ref to ty_node.
+    data ls_new_node like line of mt_json_tree.
+    data ls_split_path type ty_path_name.
+
+    ls_split_path = split_path( iv_path ).
+
+    if iv_clear = abap_true.
+      delete_subtree(
+        iv_path = ls_split_path-path
+        iv_name = ls_split_path-name ).
+    else.
+      node_ref = get_item( iv_path ).
+    endif.
+
+    if node_ref is initial. " Or node was cleared
+
+      data parent_ref type ref to ty_node.
+      data lt_node_stack type table of ref to ty_node.
+
+      lt_node_stack = prove_path_exists( ls_split_path-path ).
+      read table lt_node_stack index 1 into parent_ref.
+      assert sy-subrc = 0.
+
+      ls_new_node-path = ls_split_path-path.
+      ls_new_node-name = ls_split_path-name.
+      ls_new_node-type = 'array'.
+      insert ls_new_node into table mt_json_tree.
+
+      parent_ref->children = parent_ref->children + 1.
+
+    elseif node_ref->type <> 'array'.
+      raise exception type zcx_ajson_error
+        exporting
+          message = |Path [{ iv_path }] already used and is not array|.
+    endif.
+
   endmethod.
 ENDCLASS.
