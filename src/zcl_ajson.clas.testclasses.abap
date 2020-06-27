@@ -866,6 +866,7 @@ class ltcl_writer_test definition final
     methods set_tab for testing raising zcx_ajson_error.
     methods prove_path_exists for testing raising zcx_ajson_error.
     methods delete_subtree for testing raising zcx_ajson_error.
+    methods delete for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -926,6 +927,53 @@ class ltcl_writer_test implementation.
     lo_cut->delete_subtree(
       iv_path = '/a/'
       iv_name = 'b' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method delete.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes_exp type ref to lcl_nodes_helper.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |a     |object |     ||1' ).
+    nodes_exp->add( '/a/     |b     |object |     ||1' ).
+    nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
+    nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
+
+    lo_cut->mt_json_tree = nodes_exp->mt_nodes.
+
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |a     |object |     ||0' ).
+
+    lo_cut->zif_ajson_writer~delete( iv_path = '/a/b' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |a     |object |     ||1' ).
+    nodes_exp->add( '/a/     |b     |object |     ||1' ).
+    nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
+    nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
+
+    lo_cut->mt_json_tree = nodes_exp->mt_nodes.
+
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |a     |object |     ||0' ).
+
+    lo_cut->zif_ajson_writer~delete( iv_path = '/a/b/' ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree

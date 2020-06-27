@@ -7,11 +7,10 @@ interface zif_ajson_writer
       iv_val type any
     raising
       zcx_ajson_error.
-  " TODO
-  " - ajson instance
-  " - abap structure/table
-  " - abap value/scalar
-  " - set_bool ?
+
+  methods delete
+    importing
+      iv_path type string.
 
   methods touch_array
     importing
@@ -20,7 +19,9 @@ interface zif_ajson_writer
   methods push
     importing
       iv_path type string
-      iv_val type any.
+      iv_val type any
+    raising
+      zcx_ajson_error.
 
   methods stringify
     returning

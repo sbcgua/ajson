@@ -371,6 +371,18 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson_writer~delete.
+
+    data ls_split_path type ty_path_name.
+    ls_split_path = split_path( iv_path ).
+
+    delete_subtree(
+      iv_path = ls_split_path-path
+      iv_name = ls_split_path-name ).
+
+  endmethod.
+
+
   method zif_ajson_writer~push.
   endmethod.
 
