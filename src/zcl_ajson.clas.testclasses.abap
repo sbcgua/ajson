@@ -40,6 +40,7 @@ class lcl_nodes_helper implementation.
     <n>-children = lv_children.
 
   endmethod.
+
   method sorted.
     rt_nodes = mt_nodes.
   endmethod.
