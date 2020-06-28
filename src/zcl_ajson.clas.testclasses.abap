@@ -870,6 +870,7 @@ class ltcl_writer_test definition final
     methods delete for testing raising zcx_ajson_error.
     methods arrays for testing raising zcx_ajson_error.
     methods arrays_negative for testing raising zcx_ajson_error.
+    methods root_assignment for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -1267,6 +1268,76 @@ class ltcl_writer_test implementation.
         act = lx->message
         exp = 'Path [/x] does not exist' ).
     endtry.
+
+  endmethod.
+
+  method root_assignment.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson_writer.
+    data:
+      begin of ls_dummy,
+        x type string value 'hello',
+      end of ls_dummy.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    " object
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |x     |str    |hello||0' ).
+
+    li_writer->set(
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+    " object empty path
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     ||1' ).
+    nodes_exp->add( '/       |x     |str    |hello||0' ).
+
+    li_writer->clear( ).
+    li_writer->set(
+      iv_path = ''
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+    " array
+    create object nodes_exp.
+    nodes_exp->add( '        |      |array  |     ||1' ).
+    nodes_exp->add( '/       |1     |str    |hello||0' ).
+
+    li_writer->clear( ).
+    li_writer->touch_array( iv_path = '' ).
+    li_writer->push(
+      iv_path = ''
+      iv_val  = 'hello' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+    " value
+    create object nodes_exp.
+    nodes_exp->add( '        |      |str    |hello||0' ).
+
+    li_writer->clear( ).
+    li_writer->set(
+      iv_path = ''
+      iv_val  = 'hello' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
 
   endmethod.
 

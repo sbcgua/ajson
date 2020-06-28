@@ -471,6 +471,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data ls_split_path type ty_path_name.
 
     ls_split_path = split_path( iv_path ).
+    if ls_split_path is initial. " Assign root, exceptional processing
+      ls_new_node-path = ls_split_path-path.
+      ls_new_node-name = ls_split_path-name.
+      ls_new_node-type = 'array'.
+      insert ls_new_node into table mt_json_tree.
+      return.
+    endif.
 
     if iv_clear = abap_true.
       delete_subtree(
@@ -488,13 +495,12 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       lt_node_stack = prove_path_exists( ls_split_path-path ).
       read table lt_node_stack index 1 into parent_ref.
       assert sy-subrc = 0.
+      parent_ref->children = parent_ref->children + 1.
 
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
       ls_new_node-type = 'array'.
       insert ls_new_node into table mt_json_tree.
-
-      parent_ref->children = parent_ref->children + 1.
 
     elseif node_ref->type <> 'array'.
       raise exception type zcx_ajson_error
