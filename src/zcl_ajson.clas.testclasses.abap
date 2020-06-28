@@ -1129,10 +1129,10 @@ class ltcl_writer_test implementation.
 
     " Prepare source
     create object nodes.
-    nodes->add( '        |      |object |     ||1' ).
-    nodes->add( '/       |x     |array  |     ||2' ).
-    nodes->add( '/x/     |1     |str    |hello||0' ).
-    nodes->add( '/x/     |2     |str    |world||0' ).
+    nodes->add( '        |      |object |     | |1' ).
+    nodes->add( '/       |x     |array  |     | |2' ).
+    nodes->add( '/x/     |1     |str    |hello|1|0' ).
+    nodes->add( '/x/     |2     |str    |world|2|0' ).
 
     li_writer->set(
       iv_path = '/x'
@@ -1154,8 +1154,8 @@ class ltcl_writer_test implementation.
 
     " touch
     create object nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |a     |array  |     ||0' ).
+    nodes_exp->add( '        |      |object |     | |1' ).
+    nodes_exp->add( '/       |a     |array  |     | |0' ).
 
     li_writer->touch_array( iv_path = '/a' ).
 
@@ -1165,9 +1165,9 @@ class ltcl_writer_test implementation.
 
     " add string
     create object nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |a     |array  |     ||1' ).
-    nodes_exp->add( '/a/     |1     |str    |hello||0' ).
+    nodes_exp->add( '        |      |object |     | |1' ).
+    nodes_exp->add( '/       |a     |array  |     | |1' ).
+    nodes_exp->add( '/a/     |1     |str    |hello|1|0' ).
 
     li_writer->push(
       iv_path = '/a'
@@ -1179,11 +1179,11 @@ class ltcl_writer_test implementation.
 
     " add obj
     create object nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |a     |array  |     ||2' ).
-    nodes_exp->add( '/a/     |1     |str    |hello||0' ).
-    nodes_exp->add( '/a/     |2     |object |     ||1' ).
-    nodes_exp->add( '/a/2/   |x     |str    |world||0' ).
+    nodes_exp->add( '        |      |object |     | |1' ).
+    nodes_exp->add( '/       |a     |array  |     | |2' ).
+    nodes_exp->add( '/a/     |1     |str    |hello|1|0' ).
+    nodes_exp->add( '/a/     |2     |object |     |2|1' ).
+    nodes_exp->add( '/a/2/   |x     |str    |world| |0' ).
 
     data:
       begin of ls_dummy,
@@ -1207,8 +1207,8 @@ class ltcl_writer_test implementation.
 
     " re-touch with clear
     create object nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |a     |array  |     ||0' ).
+    nodes_exp->add( '        |      |object |     | |1' ).
+    nodes_exp->add( '/       |a     |array  |     | |0' ).
 
     li_writer->touch_array(
       iv_path = '/a'
@@ -1313,8 +1313,8 @@ class ltcl_writer_test implementation.
 
     " array
     create object nodes_exp.
-    nodes_exp->add( '        |      |array  |     ||1' ).
-    nodes_exp->add( '/       |1     |str    |hello||0' ).
+    nodes_exp->add( '        |      |array  |     | |1' ).
+    nodes_exp->add( '/       |1     |str    |hello|1|0' ).
 
     li_writer->clear( ).
     li_writer->touch_array( iv_path = '' ).
@@ -1701,21 +1701,21 @@ class ltcl_abap_to_json implementation.
     nodes_exp->add( '/struc/|c     |bool   |false||0' ).
     nodes_exp->add( '/struc/|d     |bool   |false||0' ).
 
-    nodes_exp->add( '/      |tab   |array  |     ||2' ).
-    nodes_exp->add( '/tab/  |1     |object |     ||4' ).
-    nodes_exp->add( '/tab/1/|a     |str    |abc  ||0' ).
-    nodes_exp->add( '/tab/1/|b     |num    |0    ||0' ).
-    nodes_exp->add( '/tab/1/|c     |bool   |false||0' ).
-    nodes_exp->add( '/tab/1/|d     |bool   |false||0' ).
-    nodes_exp->add( '/tab/  |2     |object |     ||4' ).
-    nodes_exp->add( '/tab/2/|a     |str    |bcd  ||0' ).
-    nodes_exp->add( '/tab/2/|b     |num    |0    ||0' ).
-    nodes_exp->add( '/tab/2/|c     |bool   |false||0' ).
-    nodes_exp->add( '/tab/2/|d     |bool   |false||0' ).
+    nodes_exp->add( '/      |tab   |array  |     | |2' ).
+    nodes_exp->add( '/tab/  |1     |object |     |1|4' ).
+    nodes_exp->add( '/tab/1/|a     |str    |abc  | |0' ).
+    nodes_exp->add( '/tab/1/|b     |num    |0    | |0' ).
+    nodes_exp->add( '/tab/1/|c     |bool   |false| |0' ).
+    nodes_exp->add( '/tab/1/|d     |bool   |false| |0' ).
+    nodes_exp->add( '/tab/  |2     |object |     |2|4' ).
+    nodes_exp->add( '/tab/2/|a     |str    |bcd  | |0' ).
+    nodes_exp->add( '/tab/2/|b     |num    |0    | |0' ).
+    nodes_exp->add( '/tab/2/|c     |bool   |false| |0' ).
+    nodes_exp->add( '/tab/2/|d     |bool   |false| |0' ).
 
-    nodes_exp->add( '/      |stab  |array  |     ||2' ).
-    nodes_exp->add( '/stab/ |1     |str    |hello||0' ).
-    nodes_exp->add( '/stab/ |2     |str    |world||0' ).
+    nodes_exp->add( '/      |stab  |array  |     | |2' ).
+    nodes_exp->add( '/stab/ |1     |str    |hello|1|0' ).
+    nodes_exp->add( '/stab/ |2     |str    |world|2|0' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = ls_struc ).
 
@@ -1741,17 +1741,17 @@ class ltcl_abap_to_json implementation.
     <s>-b = 20.
 
     create object nodes_exp.
-    nodes_exp->add( '       |      |array  |     ||2' ).
-    nodes_exp->add( '/      |1     |object |     ||4' ).
-    nodes_exp->add( '/1/    |a     |str    |abc  ||0' ).
-    nodes_exp->add( '/1/    |b     |num    |10   ||0' ).
-    nodes_exp->add( '/1/    |c     |bool   |false||0' ).
-    nodes_exp->add( '/1/    |d     |bool   |false||0' ).
-    nodes_exp->add( '/      |2     |object |     ||4' ).
-    nodes_exp->add( '/2/    |a     |str    |bcd  ||0' ).
-    nodes_exp->add( '/2/    |b     |num    |20   ||0' ).
-    nodes_exp->add( '/2/    |c     |bool   |false||0' ).
-    nodes_exp->add( '/2/    |d     |bool   |false||0' ).
+    nodes_exp->add( '       |      |array  |     | |2' ).
+    nodes_exp->add( '/      |1     |object |     |1|4' ).
+    nodes_exp->add( '/1/    |a     |str    |abc  | |0' ).
+    nodes_exp->add( '/1/    |b     |num    |10   | |0' ).
+    nodes_exp->add( '/1/    |c     |bool   |false| |0' ).
+    nodes_exp->add( '/1/    |d     |bool   |false| |0' ).
+    nodes_exp->add( '/      |2     |object |     |2|4' ).
+    nodes_exp->add( '/2/    |a     |str    |bcd  | |0' ).
+    nodes_exp->add( '/2/    |b     |num    |20   | |0' ).
+    nodes_exp->add( '/2/    |c     |bool   |false| |0' ).
+    nodes_exp->add( '/2/    |d     |bool   |false| |0' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lt_tab ).
 
@@ -1764,9 +1764,9 @@ class ltcl_abap_to_json implementation.
     append 'bcd' to lt_strtab.
 
     create object nodes_exp.
-    nodes_exp->add( '       |      |array  |     ||2' ).
-    nodes_exp->add( '/      |1     |str    |abc  ||0' ).
-    nodes_exp->add( '/      |2     |str    |bcd  ||0' ).
+    nodes_exp->add( '       |      |array  |     | |2' ).
+    nodes_exp->add( '/      |1     |str    |abc  |1|0' ).
+    nodes_exp->add( '/      |2     |str    |bcd  |2|0' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lt_strtab ).
 

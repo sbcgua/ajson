@@ -336,6 +336,7 @@ class lcl_abap_to_json definition final.
         iv_data type any
         io_type type ref to cl_abap_typedescr
         is_prefix type zcl_ajson=>ty_path_name
+        iv_index type i default 0
       changing
         ct_nodes type zcl_ajson=>ty_nodes_tt
       raising
@@ -345,6 +346,7 @@ class lcl_abap_to_json definition final.
       importing
         io_json type ref to zcl_ajson
         is_prefix type zcl_ajson=>ty_path_name
+        iv_index type i default 0
       changing
         ct_nodes type zcl_ajson=>ty_nodes_tt.
 
@@ -353,6 +355,7 @@ class lcl_abap_to_json definition final.
         iv_data type any
         io_type type ref to cl_abap_typedescr
         is_prefix type zcl_ajson=>ty_path_name
+        iv_index type i default 0
       changing
         ct_nodes type zcl_ajson=>ty_nodes_tt
       raising
@@ -363,6 +366,7 @@ class lcl_abap_to_json definition final.
         iv_data type any
         io_type type ref to cl_abap_typedescr
         is_prefix type zcl_ajson=>ty_path_name
+        iv_index type i default 0
       changing
         ct_nodes type zcl_ajson=>ty_nodes_tt
         cs_root  type zcl_ajson=>ty_node optional
@@ -374,6 +378,7 @@ class lcl_abap_to_json definition final.
         iv_data type any
         io_type type ref to cl_abap_typedescr
         is_prefix type zcl_ajson=>ty_path_name
+        iv_index type i default 0
       changing
         ct_nodes type zcl_ajson=>ty_nodes_tt
       raising
@@ -421,6 +426,7 @@ class lcl_abap_to_json implementation.
             iv_data   = iv_data
             io_type   = io_type
             is_prefix = is_prefix
+            iv_index  = iv_index
           changing
             ct_nodes = ct_nodes ).
 
@@ -430,6 +436,7 @@ class lcl_abap_to_json implementation.
             iv_data   = iv_data
             io_type   = io_type
             is_prefix = is_prefix
+            iv_index  = iv_index
           changing
             ct_nodes = ct_nodes ).
 
@@ -439,6 +446,7 @@ class lcl_abap_to_json implementation.
             iv_data   = iv_data
             io_type   = io_type
             is_prefix = is_prefix
+            iv_index  = iv_index
           changing
             ct_nodes = ct_nodes ).
 
@@ -448,8 +456,9 @@ class lcl_abap_to_json implementation.
           and cl_abap_typedescr=>describe_by_object_ref( iv_data )->absolute_name = gv_ajson_absolute_type_name.
           convert_ajson(
             exporting
-              io_json = iv_data
+              io_json   = iv_data
               is_prefix = is_prefix
+              iv_index  = iv_index
             changing
               ct_nodes = ct_nodes ).
         else.
@@ -470,8 +479,9 @@ class lcl_abap_to_json implementation.
 
     loop at ct_nodes assigning <n>.
       if <n>-path is initial and <n>-name is initial. " root node
-        <n>-path = is_prefix-path.
-        <n>-name = is_prefix-name.
+        <n>-path  = is_prefix-path.
+        <n>-name  = is_prefix-name.
+        <n>-index = iv_index.
       else.
         <n>-path = is_prefix-path && is_prefix-name && <n>-path.
       endif.
@@ -485,8 +495,9 @@ class lcl_abap_to_json implementation.
 
     append initial line to ct_nodes assigning <n>.
 
-    <n>-path = is_prefix-path.
-    <n>-name = is_prefix-name.
+    <n>-path  = is_prefix-path.
+    <n>-name  = is_prefix-name.
+    <n>-index = iv_index.
 
     if io_type->absolute_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL' or io_type->absolute_name = '\TYPE=XFELD'.
       <n>-type = 'bool'.
@@ -530,9 +541,10 @@ class lcl_abap_to_json implementation.
       assign cs_root to <root>.
     else. " First call
       append initial line to ct_nodes assigning <root>.
-      <root>-path = is_prefix-path.
-      <root>-name = is_prefix-name.
-      <root>-type = 'object'.
+      <root>-path  = is_prefix-path.
+      <root>-name  = is_prefix-name.
+      <root>-type  = 'object'.
+      <root>-index = iv_index.
     endif.
 
     ls_next_prefix-path = is_prefix-path && is_prefix-name && '/'.
@@ -585,15 +597,15 @@ class lcl_abap_to_json implementation.
     lo_ltype = lo_table->get_table_line_type( ).
 
     append initial line to ct_nodes assigning <root>.
-    <root>-path = is_prefix-path.
-    <root>-name = is_prefix-name.
-    <root>-type = 'array'.
+    <root>-path  = is_prefix-path.
+    <root>-name  = is_prefix-name.
+    <root>-type  = 'array'.
+    <root>-index = iv_index.
 
     ls_next_prefix-path = is_prefix-path && is_prefix-name && '/'.
     assign iv_data to <tab>.
 
     loop at <tab> assigning <val>.
-      <root>-children = <root>-children + 1.
       ls_next_prefix-name = to_lower( |{ sy-tabix }| ).
 
       convert_any(
@@ -601,9 +613,11 @@ class lcl_abap_to_json implementation.
           iv_data   = <val>
           io_type   = lo_ltype
           is_prefix = ls_next_prefix
+          iv_index  = <root>-children + 1
         changing
           ct_nodes = ct_nodes ).
 
+      <root>-children = <root>-children + 1.
     endloop.
 
   endmethod.

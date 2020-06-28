@@ -385,17 +385,18 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson_writer~push.
 
-    data node_ref type ref to ty_node.
+    data parent_ref type ref to ty_node.
+    data new_node_ref type ref to ty_node.
 
-    node_ref = get_item( iv_path ).
+    parent_ref = get_item( iv_path ).
 
-    if node_ref is initial.
+    if parent_ref is initial.
       raise exception type zcx_ajson_error
         exporting
           message = |Path [{ iv_path }] does not exist|.
     endif.
 
-    if node_ref->type <> 'array'.
+    if parent_ref->type <> 'array'.
       raise exception type zcx_ajson_error
         exporting
           message = |Path [{ iv_path }] is not array|.
@@ -405,14 +406,17 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data ls_new_path type ty_path_name.
 
     ls_new_path-path = normalize_path( iv_path ).
-    ls_new_path-name = |{ node_ref->children + 1 }|.
+    ls_new_path-name = |{ parent_ref->children + 1 }|.
 
     lt_new_nodes = lcl_abap_to_json=>convert(
       iv_data   = iv_val
       is_prefix = ls_new_path ).
+    read table lt_new_nodes index 1 reference into new_node_ref. " assume first record is the array item - not ideal !
+    assert sy-subrc = 0.
+    new_node_ref->index = parent_ref->children + 1.
 
     " update data
-    node_ref->children = node_ref->children + 1.
+    parent_ref->children = parent_ref->children + 1.
     insert lines of lt_new_nodes into table mt_json_tree.
 
   endmethod.
