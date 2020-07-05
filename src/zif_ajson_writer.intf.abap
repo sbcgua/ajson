@@ -5,6 +5,35 @@ interface zif_ajson_writer
     importing
       iv_path type string
       iv_val type any
+      iv_ignore_empty type abap_bool default abap_true
+    raising
+      zcx_ajson_error.
+
+  methods set_boolean
+    importing
+      iv_path type string
+      iv_val type any
+    raising
+      zcx_ajson_error.
+
+  methods set_string
+    importing
+      iv_path type string
+      iv_val type clike
+    raising
+      zcx_ajson_error.
+
+  methods set_integer
+    importing
+      iv_path type string
+      iv_val type i
+    raising
+      zcx_ajson_error.
+
+  methods set_date
+    importing
+      iv_path type string
+      iv_val type d
     raising
       zcx_ajson_error.
 

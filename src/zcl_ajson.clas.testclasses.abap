@@ -871,6 +871,10 @@ class ltcl_writer_test definition final
     methods arrays for testing raising zcx_ajson_error.
     methods arrays_negative for testing raising zcx_ajson_error.
     methods root_assignment for testing raising zcx_ajson_error.
+    methods set_bool for testing raising zcx_ajson_error.
+    methods set_str for testing raising zcx_ajson_error.
+    methods set_int for testing raising zcx_ajson_error.
+    methods set_date for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -1334,6 +1338,152 @@ class ltcl_writer_test implementation.
     li_writer->set(
       iv_path = ''
       iv_val  = 'hello' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method set_bool.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson_writer.
+    data lt_tab type string_table.
+
+    " abap_bool
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |      ||2' ).
+    nodes_exp->add( '/       |a     |bool   |true  ||0' ).
+    nodes_exp->add( '/       |b     |bool   |false ||0' ).
+
+    li_writer->set_boolean(
+      iv_path = '/a'
+      iv_val  = abap_true ).
+    li_writer->set_boolean(
+      iv_path = '/b'
+      iv_val  = abap_false ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+    " int
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |      ||2' ).
+    nodes_exp->add( '/       |a     |bool   |true  ||0' ).
+    nodes_exp->add( '/       |b     |bool   |false ||0' ).
+
+    li_writer->set_boolean(
+      iv_path = '/a'
+      iv_val  = 1 ).
+    li_writer->set_boolean(
+      iv_path = '/b'
+      iv_val  = 0 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+    " tab
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |      ||2' ).
+    nodes_exp->add( '/       |a     |bool   |true  ||0' ).
+    nodes_exp->add( '/       |b     |bool   |false ||0' ).
+
+    append 'hello' to lt_tab.
+    li_writer->set_boolean(
+      iv_path = '/a'
+      iv_val  = lt_tab ).
+    clear lt_tab.
+    li_writer->set_boolean(
+      iv_path = '/b'
+      iv_val  = lt_tab ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method set_str.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson_writer.
+    data lv_date type d.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |         ||3' ).
+    nodes_exp->add( '/       |a     |str    |123      ||0' ).
+    nodes_exp->add( '/       |b     |str    |X        ||0' ).
+    nodes_exp->add( '/       |c     |str    |20200705 ||0' ).
+
+    li_writer->set_string(
+      iv_path = '/a'
+      iv_val  = '123' ).
+    li_writer->set_string(
+      iv_path = '/b'
+      iv_val  = abap_true ).
+    lv_date = '20200705'.
+    li_writer->set_string(
+      iv_path = '/c'
+      iv_val  = lv_date ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method set_int.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson_writer.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |         ||1' ).
+    nodes_exp->add( '/       |a     |num    |123      ||0' ).
+
+    li_writer->set_integer(
+      iv_path = '/a'
+      iv_val  = 123 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method set_date.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson_writer.
+    data lv_date type d.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |           ||1' ).
+    nodes_exp->add( '/       |a     |str    |2020-07-05 ||0' ).
+
+    lv_date = '20200705'.
+    li_writer->set_date(
+      iv_path = '/a'
+      iv_val  = lv_date ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree

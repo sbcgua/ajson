@@ -429,7 +429,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data parent_ref type ref to ty_node.
     data lt_node_stack type table of ref to ty_node.
 
-    if iv_val is initial.
+    if iv_val is initial and iv_ignore_empty = abap_true.
       return. " nothing to assign
     endif.
 
@@ -460,6 +460,56 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     " update data
     parent_ref->children = parent_ref->children + 1.
     insert lines of lt_new_nodes into table mt_json_tree.
+
+  endmethod.
+
+
+  method zif_ajson_writer~set_boolean.
+
+    data lv_bool type abap_bool.
+    lv_bool = boolc( iv_val is not initial ).
+    zif_ajson_writer~set(
+      iv_ignore_empty = abap_false
+      iv_path = iv_path
+      iv_val  = lv_bool ).
+
+  endmethod.
+
+
+  method zif_ajson_writer~set_date.
+
+    data lv_val type string.
+
+    if iv_val is not initial.
+      lv_val = iv_val+0(4) && '-' && iv_val+4(2) && '-' && iv_val+6(2).
+    endif.
+
+    zif_ajson_writer~set(
+      iv_ignore_empty = abap_false
+      iv_path = iv_path
+      iv_val  = lv_val ).
+
+  endmethod.
+
+
+  method zif_ajson_writer~set_integer.
+
+    zif_ajson_writer~set(
+      iv_ignore_empty = abap_false
+      iv_path = iv_path
+      iv_val  = iv_val ).
+
+  endmethod.
+
+
+  method zif_ajson_writer~set_string.
+
+    data lv_val type string.
+    lv_val = iv_val.
+    zif_ajson_writer~set(
+      iv_ignore_empty = abap_false
+      iv_path = iv_path
+      iv_val  = lv_val ).
 
   endmethod.
 
