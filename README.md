@@ -26,9 +26,11 @@ The class `zcl_ajson` implements 2 interfaces:
 - Json attributes are addressed by path in form of e.g. `/a/b/c` addresses `{ a: { b: { c: "this value !" } } }`
 - Array items addressed with index starting from 1: `/tab/2/val` -> `{ tab: [ {...}, { val: "this value !" } ] }`
 
-### zif_ajson_reader
+### JSON reader (zif_ajson_reader)
 
-Assuming original json is
+The methods of interface allows accessing attributes and converting to abap structure.
+
+Examples below assume original json was:
 
 ```json
 {
@@ -47,6 +49,8 @@ Assuming original json is
   }
 }
 ```
+
+#### Individual values
 
 ```abap
 data r type ref to zif_ajson_reader.
@@ -68,13 +72,20 @@ r->value( '/payload/null' ).          " returns "null"
 r->value_string( '/payload/null' ).   " returns "" (empty string)
 
 r->members( '/' ).                    " returns table of "success", "error", "payload"
+```
 
+#### Segment slicing
+
+```abap
 " Slice returns zif_ajson_reader instance but "payload" becomes root
 " Useful to process API responses with unified wrappers
 data payload type ref to zif_ajson_reader.
 payload = r->slice( '/payload' ). 
+```
 
-" converting to abap structure
+#### Converting to abap structure
+
+```abap
 data:
   begin of ls_payload,
     text type string,
@@ -87,7 +98,12 @@ data:
 
 payload->to_abap( importing ev_container = ls_payload ).
 ```
-### zif_ajson_writer
+
+### JSON writer (zif_ajson_writer)
+
+The methods of interface allows setting attributes, objects, arrays.
+
+#### Individual values
 
 ```abap
 data w type ref to zif_ajson_writer.
@@ -106,7 +122,68 @@ w->set(
   iv_path = '/a/b/bool'
   iv_val  = abap_true ).
 
-" Important values and whole branches are rewritten
+" Ignoring empty values by default
+w->set(
+  iv_path = '/a'
+  iv_val  = abap_false ). " => nothing added to json !!!
+w->set(
+  iv_ignore_empty = abap_false
+  iv_path = '/a'
+  iv_val  = abap_false ). " => "a": false
+w->set(
+  iv_path = '/a'
+  iv_val  = 0 ). " => nothing added to json !!!
+w->set(
+  iv_ignore_empty = abap_false
+  iv_path = '/a'
+  iv_val  = 0 ). " => "a": 0
+```
+
+#### Individual TYPED values
+
+```abap
+" Set typed value
+" IMPORTANTLY, empty values are always not ignored !
+" Booleans -> converts not initial values to true
+w->set_boolean(
+  iv_path = '/a'
+  iv_val  = 123 ). " => true
+w->set_boolean( " empty value not ignored !
+  iv_path = '/a'
+  iv_val  = 0 ). " => false
+w->set_boolean(
+  iv_path = '/a'
+  iv_val  = 'abc' ). " => true
+w->set_boolean(
+  iv_path = '/a'
+  iv_val  = lt_non_empty_tab ). " => true
+
+" Integer
+w->set_integer( " this just forces conversion to int at param level
+  iv_path = '/a'
+  iv_val  = 123 ). " => 123
+w->set_integer( " empty value not ignored !
+  iv_path = '/a'
+  iv_val  = 0 ). " => 0
+
+" String (clike param)
+w->set_string(
+  iv_path = '/a'
+  iv_val  = sy-datum ). " => e.g. 20200705
+w->set_string( " empty value not ignored !
+  iv_path = '/a'
+  iv_val  = '' ). " => "a": ""
+
+" Date - converts date param to json formatted date
+w->set_string(
+  iv_path = '/a'
+  iv_val  = sy-datum ). " => e.g. "2020-07-05" (with dashes)
+```
+
+#### Deletion and rewriting
+
+```abap
+" Importantly, values and whole branches are rewritten
 " { a: { b: 0 } } - the old "b" completely deleted
 w->set(
   iv_path = '/a/b'
@@ -117,7 +194,11 @@ w->delete( '/a/b' ). " => { a: { } }
 
 " Or completely cleared
 w->clear( ).
+```
 
+#### Settings objects
+
+```abap
 " Set object
 " Results in { a: { b: { payload: { text: ..., num: ... } } } }
 data:
@@ -129,6 +210,15 @@ w->set(
   iv_path = '/a/b/payload'
   iv_val  = ls_payload ).
 
+" Set other object with ajson instance
+w->set(
+  iv_path = '/a/b/payload'
+  iv_val  = lo_another_ajson ).
+```
+
+#### Settings arrays/tables
+
+```abap
 " Set arrays
 " Results in: { array: [ "abc", "efg" ] }
 " Tables of structures, of tables, and other deep objects are supported as well
@@ -164,4 +254,4 @@ w->touch_array( '/array2' ).
 
 ## References
 
-- Forked from [here](https://github.com/abaplint/abaplint-abap-backend) originally
+- Forked from [here](https://github.com/abaplint/abaplint-abap-backend) originally, at early stages
