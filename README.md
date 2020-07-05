@@ -5,10 +5,10 @@
 Yet another json parser/serializer for ABAP. Should work on 7.31, maybe on 7.02 but with json sxml parser installed.
 
 Features:
-- parse into a flexible form, not fixed to any predefined data structure, allowing to change the parsed data and slice subsections of it
-  - slicing can be particulary useful for REST header separation e.g. `{ success: 1, error: "", payload: {...} }` where `success` and Ko is processed in one layer of your application and payload in another (and can differ)
+- parse into a flexible form, not fixed to any predefined data structure, allowing to modify the parsed data, selectively access its parts and slice subsections of it
+  - slicing can be particularly useful for REST header separation e.g. `{ success: 1, error: "", payload: {...} }` where 1st level attrs are processed in one layer of your application and payload in another (and can differ from request to request)
 - allows conversion to fixed abap structures/tables (`to_abap`)
-- convenient interface to manipulate the data (`set( value )`, `set( structure )`, `set( table )`, `set( another_instance_of_ajson )`)
+- convenient interface to manipulate the data - `set( value )`, `set( structure )`, `set( table )`, `set( another_instance_of_ajson )`, also typed e.g. `set_date`
 - seralization to string (TODO)
 
 Installed using [abapGit](https://github.com/larshp/abapGit)
@@ -23,7 +23,7 @@ The class `zcl_ajson` implements 2 interfaces:
 
 - To parse existing json data - call `zcl_ajson=>parse( lv_json_string )`
 - To create a new empty json instance (to set values and serialize) - call `zcl_ajson=>create_empty( lv_json_string )`
-- Json attributes are addressed by path in form of e.g. `/a/b/c` addresses `{ a: { b: { c: "this value !" } } }`
+- Json attributes are addressed by path in form `/obj1/obj2/value` of e.g. `/a/b/c` addresses `{ a: { b: { c: "this value !" } } }`
 - Array items addressed with index starting from 1: `/tab/2/val` -> `{ tab: [ {...}, { val: "this value !" } ] }`
 
 ### JSON reader (zif_ajson_reader)
