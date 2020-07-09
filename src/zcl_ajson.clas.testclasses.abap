@@ -67,8 +67,6 @@ class ltcl_parser_test definition final
 
 endclass.
 
-class zcl_ajson definition local friends ltcl_parser_test.
-
 class ltcl_parser_test implementation.
 
   method sample_json.
@@ -156,6 +154,280 @@ class ltcl_parser_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = nodes->mt_nodes ).
+
+  endmethod.
+
+endclass.
+
+**********************************************************************
+* SERIALIZER
+**********************************************************************
+
+class ltcl_serializer_test definition final
+  for testing
+  risk level harmless
+  duration short.
+
+  public section.
+
+    class-methods sample_json
+      returning
+        value(rv_json) type string.
+    class-methods sample_nodes
+      returning
+        value(rt_nodes) type zcl_ajson=>ty_nodes_ts.
+
+  private section.
+
+    methods stringify_condensed for testing raising zcx_ajson_error.
+    methods stringify_indented for testing raising zcx_ajson_error.
+    methods array_index for testing raising zcx_ajson_error.
+    methods simple_indented for testing raising zcx_ajson_error.
+    methods empty for testing raising zcx_ajson_error.
+
+endclass.
+
+class ltcl_serializer_test implementation.
+
+  method sample_json.
+
+    rv_json =
+      '{\n' &&
+      '  "boolean": true,\n' &&
+      '  "date": "2020-03-15",\n' &&
+      '  "false": false,\n' &&
+      '  "float": 123.45,\n' &&
+      '  "issues": [\n' &&
+      '    {\n' &&
+      '      "end": {\n' &&
+      '        "col": 26,\n' &&
+      '        "row": 4\n' &&
+      '      },\n' &&
+      '      "filename": "./zxxx.prog.abap",\n' &&
+      '      "key": "indentation",\n' &&
+      '      "message": "Indentation problem ...",\n' &&
+      '      "start": {\n' &&
+      '        "col": 3,\n' &&
+      '        "row": 4\n' &&
+      '      }\n' &&
+      '    },\n' &&
+      '    {\n' &&
+      '      "end": {\n' &&
+      '        "col": 22,\n' &&
+      '        "row": 3\n' &&
+      '      },\n' &&
+      '      "filename": "./zxxx.prog.abap",\n' &&
+      '      "key": "space_before_dot",\n' &&
+      '      "message": "Remove space before XXX",\n' &&
+      '      "start": {\n' &&
+      '        "col": 21,\n' &&
+      '        "row": 3\n' &&
+      '      }\n' &&
+      '    }\n' &&
+      '  ],\n' &&
+      '  "null": null,\n' &&
+      '  "number": 123,\n' &&
+      '  "string": "abc"\n' &&
+      '}'.
+
+    rv_json = replace(
+      val = rv_json
+      sub = '\n'
+      with = cl_abap_char_utilities=>newline
+      occ = 0 ).
+
+  endmethod.
+
+  method sample_nodes.
+
+    data nodes type ref to lcl_nodes_helper.
+
+    create object nodes.
+    nodes->add( '                 |         |object |                        |  |8' ).
+    nodes->add( '/                |string   |str    |abc                     |  |0' ).
+    nodes->add( '/                |number   |num    |123                     |  |0' ).
+    nodes->add( '/                |float    |num    |123.45                  |  |0' ).
+    nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
+    nodes->add( '/                |false    |bool   |false                   |  |0' ).
+    nodes->add( '/                |null     |null   |                        |  |0' ).
+    nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
+    nodes->add( '/                |issues   |array  |                        |  |2' ).
+    nodes->add( '/issues/         |1        |object |                        |1 |5' ).
+    nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0' ).
+    nodes->add( '/issues/1/       |key      |str    |indentation             |  |0' ).
+    nodes->add( '/issues/1/       |start    |object |                        |  |2' ).
+    nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0' ).
+    nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0' ).
+    nodes->add( '/issues/1/       |end      |object |                        |  |2' ).
+    nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
+    nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
+    nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    nodes->add( '/issues/         |2        |object |                        |2 |5' ).
+    nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0' ).
+    nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0' ).
+    nodes->add( '/issues/2/       |start    |object |                        |  |2' ).
+    nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0' ).
+    nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0' ).
+    nodes->add( '/issues/2/       |end      |object |                        |  |2' ).
+    nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
+    nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
+    nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+
+    rt_nodes = nodes->sorted( ).
+
+  endmethod.
+
+  method stringify_condensed.
+
+    data lv_act type string.
+    data lv_exp type string.
+
+    lv_act = lcl_json_serializer=>stringify( sample_nodes( ) ).
+    lv_exp = sample_json( ).
+
+    lv_exp = replace(
+      val = lv_exp
+      sub = cl_abap_char_utilities=>newline
+      with = ''
+      occ = 0 ).
+    condense lv_exp.
+    lv_exp = replace(
+      val = lv_exp
+      sub = `: `
+      with = ':'
+      occ = 0 ).
+    lv_exp = replace(
+      val = lv_exp
+      sub = `{ `
+      with = '{'
+      occ = 0 ).
+    lv_exp = replace(
+      val = lv_exp
+      sub = `[ `
+      with = '['
+      occ = 0 ).
+    lv_exp = replace(
+      val = lv_exp
+      sub = ` }`
+      with = '}'
+      occ = 0 ).
+    lv_exp = replace(
+      val = lv_exp
+      sub = ` ]`
+      with = ']'
+      occ = 0 ).
+    lv_exp = replace(
+      val = lv_exp
+      sub = `, `
+      with = ','
+      occ = 0 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+  endmethod.
+
+  method stringify_indented.
+
+    data lv_act type string.
+    data lv_exp type string.
+
+    lv_act = lcl_json_serializer=>stringify(
+      it_json_tree = sample_nodes( )
+      iv_indent    = 2 ).
+    lv_exp = sample_json( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+  endmethod.
+
+  method array_index.
+
+    data lv_act type string.
+    data lv_exp type string.
+    data nodes type ref to lcl_nodes_helper.
+
+    create object nodes.
+    nodes->add( '                |    |array  |                        |  |3' ).
+    nodes->add( '/               |1   |str    |abc                     |2 |0' ).
+    nodes->add( '/               |2   |num    |123                     |1 |0' ).
+    nodes->add( '/               |3   |num    |123.45                  |3 |0' ).
+
+    lv_act = lcl_json_serializer=>stringify( nodes->sorted( ) ).
+    lv_exp = '[123,"abc",123.45]'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+  endmethod.
+
+  method simple_indented.
+
+    data lv_act type string.
+    data lv_exp type string.
+    data nodes type ref to lcl_nodes_helper.
+
+    create object nodes.
+    nodes->add( '                |    |array  |                        |  |3' ).
+    nodes->add( '/               |1   |object |                        |2 |2' ).
+    nodes->add( '/1/             |a   |num    |1                       |  |0' ).
+    nodes->add( '/1/             |b   |num    |2                       |  |0' ).
+    nodes->add( '/               |2   |num    |123                     |1 |0' ).
+    nodes->add( '/               |3   |num    |123.45                  |3 |0' ).
+
+    lv_act = lcl_json_serializer=>stringify(
+      it_json_tree = nodes->sorted( )
+      iv_indent    = 2 ).
+    lv_exp = '[\n' &&
+    '  123,\n' &&
+    '  {\n' &&
+    '    "a": 1,\n' &&
+    '    "b": 2\n' &&
+    '  },\n' &&
+    '  123.45\n' &&
+    ']'.
+    lv_exp = replace(
+      val = lv_exp
+      sub = '\n'
+      with = cl_abap_char_utilities=>newline
+      occ = 0 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+  endmethod.
+
+  method empty.
+
+    data lv_act type string.
+    data lv_exp type string.
+    data nodes type ref to lcl_nodes_helper.
+
+    create object nodes.
+    nodes->add( '                |    |array  |                        |  |0' ).
+
+    lv_act = lcl_json_serializer=>stringify(
+      it_json_tree = nodes->sorted( )
+      iv_indent    = 0 ).
+    lv_exp = '[]'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+    lv_act = lcl_json_serializer=>stringify(
+      it_json_tree = nodes->sorted( )
+      iv_indent    = 2 ).
+    lv_exp = '[]'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
 
   endmethod.
 

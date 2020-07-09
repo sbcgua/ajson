@@ -1,3 +1,7 @@
+**********************************************************************
+* PARSER
+**********************************************************************
+
 class lcl_json_parser definition final.
   public section.
 
@@ -131,6 +135,203 @@ class lcl_json_parser implementation.
   endmethod.
 
 endclass.
+
+**********************************************************************
+* SERIALIZER
+**********************************************************************
+
+class lcl_json_serializer definition final create private.
+  public section.
+
+    class-methods stringify
+      importing
+        it_json_tree type zcl_ajson=>ty_nodes_ts
+        iv_indent type i default 0
+      returning
+        value(rv_json_string) type string
+      raising
+        zcx_ajson_error.
+
+    class-methods class_constructor.
+
+  private section.
+
+    class-data gv_close_array_with_lf type string.
+    class-data gv_close_obj_with_lf type string.
+    class-data gv_comma_with_lf type string.
+
+    data mt_json_tree type zcl_ajson=>ty_nodes_ts.
+    data mt_buffer type string_table.
+    data mv_indent_step type i.
+    data mv_level type i.
+
+    methods _stringify
+      returning
+        value(rv_json_string) type string
+      raising
+        zcx_ajson_error.
+
+    methods stringify_node
+      importing
+        is_node type zcl_ajson=>ty_node
+      raising
+        zcx_ajson_error.
+
+    methods stringify_set
+      importing
+        iv_parent_path type string
+        iv_array type abap_bool
+      raising
+        zcx_ajson_error.
+
+endclass.
+
+class lcl_json_serializer implementation.
+
+  method class_constructor.
+    gv_close_array_with_lf = ']' && cl_abap_char_utilities=>newline.
+    gv_close_obj_with_lf   = '}' && cl_abap_char_utilities=>newline.
+    gv_comma_with_lf       = ',' && cl_abap_char_utilities=>newline.
+  endmethod.
+
+  method stringify.
+
+    data lo type ref to lcl_json_serializer.
+    create object lo.
+    lo->mt_json_tree = it_json_tree.
+    lo->mv_indent_step = iv_indent.
+    rv_json_string = lo->_stringify( ).
+
+  endmethod.
+
+  method _stringify.
+
+    field-symbols <n> like line of mt_json_tree.
+    read table mt_json_tree assigning <n>
+      with key
+        path = ''
+        name = ''. " Root
+    if sy-subrc <> 0.
+      return.
+    endif.
+
+    stringify_node( <n> ).
+
+    rv_json_string = concat_lines_of( table = mt_buffer ).
+
+  endmethod.
+
+  method stringify_node.
+
+    data lv_item type string.
+    data lv_indent_prefix type string.
+
+    if mv_indent_step > 0.
+      lv_indent_prefix = repeat( val = ` ` occ = mv_indent_step * mv_level ).
+      lv_item = lv_indent_prefix.
+    endif.
+
+    if is_node-name is not initial and is_node-index is initial. " Not root, not array item
+      if mv_indent_step > 0.
+        lv_item = lv_item && |"{ is_node-name }": |.
+      else.
+        lv_item = |"{ is_node-name }":|.
+      endif.
+    endif.
+
+    case is_node-type.
+      when 'array'.
+        lv_item = lv_item && '['.
+      when 'object'.
+        lv_item = lv_item && '{'.
+      when 'str'.
+        lv_item = lv_item && |"{ is_node-value }"|.
+        " TODO escape ?
+      when 'bool' or 'num'.
+        lv_item = lv_item && is_node-value.
+      when 'null'.
+        lv_item = lv_item && 'null'.
+      when others.
+        raise exception type zcx_ajson_error
+          exporting
+            message = |Unexpected type [{ is_node-type }]|
+            location = is_node-path && is_node-name.
+    endcase.
+
+    if mv_indent_step > 0 and ( is_node-type = 'array' or is_node-type = 'object' ) and is_node-children > 0.
+      mv_level = mv_level + 1.
+      lv_item = lv_item && cl_abap_char_utilities=>newline.
+    endif.
+
+    append lv_item to mt_buffer.
+
+    " finish complex item
+
+    if is_node-type = 'array' or is_node-type = 'object'.
+      data lv_children_path type string.
+      data lv_tail type string.
+
+      lv_children_path = is_node-path && is_node-name && '/'. " for root: path = '' and name = '', so result is '/'
+
+      case is_node-type.
+        when 'array'.
+          if is_node-children > 0.
+            stringify_set(
+              iv_parent_path = lv_children_path
+              iv_array       = abap_true ).
+          endif.
+          lv_tail = ']'.
+        when 'object'.
+          if is_node-children > 0.
+            stringify_set(
+              iv_parent_path = lv_children_path
+              iv_array       = abap_false ).
+          endif.
+          lv_tail = '}'.
+      endcase.
+
+      if mv_indent_step > 0 and is_node-children > 0.
+        lv_tail = lv_indent_prefix && lv_tail.
+        mv_level = mv_level - 1.
+      endif.
+      append lv_tail to mt_buffer.
+    endif.
+
+  endmethod.
+
+  method stringify_set.
+
+    data lv_tab_key type string.
+    data lv_first_done type abap_bool.
+    field-symbols <n> like line of mt_json_tree.
+
+    if iv_array = abap_true.
+      lv_tab_key = 'array_index'. " path + index
+    else.
+      lv_tab_key = 'primary_key'. " path + name
+    endif.
+
+    loop at mt_json_tree assigning <n> using key (lv_tab_key) where path = iv_parent_path.
+      if lv_first_done = abap_false.
+        lv_first_done = abap_true.
+      else.
+        if mv_indent_step > 0.
+          append gv_comma_with_lf to mt_buffer.
+        else.
+          append ',' to mt_buffer.
+        endif.
+      endif.
+      stringify_node( <n> ).
+    endloop.
+
+    if mv_indent_step > 0 and lv_first_done = abap_true. " only of items were in the list
+      append cl_abap_char_utilities=>newline to mt_buffer.
+    endif.
+
+  endmethod.
+
+endclass.
+
 
 **********************************************************************
 * JSON_TO_ABAP
