@@ -1,4 +1,5 @@
 ![abaplint](https://github.com/sbcgua/abap-string-map/workflows/abaplint/badge.svg)
+![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/sbcgua/ajson/src/zcl_ajson.clas.abap)
 
 # abap json (ajson)
 

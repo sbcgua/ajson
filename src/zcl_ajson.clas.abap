@@ -4,6 +4,8 @@ class zcl_ajson definition
 
   public section.
 
+    constants version type string value 'v1.0.0'.
+
     interfaces zif_ajson_reader .
 *    aliases: " NOT SURE
 *      exists for zif_ajson_reader~exists,
