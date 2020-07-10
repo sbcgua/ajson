@@ -594,7 +594,9 @@ class ltcl_reader_test definition final
     methods get_value for testing raising zcx_ajson_error.
     methods exists for testing raising zcx_ajson_error.
     methods value_integer for testing raising zcx_ajson_error.
+    methods value_number for testing raising zcx_ajson_error.
     methods value_boolean for testing raising zcx_ajson_error.
+    methods value_string for testing raising zcx_ajson_error.
     methods members for testing raising zcx_ajson_error.
     methods slice for testing raising zcx_ajson_error.
 
@@ -759,6 +761,25 @@ class ltcl_reader_test implementation.
 
   endmethod.
 
+  method value_number.
+
+    data lo_cut type ref to zif_ajson_reader.
+    lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->value_number( '/string' )
+      exp = 0 ). " Hmmmm ????
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->value_number( '/number' )
+      exp = +'123.0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->value_number( '/float' )
+      exp = +'123.45' ).
+
+  endmethod.
+
   method value_boolean.
 
     data lo_cut type ref to zif_ajson_reader.
@@ -779,6 +800,29 @@ class ltcl_reader_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->value_boolean( '/boolean' )
       exp = abap_true ).
+
+  endmethod.
+
+  method value_string.
+
+    data lo_cut type ref to zif_ajson_reader.
+    lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->value_string( '/string' )
+      exp = 'abc' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->value_string( '/number' )
+      exp = '123' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->value_string( '/xxx' )
+      exp = '' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->value_string( '/boolean' )
+      exp = 'true' ).
 
   endmethod.
 
@@ -1174,6 +1218,7 @@ class ltcl_writer_test definition final
 
     methods set_ajson for testing raising zcx_ajson_error.
     methods set_value for testing raising zcx_ajson_error.
+    methods ignore_empty for testing raising zcx_ajson_error.
     methods set_obj for testing raising zcx_ajson_error.
     methods set_tab for testing raising zcx_ajson_error.
     methods prove_path_exists for testing raising zcx_ajson_error.
@@ -1392,6 +1437,47 @@ class ltcl_writer_test implementation.
     li_writer->set(
       iv_path = '/x/c'
       iv_val  = 10 ).
+    li_writer->set( " ignore empty
+      iv_path = '/x/d'
+      iv_val  = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes->sorted( ) ).
+
+  endmethod.
+
+  method ignore_empty.
+
+    data nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson_writer.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    create object nodes.
+    nodes->add( '        |      |object |     ||1' ).
+    nodes->add( '/       |a     |num    |1    ||0' ).
+
+    li_writer->set(
+      iv_path = '/a'
+      iv_val  = 1 ).
+    li_writer->set( " ignore empty
+      iv_path = '/b'
+      iv_val  = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes->sorted( ) ).
+
+    create object nodes.
+    nodes->add( '        |      |object |     ||2' ).
+    nodes->add( '/       |a     |num    |1    ||0' ).
+    nodes->add( '/       |b     |num    |0    ||0' ).
+
+    li_writer->set(
+      iv_ignore_empty = abap_false
+      iv_path = '/b'
+      iv_val  = 0 ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
       exp = nodes->sorted( ) ).
