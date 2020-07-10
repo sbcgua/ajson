@@ -1986,6 +1986,7 @@ class ltcl_abap_to_json definition
 
     methods set_ajson for testing raising zcx_ajson_error.
     methods set_value for testing raising zcx_ajson_error.
+    methods set_null for testing raising zcx_ajson_error.
     methods set_obj for testing raising zcx_ajson_error.
     methods set_array for testing raising zcx_ajson_error.
     methods set_complex_obj for testing raising zcx_ajson_error.
@@ -2071,6 +2072,24 @@ class ltcl_abap_to_json implementation.
 
     lv_xfeld = 'X'.
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lv_xfeld ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = nodes_exp->mt_nodes ).
+
+  endmethod.
+
+  method set_null.
+
+    data nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+    data lv_null_ref type ref to data.
+
+    " null
+    create object nodes_exp.
+    nodes_exp->add( '       |      |null |null ||' ).
+
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = lv_null_ref ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes

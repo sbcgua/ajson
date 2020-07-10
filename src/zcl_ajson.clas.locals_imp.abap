@@ -665,6 +665,17 @@ class lcl_abap_to_json definition final.
       raising
         zcx_ajson_error.
 
+    methods convert_ref
+      importing
+        iv_data type any
+        io_type type ref to cl_abap_typedescr
+        is_prefix type zcl_ajson=>ty_path_name
+        iv_index type i default 0
+      changing
+        ct_nodes type zcl_ajson=>ty_nodes_tt
+      raising
+        zcx_ajson_error.
+
     methods convert_struc
       importing
         iv_data type any
@@ -756,7 +767,17 @@ class lcl_abap_to_json implementation.
 
       when others.
 
-        if io_type->type_kind = cl_abap_typedescr=>typekind_oref
+        if io_type->type_kind = cl_abap_typedescr=>typekind_dref.
+          convert_ref(
+            exporting
+              iv_data   = iv_data
+              io_type   = io_type
+              is_prefix = is_prefix
+              iv_index  = iv_index
+            changing
+              ct_nodes = ct_nodes ).
+
+        elseif io_type->type_kind = cl_abap_typedescr=>typekind_oref
           and cl_abap_typedescr=>describe_by_object_ref( iv_data )->absolute_name = gv_ajson_absolute_type_name.
           convert_ajson(
             exporting
@@ -820,6 +841,28 @@ class lcl_abap_to_json implementation.
       raise exception type zcx_ajson_error
         exporting
           message = |Unexpected elemetary type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }|.
+    endif.
+
+  endmethod.
+
+  method convert_ref.
+
+    field-symbols <n> like line of ct_nodes.
+
+    append initial line to ct_nodes assigning <n>.
+
+    <n>-path  = is_prefix-path.
+    <n>-name  = is_prefix-name.
+    <n>-index = iv_index.
+
+    if iv_data is initial.
+      <n>-type  = 'null'.
+      <n>-value = 'null'.
+    else.
+      " TODO support data references
+      raise exception type zcx_ajson_error
+        exporting
+          message = |Unexpected reference @{ is_prefix-path && is_prefix-name }|.
     endif.
 
   endmethod.

@@ -39,6 +39,12 @@ interface zif_ajson_writer
     raising
       zcx_ajson_error.
 
+  methods set_null
+    importing
+      iv_path type string
+    raising
+      zcx_ajson_error.
+
   methods delete
     importing
       iv_path type string.

@@ -478,6 +478,17 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson_writer~set_null.
+
+    data lv_null_ref type ref to data.
+    zif_ajson_writer~set(
+      iv_ignore_empty = abap_false
+      iv_path = iv_path
+      iv_val  = lv_null_ref ).
+
+  endmethod.
+
+
   method zif_ajson_writer~set_string.
 
     data lv_val type string.
