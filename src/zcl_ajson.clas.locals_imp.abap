@@ -381,12 +381,10 @@ class lcl_json_serializer implementation.
     loop at mt_json_tree assigning <n> using key (lv_tab_key) where path = iv_parent_path.
       if lv_first_done = abap_false.
         lv_first_done = abap_true.
+      elseif mv_indent_step > 0.
+        append gv_comma_with_lf to mt_buffer.
       else.
-        if mv_indent_step > 0.
-          append gv_comma_with_lf to mt_buffer.
-        else.
-          append ',' to mt_buffer.
-        endif.
+        append ',' to mt_buffer.
       endif.
       stringify_node( <n> ).
     endloop.
