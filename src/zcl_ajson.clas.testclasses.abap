@@ -184,6 +184,7 @@ class ltcl_serializer_test definition final
     methods array_index for testing raising zcx_ajson_error.
     methods simple_indented for testing raising zcx_ajson_error.
     methods empty for testing raising zcx_ajson_error.
+    methods escape for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -424,6 +425,26 @@ class ltcl_serializer_test implementation.
       it_json_tree = nodes->sorted( )
       iv_indent    = 2 ).
     lv_exp = '[]'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+  endmethod.
+
+  method escape.
+
+    data lv_act type string.
+    data lv_exp type string.
+    data lv_val type string.
+    data nodes type ref to lcl_nodes_helper.
+
+    create object nodes.
+    lv_val = 'a' && '"' && '\' && cl_abap_char_utilities=>horizontal_tab && cl_abap_char_utilities=>cr_lf.
+    nodes->add( | \| \|str \|{ lv_val }\| \|0| ).
+
+    lv_act = lcl_json_serializer=>stringify( nodes->sorted( ) ).
+    lv_exp = '"a\"\\\t\r\n"'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_act

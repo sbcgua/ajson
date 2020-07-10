@@ -229,6 +229,12 @@ class lcl_json_serializer definition final create private.
     data mv_indent_step type i.
     data mv_level type i.
 
+    class-methods escape
+      importing
+        iv_unescaped type string
+      returning
+        value(rv_escaped) type string.
+
     methods _stringify
       returning
         value(rv_json_string) type string
@@ -307,8 +313,7 @@ class lcl_json_serializer implementation.
       when 'object'.
         lv_item = lv_item && '{'.
       when 'str'.
-        lv_item = lv_item && |"{ is_node-value }"|.
-        " TODO escape ?
+        lv_item = lv_item && |"{ escape( is_node-value ) }"|.
       when 'bool' or 'num'.
         lv_item = lv_item && is_node-value.
       when 'null'.
@@ -388,6 +393,42 @@ class lcl_json_serializer implementation.
 
     if mv_indent_step > 0 and lv_first_done = abap_true. " only of items were in the list
       append cl_abap_char_utilities=>newline to mt_buffer.
+    endif.
+
+  endmethod.
+
+  method escape.
+
+    rv_escaped = iv_unescaped.
+    if rv_escaped ca |"\\\t\n\r|.
+      " TODO consider performance ...
+      " see also https://www.json.org/json-en.html
+      rv_escaped = replace(
+        val = rv_escaped
+        sub = '\'
+        with = '\\'
+        occ = 0 ).
+      rv_escaped = replace(
+        val = rv_escaped
+        sub = |\n|
+        with = '\n'
+        occ = 0 ).
+      rv_escaped = replace(
+        val = rv_escaped
+        sub = |\r|
+        with = '\r'
+        occ = 0 ).
+      rv_escaped = replace(
+        val = rv_escaped
+        sub = |\t|
+        with = '\t'
+        occ = 0 ).
+      rv_escaped = replace(
+        val = rv_escaped
+        sub = '"'
+        with = '\"'
+        occ = 0 ).
+
     endif.
 
   endmethod.
