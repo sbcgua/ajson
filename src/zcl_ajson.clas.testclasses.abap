@@ -1841,9 +1841,9 @@ class ltcl_integrated definition
       end of ty_target.
 
     methods reader for testing raising zcx_ajson_error.
-
     methods array_index for testing raising zcx_ajson_error.
     methods array_simple for testing raising zcx_ajson_error.
+    methods stringify for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -1951,6 +1951,84 @@ class ltcl_integrated implementation.
     cl_abap_unit_assert=>assert_equals(
       act = ls_act
       exp = ls_exp ).
+
+  endmethod.
+
+  method stringify.
+
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson_writer.
+    data lv_exp type string.
+    data: begin of ls_dummy, x type i, end of ls_dummy.
+
+    ls_dummy-x = 1.
+    lo_cut    = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    li_writer->set(
+      iv_path = '/a'
+      iv_val  = 1 ).
+    li_writer->set(
+      iv_path = '/b'
+      iv_val  = 'B' ).
+    li_writer->set(
+      iv_path = '/c'
+      iv_val  = abap_true ).
+    li_writer->set_null(
+      iv_path = '/d' ).
+
+    " simple test
+    lv_exp = '{"a":1,"b":"B","c":true,"d":null}'.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->stringify( )
+      exp = lv_exp ).
+
+    li_writer->touch_array(
+      iv_path = '/e' ).
+    li_writer->touch_array(
+      iv_path = '/f' ).
+    li_writer->push(
+      iv_path = '/f'
+      iv_val  = 5 ).
+    li_writer->push(
+      iv_path = '/f'
+      iv_val  = ls_dummy ).
+    li_writer->set(
+      iv_path = '/g'
+      iv_val  = ls_dummy ).
+
+    " complex test
+    lv_exp = '{"a":1,"b":"B","c":true,"d":null,"e":[],"f":[5,{"x":1}],"g":{"x":1}}'.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->stringify( )
+      exp = lv_exp ).
+
+    " complex test indented
+    lv_exp =
+      '{\n' &&
+      '  "a": 1,\n' &&
+      '  "b": "B",\n' &&
+      '  "c": true,\n' &&
+      '  "d": null,\n' &&
+      '  "e": [],\n' &&
+      '  "f": [\n' &&
+      '    5,\n' &&
+      '    {\n' &&
+      '      "x": 1\n' &&
+      '    }\n' &&
+      '  ],\n' &&
+      '  "g": {\n' &&
+      '    "x": 1\n' &&
+      '  }\n' &&
+      '}'.
+    lv_exp = replace(
+      val = lv_exp
+      sub = '\n'
+      with = cl_abap_char_utilities=>newline
+      occ = 0 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->stringify( iv_indent = 2 )
+      exp = lv_exp ).
 
   endmethod.
 

@@ -62,8 +62,12 @@ class zcl_ajson definition
         value(ro_instance) type ref to zcl_ajson.
 
     methods stringify
+      importing
+        iv_indent type i default 0
       returning
-        value(rv_json) type string.
+        value(rv_json) type string
+      raising
+        zcx_ajson_error.
 
   protected section.
 
@@ -211,6 +215,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method stringify.
+
+    rv_json = lcl_json_serializer=>stringify(
+      it_json_tree = mt_json_tree
+      iv_indent = iv_indent ).
+
   endmethod.
 
 
