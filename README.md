@@ -27,6 +27,47 @@ The class `zcl_ajson` implements 2 interfaces:
 - Json attributes are addressed by path in form `/obj1/obj2/value` of e.g. `/a/b/c` addresses `{ a: { b: { c: "this value !" } } }`
 - Array items addressed with index starting from 1: `/tab/2/val` -> `{ tab: [ {...}, { val: "this value !" } ] }`
 
+### Rendering to JSON string
+
+`zcl_ajson` instance content can be rendered to JSON string using `stringify` method. It also supports optional indentation.
+
+```abap
+
+    data lo_json type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson_writer.
+
+    lo_json   = zcl_ajson=>create_empty( ).
+    li_writer = lo_json.
+
+    li_writer->set(
+      iv_path = '/a'
+      iv_val  = 1 ).
+    li_writer->set(
+      iv_path = '/b'
+      iv_val  = 'B' ).
+    li_writer->touch_array(
+      iv_path = '/e' ).
+    li_writer->touch_array(
+      iv_path = '/f' ).
+    li_writer->push(
+      iv_path = '/f'
+      iv_val  = 5 ).
+
+    data lv type string.
+    lv = lo_json->stringify( ).
+    " {"a":1,"b":"B","e":[],"f":[5]}
+
+    lv = lo_json->stringify( iv_indent = 2 ). " indent with 2 spaces
+    " {
+    "   "a": 1,
+    "   "b": "B",
+    "   "e": [],
+    "   "f": [
+    "     5
+    "   ]
+    " }
+```
+
 ### JSON reader (zif_ajson_reader)
 
 The methods of interface allows accessing attributes and converting to abap structure.
@@ -122,6 +163,9 @@ w->set(
 w->set(
   iv_path = '/a/b/bool'
   iv_val  = abap_true ).
+w->set(
+  iv_path = '/a/b/str'
+  iv_val  = 'escaping"\' ). " => "escaping\"\\", also with \n, \r, \t
 
 " Ignoring empty values by default
 w->set(
@@ -179,6 +223,12 @@ w->set_string( " empty value not ignored !
 w->set_string(
   iv_path = '/a'
   iv_val  = sy-datum ). " => e.g. "2020-07-05" (with dashes)
+
+" Null
+" same effect is for initial data ref
+w->set_null(
+  iv_path = '/a' ). " => "a": null
+
 ```
 
 #### Deletion and rewriting
@@ -248,6 +298,10 @@ w->push(
 w->touch_array( '/array2' ).
 " => { array: ..., array2: [] }
 ```
+
+#### Setting data refs
+
+Currently not supported, but maybe in future. Except initial data ref which is equivalent to `set_null`.
 
 ## Known issues
 
