@@ -1,6 +1,8 @@
 interface zif_ajson_writer
   public .
 
+  methods clear.
+
   methods set
     importing
       iv_path type string
@@ -54,11 +56,5 @@ interface zif_ajson_writer
       iv_val type any
     raising
       zcx_ajson_error.
-
-  methods stringify
-    returning
-      value(rv_json) type string.
-
-  methods clear.
 
 endinterface.
