@@ -49,16 +49,6 @@ class zcl_ajson definition
 
     data mt_json_tree type ty_nodes_ts.
 
-    class-methods normalize_path
-      importing
-        iv_path type string
-      returning
-        value(rv_path) type string.
-    class-methods split_path
-      importing
-        iv_path type string
-      returning
-        value(rv_path_name) type ty_path_name.
     methods get_item
       importing
         iv_path type string
@@ -113,7 +103,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       rv_deleted = abap_true.
 
       data ls_path type ty_path_name.
-      ls_path = split_path( iv_path ).
+      ls_path = lcl_utils=>split_path( iv_path ).
       read table mt_json_tree assigning <node>
         with key
           path = ls_path-path
@@ -130,7 +120,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     field-symbols <item> like line of mt_json_tree.
     data ls_path_name type ty_path_name.
-    ls_path_name = split_path( iv_path ).
+    ls_path_name = lcl_utils=>split_path( iv_path ).
 
     read table mt_json_tree
       assigning <item>
@@ -139,22 +129,6 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         name = ls_path_name-name.
     if sy-subrc = 0.
       get reference of <item> into rv_item.
-    endif.
-
-  endmethod.
-
-
-  method normalize_path.
-
-    rv_path = iv_path.
-    if strlen( rv_path ) = 0.
-      rv_path = '/'.
-    endif.
-    if rv_path+0(1) <> '/'.
-      rv_path = '/' && rv_path.
-    endif.
-    if substring( val = rv_path off = strlen( rv_path ) - 1 ) <> '/'.
-      rv_path = rv_path && '/'.
     endif.
 
   endmethod.
@@ -211,33 +185,6 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method split_path.
-
-    data lv_offs type i.
-    data lv_len type i.
-    data lv_trim_slash type i.
-
-    lv_len = strlen( iv_path ).
-    if lv_len = 0 or iv_path = '/'.
-      return. " empty path is the alias for root item = '' + ''
-    endif.
-
-    if substring( val = iv_path off = lv_len - 1 ) = '/'.
-      lv_trim_slash = 1. " ignore last '/'
-    endif.
-
-    lv_offs = find( val = reverse( iv_path ) sub = '/' off = lv_trim_slash ).
-    if lv_offs = -1.
-      lv_offs  = lv_len. " treat whole string as the 'name' part
-    endif.
-    lv_offs = lv_len - lv_offs.
-
-    rv_path_name-path = normalize_path( substring( val = iv_path len = lv_offs ) ).
-    rv_path_name-name = substring( val = iv_path off = lv_offs len = lv_len - lv_offs - lv_trim_slash ).
-
-  endmethod.
-
-
   method zif_ajson_reader~exists.
 
     data lv_item type ref to ty_node.
@@ -254,7 +201,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lv_normalized_path type string.
     field-symbols <item> like line of mt_json_tree.
 
-    lv_normalized_path = normalize_path( iv_path ).
+    lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
 
     loop at mt_json_tree assigning <item> where path = lv_normalized_path.
       append <item>-name to rt_members.
@@ -272,9 +219,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lv_path_len        type i.
 
     create object lo_section.
-    lv_normalized_path = normalize_path( iv_path ).
+    lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lv_path_len        = strlen( lv_normalized_path ).
-    ls_path_parts      = split_path( lv_normalized_path ).
+    ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
 
     loop at mt_json_tree into ls_item.
       " TODO potentially improve performance due to sorted tree (all path started from same prefix go in a row)
@@ -374,7 +321,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method zif_ajson_writer~delete.
 
     data ls_split_path type ty_path_name.
-    ls_split_path = split_path( iv_path ).
+    ls_split_path = lcl_utils=>split_path( iv_path ).
 
     delete_subtree(
       iv_path = ls_split_path-path
@@ -405,7 +352,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lt_new_nodes type ty_nodes_tt.
     data ls_new_path type ty_path_name.
 
-    ls_new_path-path = normalize_path( iv_path ).
+    ls_new_path-path = lcl_utils=>normalize_path( iv_path ).
     ls_new_path-name = |{ parent_ref->children + 1 }|.
 
     lt_new_nodes = lcl_abap_to_json=>convert(
@@ -433,7 +380,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       return. " nothing to assign
     endif.
 
-    ls_split_path = split_path( iv_path ).
+    ls_split_path = lcl_utils=>split_path( iv_path ).
     if ls_split_path is initial. " Assign root, exceptional processing
       mt_json_tree = lcl_abap_to_json=>convert(
         iv_data   = iv_val
@@ -524,7 +471,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data ls_new_node like line of mt_json_tree.
     data ls_split_path type ty_path_name.
 
-    ls_split_path = split_path( iv_path ).
+    ls_split_path = lcl_utils=>split_path( iv_path ).
     if ls_split_path is initial. " Assign root, exceptional processing
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.

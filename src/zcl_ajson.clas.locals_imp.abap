@@ -1,4 +1,70 @@
 **********************************************************************
+* UTILS
+**********************************************************************
+
+class lcl_utils definition final.
+  public section.
+
+    class-methods normalize_path
+      importing
+        iv_path type string
+      returning
+        value(rv_path) type string.
+    class-methods split_path
+      importing
+        iv_path type string
+      returning
+        value(rv_path_name) type zcl_ajson=>ty_path_name.
+
+endclass.
+
+class lcl_utils implementation.
+
+  method normalize_path.
+
+    rv_path = iv_path.
+    if strlen( rv_path ) = 0.
+      rv_path = '/'.
+    endif.
+    if rv_path+0(1) <> '/'.
+      rv_path = '/' && rv_path.
+    endif.
+    if substring( val = rv_path off = strlen( rv_path ) - 1 ) <> '/'.
+      rv_path = rv_path && '/'.
+    endif.
+
+  endmethod.
+
+  method split_path.
+
+    data lv_offs type i.
+    data lv_len type i.
+    data lv_trim_slash type i.
+
+    lv_len = strlen( iv_path ).
+    if lv_len = 0 or iv_path = '/'.
+      return. " empty path is the alias for root item = '' + ''
+    endif.
+
+    if substring( val = iv_path off = lv_len - 1 ) = '/'.
+      lv_trim_slash = 1. " ignore last '/'
+    endif.
+
+    lv_offs = find( val = reverse( iv_path ) sub = '/' off = lv_trim_slash ).
+    if lv_offs = -1.
+      lv_offs  = lv_len. " treat whole string as the 'name' part
+    endif.
+    lv_offs = lv_len - lv_offs.
+
+    rv_path_name-path = normalize_path( substring( val = iv_path len = lv_offs ) ).
+    rv_path_name-name = substring( val = iv_path off = lv_offs len = lv_len - lv_offs - lv_trim_slash ).
+
+  endmethod.
+
+endclass.
+
+
+**********************************************************************
 * PARSER
 **********************************************************************
 
@@ -156,8 +222,6 @@ class lcl_json_serializer definition final create private.
 
   private section.
 
-    class-data gv_close_array_with_lf type string.
-    class-data gv_close_obj_with_lf type string.
     class-data gv_comma_with_lf type string.
 
     data mt_json_tree type zcl_ajson=>ty_nodes_ts.
@@ -189,9 +253,7 @@ endclass.
 class lcl_json_serializer implementation.
 
   method class_constructor.
-    gv_close_array_with_lf = ']' && cl_abap_char_utilities=>newline.
-    gv_close_obj_with_lf   = '}' && cl_abap_char_utilities=>newline.
-    gv_comma_with_lf       = ',' && cl_abap_char_utilities=>newline.
+    gv_comma_with_lf = ',' && cl_abap_char_utilities=>newline.
   endmethod.
 
   method stringify.

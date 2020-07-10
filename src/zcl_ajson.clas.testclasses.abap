@@ -456,22 +456,22 @@ class ltcl_utils_test implementation.
   method normalize_path.
 
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>normalize_path( '' )
+      act = lcl_utils=>normalize_path( '' )
       exp = '/' ).
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>normalize_path( '/' )
+      act = lcl_utils=>normalize_path( '/' )
       exp = '/' ).
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>normalize_path( 'abc' )
+      act = lcl_utils=>normalize_path( 'abc' )
       exp = '/abc/' ).
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>normalize_path( '/abc' )
+      act = lcl_utils=>normalize_path( '/abc' )
       exp = '/abc/' ).
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>normalize_path( 'abc/' )
+      act = lcl_utils=>normalize_path( 'abc/' )
       exp = '/abc/' ).
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>normalize_path( '/abc/' )
+      act = lcl_utils=>normalize_path( '/abc/' )
       exp = '/abc/' ).
 
   endmethod.
@@ -485,56 +485,56 @@ class ltcl_utils_test implementation.
     ls_exp-path = ''.
     ls_exp-name = ''.
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>split_path( lv_path )
+      act = lcl_utils=>split_path( lv_path )
       exp = ls_exp ).
 
     lv_path     = '/'.
     ls_exp-path = ''.
     ls_exp-name = ''.
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>split_path( lv_path )
+      act = lcl_utils=>split_path( lv_path )
       exp = ls_exp ).
 
     lv_path     = '/abc/'.
     ls_exp-path = '/'.
     ls_exp-name = 'abc'.
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>split_path( lv_path )
+      act = lcl_utils=>split_path( lv_path )
       exp = ls_exp ).
 
     lv_path     = 'abc'.
     ls_exp-path = '/'.
     ls_exp-name = 'abc'.
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>split_path( lv_path )
+      act = lcl_utils=>split_path( lv_path )
       exp = ls_exp ).
 
     lv_path     = '/abc'.
     ls_exp-path = '/'.
     ls_exp-name = 'abc'.
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>split_path( lv_path )
+      act = lcl_utils=>split_path( lv_path )
       exp = ls_exp ).
 
     lv_path     = 'abc/'.
     ls_exp-path = '/'.
     ls_exp-name = 'abc'.
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>split_path( lv_path )
+      act = lcl_utils=>split_path( lv_path )
       exp = ls_exp ).
 
     lv_path     = '/abc/xyz'.
     ls_exp-path = '/abc/'.
     ls_exp-name = 'xyz'.
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>split_path( lv_path )
+      act = lcl_utils=>split_path( lv_path )
       exp = ls_exp ).
 
     lv_path     = '/abc/xyz/'.
     ls_exp-path = '/abc/'.
     ls_exp-name = 'xyz'.
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>split_path( lv_path )
+      act = lcl_utils=>split_path( lv_path )
       exp = ls_exp ).
 
   endmethod.
