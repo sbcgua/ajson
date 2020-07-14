@@ -225,6 +225,46 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson_reader~array_to_string_table.
+
+    data lv_normalized_path type string.
+    data lr_node type ref to ty_node.
+    field-symbols <item> like line of mt_json_tree.
+
+    lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
+    lr_node = get_item( iv_path ).
+
+    if lr_node is initial.
+      raise exception type zcx_ajson_error exporting message = |Path not found: { iv_path }|.
+    endif.
+    if lr_node->type <> 'array'.
+      raise exception type zcx_ajson_error exporting message = |Array expected at: { iv_path }|.
+    endif.
+
+    loop at mt_json_tree assigning <item> where path = lv_normalized_path.
+      case <item>-type.
+        when 'num' or 'str'.
+          append <item>-value to rt_string_table.
+        when 'null'.
+          append '' to rt_string_table.
+        when 'bool'.
+          data lv_tmp type string.
+          if <item>-value = 'true'.
+            lv_tmp = abap_true.
+          else.
+            clear lv_tmp.
+          endif.
+          append lv_tmp to rt_string_table.
+        when others.
+          raise exception type zcx_ajson_error
+            exporting
+              message = |Cannot convert [{ <item>-type }] to string at [{ <item>-path }{ <item>-name }]|.
+      endcase.
+    endloop.
+
+  endmethod.
+
+
   method zif_ajson_reader~exists.
 
     data lv_item type ref to ty_node.

@@ -46,5 +46,12 @@ interface zif_ajson_reader
       ev_container type any
     raising
       zcx_ajson_error.
+  methods array_to_string_table
+    importing
+      iv_path type string
+    returning
+      value(rt_string_table) type string_table
+    raising
+      zcx_ajson_error.
 
 endinterface.

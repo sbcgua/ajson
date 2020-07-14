@@ -599,6 +599,7 @@ class ltcl_reader_test definition final
     methods value_string for testing raising zcx_ajson_error.
     methods members for testing raising zcx_ajson_error.
     methods slice for testing raising zcx_ajson_error.
+    methods array_to_string_table for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -845,6 +846,88 @@ class ltcl_reader_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->members( '/issues/1/start/' )
       exp = lt_exp ).
+
+  endmethod.
+
+  method array_to_string_table.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes type ref to lcl_nodes_helper.
+    data lt_act type string_table.
+    data lt_exp type string_table.
+
+    create object nodes.
+    nodes->add( '  |         |array  |                        | |6' ).
+    nodes->add( '/ |1        |num    |123                     |1|0' ).
+    nodes->add( '/ |2        |num    |234                     |2|0' ).
+    nodes->add( '/ |3        |str    |abc                     |3|0' ).
+    nodes->add( '/ |4        |bool   |true                    |4|0' ).
+    nodes->add( '/ |5        |bool   |false                   |5|0' ).
+    nodes->add( '/ |6        |null   |null                    |6|0' ).
+
+    append '123' to lt_exp.
+    append '234' to lt_exp.
+    append 'abc' to lt_exp.
+    append 'X' to lt_exp.
+    append '' to lt_exp.
+    append '' to lt_exp.
+
+    create object lo_cut.
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    lt_act = lo_cut->zif_ajson_reader~array_to_string_table( '/' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = lt_exp ).
+
+    " negative
+    data lx type ref to zcx_ajson_error.
+
+    create object nodes.
+    nodes->add( '  |         |object |                        | |1' ).
+    nodes->add( '/ |a        |str    |abc                     | |0' ).
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    try.
+      lo_cut->zif_ajson_reader~array_to_string_table( '/x' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path not found: /x' ).
+    endtry.
+
+    try.
+      lo_cut->zif_ajson_reader~array_to_string_table( '/' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Array expected at: /' ).
+    endtry.
+
+    try.
+      lo_cut->zif_ajson_reader~array_to_string_table( '/a' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Array expected at: /a' ).
+    endtry.
+
+    create object nodes.
+    nodes->add( '  |         |array  |                        | |1' ).
+    nodes->add( '/ |1        |object |                        |1|0' ).
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    try.
+      lo_cut->zif_ajson_reader~array_to_string_table( '/' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot convert [object] to string at [/1]' ).
+    endtry.
 
   endmethod.
 
