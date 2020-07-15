@@ -7,28 +7,7 @@ class zcl_ajson definition
     constants version type string value 'v1.0.0'.
 
     interfaces zif_ajson_reader .
-*    aliases: " NOT SURE
-*      exists for zif_ajson_reader~exists,
-*      members for zif_ajson_reader~members,
-*      value for zif_ajson_reader~value,
-*      value_boolean for zif_ajson_reader~value_boolean,
-*      value_integer for zif_ajson_reader~value_integer,
-*      value_number for zif_ajson_reader~value_number,
-*      value_string for zif_ajson_reader~value_string,
-*      slice for zif_ajson_reader~slice,
-*      to_abap for zif_ajson_reader~to_abap.
-
     interfaces zif_ajson_writer .
-*    aliases: " NOT SURE
-*      clear for zif_ajson_writer~clear,
-*      set for zif_ajson_writer~set,
-*      set_boolean for zif_ajson_writer~set_boolean,
-*      set_string for zif_ajson_writer~set_string,
-*      set_integer for zif_ajson_writer~set_integer,
-*      set_date for zif_ajson_writer~set_date,
-*      delete for zif_ajson_writer~delete,
-*      touch_array for zif_ajson_writer~touch_array,
-*      push for zif_ajson_writer~push.
 
     types:
       begin of ty_node,
