@@ -10,7 +10,8 @@ Features:
   - slicing can be particularly useful for REST header separation e.g. `{ success: 1, error: "", payload: {...} }` where 1st level attrs are processed in one layer of your application and payload in another (and can differ from request to request)
 - allows conversion to fixed abap structures/tables (`to_abap`)
 - convenient interface to manipulate the data - `set( value )`, `set( structure )`, `set( table )`, `set( another_instance_of_ajson )`, also typed e.g. `set_date`
-- seralization to string (TODO)
+- seralization to string
+- freezing (read only) instance content
 
 Installed using [abapGit](https://github.com/larshp/abapGit)
 
@@ -302,6 +303,10 @@ w->touch_array( '/array2' ).
 #### Setting data refs
 
 Currently not supported, but maybe in future. Except initial data ref which is equivalent to `set_null`.
+
+#### Freezing json (read only)
+
+It is possible to set an instance of ajson immutable (read only). It is done on object level with method `freeze` or at parse time with `iv_freeze = abap_true` param. This is one way only change. After this `set`, `delete`, `clear` and other modification methods will raise exceptions if used. Useful to freeze some kind of settings or service responses.
 
 ## Known issues
 
