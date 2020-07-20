@@ -33,6 +33,7 @@ class zcl_ajson definition
     class-methods parse
       importing
         !iv_json type string
+        !iv_set_read_only type abap_bool default abap_false
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
@@ -50,6 +51,8 @@ class zcl_ajson definition
       raising
         zcx_ajson_error.
 
+    methods set_read_only.
+
   protected section.
 
   private section.
@@ -58,6 +61,7 @@ class zcl_ajson definition
       tty_node_stack type standard table of ref to ty_node with default key.
 
     data mt_json_tree type ty_nodes_ts.
+    data mv_read_only type abap_bool.
 
     methods get_item
       importing
@@ -152,6 +156,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     create object lo_parser.
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
 
+    if iv_set_read_only = abap_true.
+      ro_instance->set_read_only( ).
+    endif.
+
   endmethod.
 
 
@@ -192,6 +200,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     assert lv_cur_path = iv_path. " Just in case
 
+  endmethod.
+
+
+  method set_read_only.
+    mv_read_only = abap_true.
   endmethod.
 
 
@@ -373,11 +386,21 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method zif_ajson_writer~clear.
+
+    if mv_read_only = abap_true.
+      zcx_ajson_error=>raise( 'This json instance is read only' ).
+    endif.
+
     clear mt_json_tree.
+
   endmethod.
 
 
   method zif_ajson_writer~delete.
+
+    if mv_read_only = abap_true.
+      zcx_ajson_error=>raise( 'This json instance is read only' ).
+    endif.
 
     data ls_split_path type ty_path_name.
     ls_split_path = lcl_utils=>split_path( iv_path ).
@@ -393,6 +416,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     data parent_ref type ref to ty_node.
     data new_node_ref type ref to ty_node.
+
+    if mv_read_only = abap_true.
+      zcx_ajson_error=>raise( 'This json instance is read only' ).
+    endif.
 
     parent_ref = get_item( iv_path ).
 
@@ -434,6 +461,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data ls_split_path type ty_path_name.
     data parent_ref type ref to ty_node.
     data lt_node_stack type table of ref to ty_node.
+
+    if mv_read_only = abap_true.
+      zcx_ajson_error=>raise( 'This json instance is read only' ).
+    endif.
 
     if iv_val is initial and iv_ignore_empty = abap_true.
       return. " nothing to assign
@@ -536,6 +567,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data node_ref type ref to ty_node.
     data ls_new_node like line of mt_json_tree.
     data ls_split_path type ty_path_name.
+
+    if mv_read_only = abap_true.
+      zcx_ajson_error=>raise( 'This json instance is read only' ).
+    endif.
 
     ls_split_path = lcl_utils=>split_path( iv_path ).
     if ls_split_path is initial. " Assign root, exceptional processing

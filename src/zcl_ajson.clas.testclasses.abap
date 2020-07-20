@@ -1314,6 +1314,7 @@ class ltcl_writer_test definition final
     methods set_str for testing raising zcx_ajson_error.
     methods set_int for testing raising zcx_ajson_error.
     methods set_date for testing raising zcx_ajson_error.
+    methods read_only for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -1968,6 +1969,64 @@ class ltcl_writer_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
       exp = nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method read_only.
+
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson_writer.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    " Prepare source
+    li_writer->set(
+      iv_path = '/a'
+      iv_val  = 'abc' ).
+    li_writer->touch_array(
+      iv_path = '/b' ).
+    li_writer->push(
+      iv_path = '/b'
+      iv_val  = 'abc' ).
+
+    lo_cut->set_read_only( ).
+
+    try.
+      li_writer->set(
+        iv_path = '/c'
+        iv_val  = 'abc' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error.
+    endtry.
+
+    try.
+      li_writer->touch_array(
+        iv_path = '/d' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error.
+    endtry.
+
+    try.
+      li_writer->push(
+        iv_path = '/b'
+        iv_val  = 'xyz' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error.
+    endtry.
+
+    try.
+      li_writer->delete(
+        iv_path = '/a' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error.
+    endtry.
+
+    try.
+      li_writer->clear( ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error.
+    endtry.
 
   endmethod.
 

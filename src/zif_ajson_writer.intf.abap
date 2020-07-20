@@ -1,7 +1,9 @@
 interface zif_ajson_writer
   public .
 
-  methods clear.
+  methods clear
+    raising
+      zcx_ajson_error.
 
   methods set
     importing
@@ -47,7 +49,9 @@ interface zif_ajson_writer
 
   methods delete
     importing
-      iv_path type string.
+      iv_path type string
+    raising
+      zcx_ajson_error.
 
   methods touch_array
     importing
