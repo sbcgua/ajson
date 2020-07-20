@@ -42,6 +42,7 @@ public section.
   class-methods RAISE
     importing
       !IV_MSG type STRING
+      !IV_LOCATION type STRING optional
     raising
       ZCX_AJSON_ERROR .
 protected section.
@@ -84,16 +85,23 @@ method raise.
       a4 like a1,
     end of ls_msg.
 
-  ls_msg = iv_msg.
+  if iv_location is initial.
+    ls_msg = iv_msg.
+  else.
+    data lv_tmp type string.
+    lv_tmp = iv_msg && | @{ iv_location }|.
+    ls_msg = lv_tmp.
+  endif.
 
   raise exception type zcx_ajson_error
     exporting
-      textid  = zcx_ajson_error
-      message = iv_msg
-      a1      = ls_msg-a1
-      a2      = ls_msg-a2
-      a3      = ls_msg-a3
-      a4      = ls_msg-a4.
+      textid   = zcx_ajson_error
+      message  = iv_msg
+      location = iv_location
+      a1       = ls_msg-a1
+      a2       = ls_msg-a2
+      a3       = ls_msg-a3
+      a4       = ls_msg-a4.
 
 endmethod.
 ENDCLASS.
