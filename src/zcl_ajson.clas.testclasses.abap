@@ -1990,7 +1990,7 @@ class ltcl_writer_test implementation.
       iv_path = '/b'
       iv_val  = 'abc' ).
 
-    lo_cut->set_read_only( ).
+    lo_cut->freeze( ).
 
     try.
       li_writer->set(

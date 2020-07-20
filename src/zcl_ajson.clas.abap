@@ -33,7 +33,7 @@ class zcl_ajson definition
     class-methods parse
       importing
         !iv_json type string
-        !iv_set_read_only type abap_bool default abap_false
+        !iv_freeze type abap_bool default abap_false
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
@@ -51,7 +51,7 @@ class zcl_ajson definition
       raising
         zcx_ajson_error.
 
-    methods set_read_only.
+    methods freeze.
 
   protected section.
 
@@ -130,6 +130,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method freeze.
+    mv_read_only = abap_true.
+  endmethod.
+
+
   method get_item.
 
     field-symbols <item> like line of mt_json_tree.
@@ -156,8 +161,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     create object lo_parser.
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
 
-    if iv_set_read_only = abap_true.
-      ro_instance->set_read_only( ).
+    if iv_freeze = abap_true.
+      ro_instance->freeze( ).
     endif.
 
   endmethod.
@@ -200,11 +205,6 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     assert lv_cur_path = iv_path. " Just in case
 
-  endmethod.
-
-
-  method set_read_only.
-    mv_read_only = abap_true.
   endmethod.
 
 
