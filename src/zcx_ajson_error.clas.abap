@@ -13,8 +13,8 @@ public section.
 
   constants:
     begin of ZCX_AJSON_ERROR,
-      msgid type symsgid value 'SY',
-      msgno type symsgno value '499',
+      msgid type symsgid value '00',
+      msgno type symsgno value '001',
       attr1 type scx_attrname value 'A1',
       attr2 type scx_attrname value 'A2',
       attr3 type scx_attrname value 'A3',
