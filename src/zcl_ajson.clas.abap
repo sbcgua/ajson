@@ -72,7 +72,9 @@ class zcl_ajson definition
       importing
         iv_path type string
       returning
-        value(rt_node_stack) type tty_node_stack.
+        value(rt_node_stack) type tty_node_stack
+      raising
+        zcx_ajson_error.
     methods delete_subtree
       importing
         iv_path type string
@@ -172,6 +174,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     data lt_path type string_table.
     data node_ref like line of rt_node_stack.
+    data node_parent like line of rt_node_stack.
     data lv_size type i.
     data lv_cur_path type string.
     data lv_cur_name type string.
@@ -182,13 +185,19 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     lv_size = lines( lt_path ).
 
     do.
+      node_parent = node_ref.
       read table mt_json_tree reference into node_ref
         with key
           path = lv_cur_path
           name = lv_cur_name.
       if sy-subrc <> 0. " New node, assume it is always object as it has a named child, use touch_array to init array
-        if node_ref is not initial. " if has parent
-          node_ref->children = node_ref->children + 1.
+        if node_parent is not initial. " if has parent
+          node_parent->children = node_parent->children + 1.
+          if node_parent->type = 'array'.
+            node_tmp-index = lcl_utils=>validate_array_index(
+              iv_path  = lv_cur_path
+              iv_index = lv_cur_name ).
+          endif.
         endif.
         node_tmp-path = lv_cur_path.
         node_tmp-name = lv_cur_name.
@@ -461,6 +470,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data ls_split_path type ty_path_name.
     data parent_ref type ref to ty_node.
     data lt_node_stack type table of ref to ty_node.
+    field-symbols <topnode> type ty_node.
 
     if mv_read_only = abap_true.
       zcx_ajson_error=>raise( 'This json instance is read only' ).
@@ -490,9 +500,18 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     " convert to json
     data lt_new_nodes type ty_nodes_tt.
+    data lv_array_index type i.
+
+    if parent_ref->type = 'array'.
+      lv_array_index = lcl_utils=>validate_array_index(
+        iv_path  = ls_split_path-path
+        iv_index = ls_split_path-name ).
+    endif.
+
     lt_new_nodes = lcl_abap_to_json=>convert(
-      iv_data   = iv_val
-      is_prefix = ls_split_path ).
+      iv_data        = iv_val
+      iv_array_index = lv_array_index
+      is_prefix      = ls_split_path ).
 
     " update data
     parent_ref->children = parent_ref->children + 1.

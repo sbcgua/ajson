@@ -15,10 +15,34 @@ class lcl_utils definition final.
         iv_path type string
       returning
         value(rv_path_name) type zcl_ajson=>ty_path_name.
+    class-methods validate_array_index
+      importing
+        iv_path type string
+        iv_index type string
+      returning
+        value(rv_index) type i
+      raising
+        zcx_ajson_error.
 
 endclass.
 
 class lcl_utils implementation.
+
+  method validate_array_index.
+
+    if not iv_index co '0123456789'.
+      raise exception type zcx_ajson_error
+        exporting
+          message = |Cannot add non-numeric key [{ iv_index }] to array [{ iv_path }]|.
+    endif.
+    rv_index = iv_index.
+    if rv_index = 0.
+      raise exception type zcx_ajson_error
+        exporting
+          message = |Cannot add zero key to array [{ iv_path }]|.
+    endif.
+
+  endmethod.
 
   method normalize_path.
 
@@ -622,6 +646,7 @@ class lcl_abap_to_json definition final.
       importing
         iv_data type any
         is_prefix type zcl_ajson=>ty_path_name optional
+        iv_array_index type i default 0
       returning
         value(rt_nodes) type zcl_ajson=>ty_nodes_tt
       raising
@@ -725,6 +750,7 @@ class lcl_abap_to_json implementation.
         iv_data   = iv_data
         io_type   = lo_type
         is_prefix = is_prefix
+        iv_index  = iv_array_index
       changing
         ct_nodes = rt_nodes ).
 

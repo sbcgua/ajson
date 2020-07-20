@@ -485,12 +485,33 @@ class ltcl_utils_test definition final
 
     methods normalize_path for testing.
     methods split_path for testing.
+    methods validate_array_index for testing raising zcx_ajson_error.
 
 endclass.
 
 class zcl_ajson definition local friends ltcl_utils_test.
 
 class ltcl_utils_test implementation.
+
+  method validate_array_index.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lcl_utils=>validate_array_index( iv_path = 'x' iv_index = '123' )
+      exp = 123 ).
+
+    try .
+      lcl_utils=>validate_array_index( iv_path = 'x' iv_index = 'a' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error.
+    endtry.
+
+    try .
+      lcl_utils=>validate_array_index( iv_path = 'x' iv_index = '0' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error.
+    endtry.
+
+  endmethod.
 
   method normalize_path.
 
@@ -1703,6 +1724,25 @@ class ltcl_writer_test implementation.
       act = lo_cut->mt_json_tree
       exp = nodes_exp->sorted( ) ).
 
+    " free-add array item (index must be updated)
+    create object nodes_exp.
+    nodes_exp->add( '        |      |object |     | |1' ).
+    nodes_exp->add( '/       |a     |array  |     | |2' ).
+    nodes_exp->add( '/a/     |1     |object |     |1|1' ).
+    nodes_exp->add( '/a/1/   |x     |num    |123  | |0' ).
+    nodes_exp->add( '/a/     |2     |num    |234  |2|0' ).
+
+    li_writer->set(
+      iv_path = '/a/1/x'
+      iv_val  = 123 ).
+    li_writer->set(
+      iv_path = '/a/2'
+      iv_val  = 234 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
   endmethod.
 
   method arrays_negative.
@@ -1754,7 +1794,43 @@ class ltcl_writer_test implementation.
         exp = 'Path [/x] does not exist' ).
     endtry.
 
+    " set array item with non-numeric key
+    try.
+      li_writer->set(
+        iv_path = '/a/abc/x'
+        iv_val  = 123 ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
+    endtry.
+
+    try.
+      li_writer->set(
+        iv_path = '/a/abc'
+        iv_val  = 123 ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
+    endtry.
+
+    " set array item with zero key
+    try.
+      li_writer->set(
+        iv_path = '/a/0'
+        iv_val  = 123 ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot add zero key to array [/a/]' ).
+    endtry.
+
   endmethod.
+
 
   method root_assignment.
 
