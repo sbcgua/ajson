@@ -11,27 +11,27 @@ interface zif_ajson_reader
       iv_path type string
     returning
       value(rt_members) type string_table.
-  methods value
+  methods get
     importing
       iv_path type string
     returning
       value(rv_value) type string.
-  methods value_boolean
+  methods get_boolean
     importing
       iv_path type string
     returning
       value(rv_value) type abap_bool.
-  methods value_integer
+  methods get_integer
     importing
       iv_path type string
     returning
       value(rv_value) type i.
-  methods value_number
+  methods get_number
     importing
       iv_path type string
     returning
       value(rv_value) type f.
-  methods value_string
+  methods get_string
     importing
       iv_path type string
     returning

@@ -723,19 +723,19 @@ class ltcl_reader_test implementation.
     lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value( '/string' )
+      act = lo_cut->get( '/string' )
       exp = 'abc' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value( '/string/' )
+      act = lo_cut->get( '/string/' )
       exp = 'abc' ). " Hmmm ?
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value( '/boolean' )
+      act = lo_cut->get( '/boolean' )
       exp = 'true' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value( '/issues/2/start/row' )
+      act = lo_cut->get( '/issues/2/start/row' )
       exp = '3' ).
 
   endmethod.
@@ -770,15 +770,15 @@ class ltcl_reader_test implementation.
     lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_integer( '/string' )
+      act = lo_cut->get_integer( '/string' )
       exp = 0 ). " Hmmmm ????
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_integer( '/number' )
+      act = lo_cut->get_integer( '/number' )
       exp = 123 ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_integer( '/float' )
+      act = lo_cut->get_integer( '/float' )
       exp = 123 ).
 
   endmethod.
@@ -789,15 +789,15 @@ class ltcl_reader_test implementation.
     lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_number( '/string' )
+      act = lo_cut->get_number( '/string' )
       exp = 0 ). " Hmmmm ????
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_number( '/number' )
+      act = lo_cut->get_number( '/number' )
       exp = +'123.0' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_number( '/float' )
+      act = lo_cut->get_number( '/float' )
       exp = +'123.45' ).
 
   endmethod.
@@ -808,19 +808,19 @@ class ltcl_reader_test implementation.
     lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_boolean( '/string' )
+      act = lo_cut->get_boolean( '/string' )
       exp = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_boolean( '/number' )
+      act = lo_cut->get_boolean( '/number' )
       exp = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_boolean( '/xxx' )
+      act = lo_cut->get_boolean( '/xxx' )
       exp = abap_false ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_boolean( '/boolean' )
+      act = lo_cut->get_boolean( '/boolean' )
       exp = abap_true ).
 
   endmethod.
@@ -831,19 +831,19 @@ class ltcl_reader_test implementation.
     lo_cut ?= zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_string( '/string' )
+      act = lo_cut->get_string( '/string' )
       exp = 'abc' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_string( '/number' )
+      act = lo_cut->get_string( '/number' )
       exp = '123' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_string( '/xxx' )
+      act = lo_cut->get_string( '/xxx' )
       exp = '' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_string( '/boolean' )
+      act = lo_cut->get_string( '/boolean' )
       exp = 'true' ).
 
   endmethod.
@@ -2218,7 +2218,7 @@ class ltcl_integrated implementation.
     li_reader = zcl_ajson=>parse( lv_source ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = li_reader->value( '/string' )
+      act = li_reader->get( '/string' )
       exp = 'abc' ).
 
     data ls_act type ty_target.
