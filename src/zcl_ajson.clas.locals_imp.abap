@@ -31,15 +31,11 @@ class lcl_utils implementation.
   method validate_array_index.
 
     if not iv_index co '0123456789'.
-      raise exception type zcx_ajson_error
-        exporting
-          message = |Cannot add non-numeric key [{ iv_index }] to array [{ iv_path }]|.
+      zcx_ajson_error=>raise( |Cannot add non-numeric key [{ iv_index }] to array [{ iv_path }]| ).
     endif.
     rv_index = iv_index.
     if rv_index = 0.
-      raise exception type zcx_ajson_error
-        exporting
-          message = |Cannot add zero key to array [{ iv_path }]|.
+      zcx_ajson_error=>raise( |Cannot add zero key to array [{ iv_path }]| ).
     endif.
 
   endmethod.
@@ -216,11 +212,9 @@ class lcl_json_parser implementation.
 
   method raise.
 
-    raise exception type zcx_ajson_error
-      exporting
-        location = join_path( mt_stack )
-        rc       = 'PARS'
-        message  = |JSON PARSER: { iv_error } @ { join_path( mt_stack ) }|.
+    zcx_ajson_error=>raise(
+      iv_location = join_path( mt_stack )
+      iv_msg      = |JSON PARSER: { iv_error } @ { join_path( mt_stack ) }| ).
 
   endmethod.
 
@@ -343,10 +337,9 @@ class lcl_json_serializer implementation.
       when 'null'.
         lv_item = lv_item && 'null'.
       when others.
-        raise exception type zcx_ajson_error
-          exporting
-            message = |Unexpected type [{ is_node-type }]|
-            location = is_node-path && is_node-name.
+        zcx_ajson_error=>raise(
+          iv_msg = |Unexpected type [{ is_node-type }]|
+          iv_location = is_node-path && is_node-name ).
     endcase.
 
     if mv_indent_step > 0 and ( is_node-type = 'array' or is_node-type = 'object' ) and is_node-children > 0.
@@ -526,31 +519,27 @@ class lcl_json_to_abap implementation.
             <value> = <n>-value.
           when 'object'.
             if not lv_type co 'uv'.
-              raise exception type zcx_ajson_error
-                exporting
-                  message  = 'Expected structure'
-                  location = <n>-path && <n>-name.
+             zcx_ajson_error=>raise(
+               iv_msg      = 'Expected structure'
+               iv_location = <n>-path && <n>-name ).
             endif.
           when 'array'.
             if not lv_type co 'h'.
-              raise exception type zcx_ajson_error
-                exporting
-                  message  = 'Expected table'
-                  location = <n>-path && <n>-name.
+              zcx_ajson_error=>raise(
+                iv_msg      = 'Expected table'
+                iv_location = <n>-path && <n>-name ).
             endif.
           when others.
-            raise exception type zcx_ajson_error
-              exporting
-                message  = |Unexpected JSON type [{ <n>-type }]|
-                location = <n>-path && <n>-name.
+           zcx_ajson_error=>raise(
+             iv_msg      = |Unexpected JSON type [{ <n>-type }]|
+             iv_location = <n>-path && <n>-name ).
         endcase.
 
       endloop.
     catch cx_sy_conversion_no_number into lx.
-      raise exception type zcx_ajson_error
-        exporting
-          message  = |Source is not a number|
-          location = <n>-path && <n>-name.
+      zcx_ajson_error=>raise(
+        iv_msg      = |Source is not a number|
+        iv_location = <n>-path && <n>-name ).
     endtry.
 
   endmethod.
@@ -585,17 +574,15 @@ class lcl_json_to_abap implementation.
 
       if lv_type ca 'lr'. " data/obj ref
         " TODO maybe in future
-        raise exception type zcx_ajson_error
-          exporting
-            message  = 'Cannot assign to ref'
-            location = lv_trace.
+        zcx_ajson_error=>raise(
+          iv_msg      = 'Cannot assign to ref'
+          iv_location = lv_trace ).
 
       elseif lv_type = 'h'. " table
         if not <seg> co '0123456789'.
-          raise exception type zcx_ajson_error
-            exporting
-              message  = 'Need index to access tables'
-              location = lv_trace.
+          zcx_ajson_error=>raise(
+            iv_msg      = 'Need index to access tables'
+            iv_location = lv_trace ).
         endif.
         lv_index = <seg>.
         assign r_ref->* to <table>.
@@ -608,25 +595,22 @@ class lcl_json_to_abap implementation.
 
         read table <table> index lv_index assigning <value>.
         if sy-subrc <> 0.
-          raise exception type zcx_ajson_error
-            exporting
-              message  = 'Index not found in table'
-              location = lv_trace.
+          zcx_ajson_error=>raise(
+            iv_msg      = 'Index not found in table'
+            iv_location = lv_trace ).
         endif.
 
       elseif lv_type ca 'uv'. " structure
         assign component <seg> of structure <struc> to <value>.
         if sy-subrc <> 0.
-          raise exception type zcx_ajson_error
-            exporting
-              message  = 'Path not found'
-              location = lv_trace.
+          zcx_ajson_error=>raise(
+            iv_msg      =  'Path not found'
+            iv_location = lv_trace ).
         endif.
       else.
-        raise exception type zcx_ajson_error
-          exporting
-            message  = 'Target is not deep'
-            location = lv_trace.
+        zcx_ajson_error=>raise(
+          iv_msg = 'Target is not deep'
+          iv_location = lv_trace ).
       endif.
       get reference of <value> into r_ref.
     endloop.
@@ -811,9 +795,7 @@ class lcl_abap_to_json implementation.
             changing
               ct_nodes = ct_nodes ).
         else.
-          raise exception type zcx_ajson_error
-            exporting
-              message = |Unsupported type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }|.
+          zcx_ajson_error=>raise( |Unsupported type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
         endif.
 
     endcase.
@@ -862,9 +844,7 @@ class lcl_abap_to_json implementation.
       <n>-type = 'num'.
       <n>-value = |{ iv_data }|.
     else.
-      raise exception type zcx_ajson_error
-        exporting
-          message = |Unexpected elemetary type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }|.
+      zcx_ajson_error=>raise( |Unexpected elemetary type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
     endif.
 
   endmethod.
@@ -884,9 +864,7 @@ class lcl_abap_to_json implementation.
       <n>-value = 'null'.
     else.
       " TODO support data references
-      raise exception type zcx_ajson_error
-        exporting
-          message = |Unexpected reference @{ is_prefix-path && is_prefix-name }|.
+      zcx_ajson_error=>raise( |Unexpected reference @{ is_prefix-path && is_prefix-name }| ).
     endif.
 
   endmethod.

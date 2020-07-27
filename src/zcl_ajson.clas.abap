@@ -236,10 +236,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     lr_node = get_item( iv_path ).
 
     if lr_node is initial.
-      raise exception type zcx_ajson_error exporting message = |Path not found: { iv_path }|.
+      zcx_ajson_error=>raise( |Path not found: { iv_path }| ).
     endif.
     if lr_node->type <> 'array'.
-      raise exception type zcx_ajson_error exporting message = |Array expected at: { iv_path }|.
+      zcx_ajson_error=>raise( |Array expected at: { iv_path }| ).
     endif.
 
     loop at mt_json_tree assigning <item> where path = lv_normalized_path.
@@ -257,9 +257,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
           endif.
           append lv_tmp to rt_string_table.
         when others.
-          raise exception type zcx_ajson_error
-            exporting
-              message = |Cannot convert [{ <item>-type }] to string at [{ <item>-path }{ <item>-name }]|.
+          zcx_ajson_error=>raise( |Cannot convert [{ <item>-type }] to string at [{ <item>-path }{ <item>-name }]| ).
       endcase.
     endloop.
 
@@ -433,15 +431,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     parent_ref = get_item( iv_path ).
 
     if parent_ref is initial.
-      raise exception type zcx_ajson_error
-        exporting
-          message = |Path [{ iv_path }] does not exist|.
+      zcx_ajson_error=>raise( |Path [{ iv_path }] does not exist| ).
     endif.
 
     if parent_ref->type <> 'array'.
-      raise exception type zcx_ajson_error
-        exporting
-          message = |Path [{ iv_path }] is not array|.
+      zcx_ajson_error=>raise( |Path [{ iv_path }] is not array| ).
     endif.
 
     data lt_new_nodes type ty_nodes_tt.
@@ -624,9 +618,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       insert ls_new_node into table mt_json_tree.
 
     elseif node_ref->type <> 'array'.
-      raise exception type zcx_ajson_error
-        exporting
-          message = |Path [{ iv_path }] already used and is not array|.
+      zcx_ajson_error=>raise( |Path [{ iv_path }] already used and is not array| ).
     endif.
 
   endmethod.
