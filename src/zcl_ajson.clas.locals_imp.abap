@@ -516,7 +516,23 @@ class lcl_json_to_abap implementation.
           when 'num'.
             <value> = <n>-value.
           when 'str'.
-            <value> = <n>-value.
+            if lv_type = 'D' and <n>-value is not initial.
+              data lv_y type c length 4.
+              data lv_m type c length 2.
+              data lv_d type c length 2.
+
+              find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)'
+                in <n>-value
+                submatches lv_y lv_m lv_d.
+              if sy-subrc <> 0.
+                zcx_ajson_error=>raise(
+                  iv_msg      = 'Unexpected date format'
+                  iv_location = <n>-path && <n>-name ).
+              endif.
+              concatenate lv_y lv_m lv_d into <value>.
+            else.
+              <value> = <n>-value.
+            endif.
           when 'object'.
             if not lv_type co 'uv'.
              zcx_ajson_error=>raise(
