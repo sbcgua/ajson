@@ -621,6 +621,7 @@ class ltcl_reader_test definition final
     methods members for testing raising zcx_ajson_error.
     methods slice for testing raising zcx_ajson_error.
     methods array_to_string_table for testing raising zcx_ajson_error.
+    methods get_date for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -737,6 +738,44 @@ class ltcl_reader_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->get( '/issues/2/start/row' )
       exp = '3' ).
+
+  endmethod.
+
+  method get_date.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes type ref to lcl_nodes_helper.
+    data lv_exp type d.
+
+    create object lo_cut.
+    lv_exp = '20200728'.
+
+    create object nodes.
+    nodes->add( '  |         |object |                        | |1' ).
+    nodes->add( '/ |date1    |str    |2020-07-28              | |0' ).
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->zif_ajson_reader~get_date( '/date1' )
+      exp = lv_exp ).
+
+    create object nodes.
+    nodes->add( '  |         |object |                        | |1' ).
+    nodes->add( '/ |date1    |str    |2020-07-28T01:00:00Z    | |0' ).
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->zif_ajson_reader~get_date( '/date1' )
+      exp = lv_exp ).
+
+    create object nodes.
+    nodes->add( '  |         |object |                        | |1' ).
+    nodes->add( '/ |date1    |str    |20200728                | |0' ).
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->zif_ajson_reader~get_date( '/date1' )
+      exp = '' ).
 
   endmethod.
 
