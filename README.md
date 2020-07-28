@@ -85,6 +85,7 @@ Examples below assume original json was:
     "bool": true,
     "false": false,
     "null": null,
+    "date": "2020-07-28",
     "table": [
       "abc",
       "def"
@@ -101,18 +102,21 @@ r = zcl_ajson=>parse( lv_json_string_from_above ).
 
 r->exists( '/success' ).              " returns abap_true
 
-r->value( '/success' ).               " returns "1"
-r->value_integer( '/success' ).       " returns 1 (number)
-r->value_boolean( '/success' ).       " returns "X" (abap_true - because not empty)
+r->get( '/success' ).               " returns "1"
+r->get_integer( '/success' ).       " returns 1 (number)
+r->get_boolean( '/success' ).       " returns "X" (abap_true - because not empty)
 
-r->value( '/payload/bool' ).          " returns "true"
-r->value_boolean( '/payload/bool' ).  " returns "X" (abap_true)
+r->get( '/payload/bool' ).          " returns "true"
+r->get_boolean( '/payload/bool' ).  " returns "X" (abap_true)
 
-r->value( '/payload/false' ).         " returns "false"
-r->value_boolean( '/payload/false' ). " returns "" (abap_false)
+r->get( '/payload/false' ).         " returns "false"
+r->get_boolean( '/payload/false' ). " returns "" (abap_false)
 
-r->value( '/payload/null' ).          " returns "null"
-r->value_string( '/payload/null' ).   " returns "" (empty string)
+r->get( '/payload/null' ).          " returns "null"
+r->get_string( '/payload/null' ).   " returns "" (empty string)
+
+r->get( '/payload/date' ).          " returns "2020-07-28"
+r->get_date( '/payload/date' ).     " returns "20200728" (type d)
 
 r->members( '/' ).                    " returns table of "success", "error", "payload"
 ```
