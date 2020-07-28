@@ -58,6 +58,8 @@ class ltcl_parser_test definition final
   public section.
 
     class-methods sample_json
+      importing
+        iv_separator type string optional
       returning
         value(rv_json) type string.
 
@@ -72,43 +74,45 @@ class ltcl_parser_test implementation.
   method sample_json.
 
     rv_json =
-      '{' &&
-      '  "string": "abc",' &&
-      '  "number": 123,' &&
-      '  "float": 123.45,' &&
-      '  "boolean": true,' &&
-      '  "false": false,' &&
-      '  "null": null,' &&
-      '  "date": "2020-03-15",' &&
-      '  "issues": [' &&
-      '    {' &&
-      '      "message": "Indentation problem ...",' &&
-      '      "key": "indentation",' &&
-      '      "start": {' &&
-      '        "row": 4,' &&
-      '        "col": 3' &&
-      '      },' &&
-      '      "end": {' &&
-      '        "row": 4,' &&
-      '        "col": 26' &&
-      '      },' &&
-      '      "filename": "./zxxx.prog.abap"' &&
-      '    },' &&
-      '    {' &&
-      '      "message": "Remove space before XXX",' &&
-      '      "key": "space_before_dot",' &&
-      '      "start": {' &&
-      '        "row": 3,' &&
-      '        "col": 21' &&
-      '      },' &&
-      '      "end": {' &&
-      '        "row": 3,' &&
-      '        "col": 22' &&
-      '      },' &&
-      '      "filename": "./zxxx.prog.abap"' &&
-      '    }' &&
-      '  ]' &&
+      '{\n' &&
+      '  "string": "abc",\n' &&
+      '  "number": 123,\n' &&
+      '  "float": 123.45,\n' &&
+      '  "boolean": true,\n' &&
+      '  "false": false,\n' &&
+      '  "null": null,\n' &&
+      '  "date": "2020-03-15",\n' &&
+      '  "issues": [\n' &&
+      '    {\n' &&
+      '      "message": "Indentation problem ...",\n' &&
+      '      "key": "indentation",\n' &&
+      '      "start": {\n' &&
+      '        "row": 4,\n' &&
+      '        "col": 3\n' &&
+      '      },\n' &&
+      '      "end": {\n' &&
+      '        "row": 4,\n' &&
+      '        "col": 26\n' &&
+      '      },\n' &&
+      '      "filename": "./zxxx.prog.abap"\n' &&
+      '    },\n' &&
+      '    {\n' &&
+      '      "message": "Remove space before XXX",\n' &&
+      '      "key": "space_before_dot",\n' &&
+      '      "start": {\n' &&
+      '        "row": 3,\n' &&
+      '        "col": 21\n' &&
+      '      },\n' &&
+      '      "end": {\n' &&
+      '        "row": 3,\n' &&
+      '        "col": 22\n' &&
+      '      },\n' &&
+      '      "filename": "./zxxx.prog.abap"\n' &&
+      '    }\n' &&
+      '  ]\n' &&
       '}'.
+
+    replace all occurrences of '\n' in rv_json with iv_separator.
 
   endmethod.
 
@@ -151,6 +155,16 @@ class ltcl_parser_test implementation.
 
     create object lo_cut.
     lt_act = lo_cut->parse( sample_json( ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = nodes->mt_nodes ).
+
+    lt_act = lo_cut->parse( sample_json( |{ cl_abap_char_utilities=>newline }| ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = nodes->mt_nodes ).
+
+    lt_act = lo_cut->parse( sample_json( |{ cl_abap_char_utilities=>cr_lf }| ) ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = nodes->mt_nodes ).
