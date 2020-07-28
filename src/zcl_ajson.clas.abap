@@ -277,6 +277,65 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson_reader~get.
+
+    data lv_item type ref to ty_node.
+    lv_item = get_item( iv_path ).
+    if lv_item is not initial.
+      rv_value = lv_item->value.
+    endif.
+
+  endmethod.
+
+
+  method zif_ajson_reader~get_boolean.
+
+    data lv_item type ref to ty_node.
+    lv_item = get_item( iv_path ).
+    if lv_item is initial or lv_item->type = 'null'.
+      return.
+    elseif lv_item->type = 'bool'.
+      rv_value = boolc( lv_item->value = 'true' ).
+    elseif lv_item->value is not initial.
+      rv_value = abap_true.
+    endif.
+
+  endmethod.
+
+
+  method zif_ajson_reader~get_integer.
+
+    data lv_item type ref to ty_node.
+    lv_item = get_item( iv_path ).
+    if lv_item is not initial and lv_item->type = 'num'.
+      rv_value = lv_item->value.
+    endif.
+
+  endmethod.
+
+
+  method zif_ajson_reader~get_number.
+
+    data lv_item type ref to ty_node.
+    lv_item = get_item( iv_path ).
+    if lv_item is not initial and lv_item->type = 'num'.
+      rv_value = lv_item->value.
+    endif.
+
+  endmethod.
+
+
+  method zif_ajson_reader~get_string.
+
+    data lv_item type ref to ty_node.
+    lv_item = get_item( iv_path ).
+    if lv_item is not initial and lv_item->type <> 'null'.
+      rv_value = lv_item->value.
+    endif.
+
+  endmethod.
+
+
   method zif_ajson_reader~members.
 
     data lv_normalized_path type string.
@@ -331,65 +390,6 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         c_obj = ev_container
         co_instance = lo_to_abap ).
     lo_to_abap->to_abap( mt_json_tree ).
-
-  endmethod.
-
-
-  method zif_ajson_reader~value.
-
-    data lv_item type ref to ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is not initial.
-      rv_value = lv_item->value.
-    endif.
-
-  endmethod.
-
-
-  method zif_ajson_reader~value_boolean.
-
-    data lv_item type ref to ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is initial or lv_item->type = 'null'.
-      return.
-    elseif lv_item->type = 'bool'.
-      rv_value = boolc( lv_item->value = 'true' ).
-    elseif lv_item->value is not initial.
-      rv_value = abap_true.
-    endif.
-
-  endmethod.
-
-
-  method zif_ajson_reader~value_integer.
-
-    data lv_item type ref to ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type = 'num'.
-      rv_value = lv_item->value.
-    endif.
-
-  endmethod.
-
-
-  method zif_ajson_reader~value_number.
-
-    data lv_item type ref to ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type = 'num'.
-      rv_value = lv_item->value.
-    endif.
-
-  endmethod.
-
-
-  method zif_ajson_reader~value_string.
-
-    data lv_item type ref to ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type <> 'null'.
-      rv_value = lv_item->value.
-    endif.
 
   endmethod.
 
