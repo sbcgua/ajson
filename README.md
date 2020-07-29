@@ -3,7 +3,7 @@
 
 # abap json (ajson)
 
-Yet another json parser/serializer for ABAP. Should work on 7.31, maybe on 7.02 but with json sxml parser installed.
+Yet another json parser/serializer for ABAP. It works with release 7.02 or higher.
 
 Features:
 - parse into a flexible form, not fixed to any predefined data structure, allowing to modify the parsed data, selectively access its parts and slice subsections of it
