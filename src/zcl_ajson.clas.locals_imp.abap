@@ -118,11 +118,28 @@ class lcl_json_parser definition final.
       raising
         zcx_ajson_error.
 
+    methods _parse
+      importing
+        iv_json type string
+      returning
+        value(rt_json_tree) type zcl_ajson=>ty_nodes_tt
+      raising
+        zcx_ajson_error cx_sxml_error.
+
 endclass.
 
 class lcl_json_parser implementation.
 
   method parse.
+    data lx_sxml type ref to cx_sxml_error.
+    try.
+      rt_json_tree = _parse( iv_json ).
+    catch cx_sxml_error into lx_sxml.
+      zcx_ajson_error=>raise( `SXML: ` && lx_sxml->get_text( ) ).
+    endtry.
+  endmethod.
+
+  method _parse.
 
     data lo_reader type ref to if_sxml_reader.
     data lr_stack_top like line of mt_stack.
