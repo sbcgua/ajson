@@ -223,6 +223,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       it_json_tree = mt_json_tree
       iv_indent = iv_indent ).
 
+    " test
+
   endmethod.
 
 
