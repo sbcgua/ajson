@@ -9,6 +9,31 @@ class zcl_ajson definition
     interfaces zif_ajson_reader .
     interfaces zif_ajson_writer .
 
+    aliases:
+      exists for zif_ajson_reader~exists,
+      members for zif_ajson_reader~members,
+      get for zif_ajson_reader~get,
+      get_boolean for zif_ajson_reader~get_boolean,
+      get_integer for zif_ajson_reader~get_integer,
+      get_number for zif_ajson_reader~get_number,
+      get_date for zif_ajson_reader~get_date,
+      get_string for zif_ajson_reader~get_string,
+      slice for zif_ajson_reader~slice,
+      to_abap for zif_ajson_reader~to_abap,
+      array_to_string_table for zif_ajson_reader~array_to_string_table.
+
+    aliases:
+      clear for zif_ajson_writer~clear,
+      set for zif_ajson_writer~set,
+      set_boolean for zif_ajson_writer~set_boolean,
+      set_string for zif_ajson_writer~set_string,
+      set_integer for zif_ajson_writer~set_integer,
+      set_date for zif_ajson_writer~set_date,
+      set_null for zif_ajson_writer~set_null,
+      delete for zif_ajson_writer~delete,
+      touch_array for zif_ajson_writer~touch_array,
+      push for zif_ajson_writer~push.
+
     types:
       begin of ty_node,
         path type string,
