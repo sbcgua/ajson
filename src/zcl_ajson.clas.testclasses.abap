@@ -513,13 +513,13 @@ class ltcl_utils_test implementation.
       act = lcl_utils=>validate_array_index( iv_path = 'x' iv_index = '123' )
       exp = 123 ).
 
-    try .
+    try.
       lcl_utils=>validate_array_index( iv_path = 'x' iv_index = 'a' ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error.
     endtry.
 
-    try .
+    try.
       lcl_utils=>validate_array_index( iv_path = 'x' iv_index = '0' ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error.
@@ -2136,8 +2136,7 @@ class ltcl_writer_test implementation.
     li_writer->set(
       iv_path = '/a'
       iv_val  = 'abc' ).
-    li_writer->touch_array(
-      iv_path = '/b' ).
+    li_writer->touch_array( iv_path = '/b' ).
     li_writer->push(
       iv_path = '/b'
       iv_val  = 'abc' ).
@@ -2153,8 +2152,7 @@ class ltcl_writer_test implementation.
     endtry.
 
     try.
-      li_writer->touch_array(
-        iv_path = '/d' ).
+      li_writer->touch_array( iv_path = '/d' ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error.
     endtry.
@@ -2168,8 +2166,7 @@ class ltcl_writer_test implementation.
     endtry.
 
     try.
-      li_writer->delete(
-        iv_path = '/a' ).
+      li_writer->delete( iv_path = '/a' ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error.
     endtry.
@@ -2354,8 +2351,7 @@ class ltcl_integrated implementation.
     li_writer->set(
       iv_path = '/c'
       iv_val  = abap_true ).
-    li_writer->set_null(
-      iv_path = '/d' ).
+    li_writer->set_null( iv_path = '/d' ).
 
     " simple test
     lv_exp = '{"a":1,"b":"B","c":true,"d":null}'.
@@ -2363,10 +2359,8 @@ class ltcl_integrated implementation.
       act = lo_cut->stringify( )
       exp = lv_exp ).
 
-    li_writer->touch_array(
-      iv_path = '/e' ).
-    li_writer->touch_array(
-      iv_path = '/f' ).
+    li_writer->touch_array( iv_path = '/e' ).
+    li_writer->touch_array( iv_path = '/f' ).
     li_writer->push(
       iv_path = '/f'
       iv_val  = 5 ).
@@ -2435,7 +2429,7 @@ class ltcl_abap_to_json definition
       tt_struc type standard table of ty_struc with default key,
       begin of ty_struc_complex.
         include type ty_struc.
-        types:
+    types:
         el type string,
         struc type ty_struc,
         tab type tt_struc,

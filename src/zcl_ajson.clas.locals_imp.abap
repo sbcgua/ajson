@@ -552,9 +552,9 @@ class lcl_json_to_abap implementation.
             endif.
           when 'object'.
             if not lv_type co 'uv'.
-             zcx_ajson_error=>raise(
-               iv_msg      = 'Expected structure'
-               iv_location = <n>-path && <n>-name ).
+              zcx_ajson_error=>raise(
+                iv_msg      = 'Expected structure'
+                iv_location = <n>-path && <n>-name ).
             endif.
           when 'array'.
             if not lv_type co 'h'.
@@ -563,9 +563,9 @@ class lcl_json_to_abap implementation.
                 iv_location = <n>-path && <n>-name ).
             endif.
           when others.
-           zcx_ajson_error=>raise(
-             iv_msg      = |Unexpected JSON type [{ <n>-type }]|
-             iv_location = <n>-path && <n>-name ).
+            zcx_ajson_error=>raise(
+              iv_msg      = |Unexpected JSON type [{ <n>-type }]|
+              iv_location = <n>-path && <n>-name ).
         endcase.
 
       endloop.
@@ -637,7 +637,7 @@ class lcl_json_to_abap implementation.
         assign component <seg> of structure <struc> to <value>.
         if sy-subrc <> 0.
           zcx_ajson_error=>raise(
-            iv_msg      =  'Path not found'
+            iv_msg      = 'Path not found'
             iv_location = lv_trace ).
         endif.
       else.
@@ -877,7 +877,8 @@ class lcl_abap_to_json implementation.
       <n>-type = 'num'.
       <n>-value = |{ iv_data }|.
     else.
-      zcx_ajson_error=>raise( |Unexpected elemetary type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
+      zcx_ajson_error=>raise( |Unexpected elemetary type [{
+        io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
     endif.
 
   endmethod.
