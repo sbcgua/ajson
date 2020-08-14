@@ -24,50 +24,9 @@ The class `zcl_ajson` implements 2 interfaces:
 ### Instantiating and basics
 
 - To parse existing json data - call `zcl_ajson=>parse( lv_json_string )`
-- To create a new empty json instance (to set values and serialize) - call `zcl_ajson=>create_empty( lv_json_string )`
+- To create a new empty json instance (to set values and serialize) - call `zcl_ajson=>create_empty( )`
 - Json attributes are addressed by path in form `/obj1/obj2/value` of e.g. `/a/b/c` addresses `{ a: { b: { c: "this value !" } } }`
 - Array items addressed with index starting from 1: `/tab/2/val` -> `{ tab: [ {...}, { val: "this value !" } ] }`
-
-### Rendering to JSON string
-
-`zcl_ajson` instance content can be rendered to JSON string using `stringify` method. It also supports optional indentation.
-
-```abap
-
-    data lo_json type ref to zcl_ajson.
-    data li_writer type ref to zif_ajson_writer.
-
-    lo_json   = zcl_ajson=>create_empty( ).
-    li_writer = lo_json.
-
-    li_writer->set(
-      iv_path = '/a'
-      iv_val  = 1 ).
-    li_writer->set(
-      iv_path = '/b'
-      iv_val  = 'B' ).
-    li_writer->touch_array(
-      iv_path = '/e' ).
-    li_writer->touch_array(
-      iv_path = '/f' ).
-    li_writer->push(
-      iv_path = '/f'
-      iv_val  = 5 ).
-
-    data lv type string.
-    lv = lo_json->stringify( ).
-    " {"a":1,"b":"B","e":[],"f":[5]}
-
-    lv = lo_json->stringify( iv_indent = 2 ). " indent with 2 spaces
-    " {
-    "   "a": 1,
-    "   "b": "B",
-    "   "e": [],
-    "   "f": [
-    "     5
-    "   ]
-    " }
-```
 
 ### JSON reader (zif_ajson_reader)
 
@@ -312,6 +271,47 @@ Currently not supported, but maybe in future. Except initial data ref which is e
 
 It is possible to set an instance of ajson immutable (read only). It is done on object level with method `freeze` or at parse time with `iv_freeze = abap_true` param. This is one way only change. After this `set`, `delete`, `clear` and other modification methods will raise exceptions if used. Useful to freeze some kind of settings or service responses.
 
+### Rendering to JSON string
+
+`zcl_ajson` instance content can be rendered to JSON string using `stringify` method. It also supports optional indentation.
+
+```abap
+
+    data lo_json type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson_writer.
+
+    lo_json   = zcl_ajson=>create_empty( ).
+    li_writer = lo_json.
+
+    li_writer->set(
+      iv_path = '/a'
+      iv_val  = 1 ).
+    li_writer->set(
+      iv_path = '/b'
+      iv_val  = 'B' ).
+    li_writer->touch_array(
+      iv_path = '/e' ).
+    li_writer->touch_array(
+      iv_path = '/f' ).
+    li_writer->push(
+      iv_path = '/f'
+      iv_val  = 5 ).
+
+    data lv type string.
+    lv = lo_json->stringify( ).
+    " {"a":1,"b":"B","e":[],"f":[5]}
+
+    lv = lo_json->stringify( iv_indent = 2 ). " indent with 2 spaces
+    " {
+    "   "a": 1,
+    "   "b": "B",
+    "   "e": [],
+    "   "f": [
+    "     5
+    "   ]
+    " }
+```
+
 ## Known issues
 
 - removing an array item in the middle of array will not renumber the items
@@ -319,3 +319,4 @@ It is possible to set an instance of ajson immutable (read only). It is done on 
 ## References
 
 - Forked from [here](https://github.com/abaplint/abaplint-abap-backend) originally, at early stages
+- Publication at SCN - https://blogs.sap.com/2020/08/14/bicycles.-2-ajson-yet-another-abap-json-parser-and-serializer
