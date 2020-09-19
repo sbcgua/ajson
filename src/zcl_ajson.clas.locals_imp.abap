@@ -147,6 +147,9 @@ class lcl_json_parser implementation.
     field-symbols <item> like line of rt_json_tree.
 
     clear mt_stack.
+    if iv_json is initial.
+      return.
+    endif.
     lo_reader = cl_sxml_string_reader=>create( cl_abap_codepage=>convert_to( iv_json ) ).
 
     " TODO: self protection, check non-empty, check starting from object ...
