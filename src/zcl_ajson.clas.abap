@@ -216,6 +216,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
           path = lv_cur_path
           name = lv_cur_name.
       if sy-subrc <> 0. " New node, assume it is always object as it has a named child, use touch_array to init array
+        clear node_tmp.
         if node_parent is not initial. " if has parent
           node_parent->children = node_parent->children + 1.
           if node_parent->type = 'array'.
