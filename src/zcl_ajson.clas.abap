@@ -200,14 +200,12 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lt_path type string_table.
     data node_ref like line of rt_node_stack.
     data node_parent like line of rt_node_stack.
-    data lv_size type i.
     data lv_cur_path type string.
     data lv_cur_name type string.
-    data node_tmp like line of mt_json_tree.
+    data ls_new_node like line of mt_json_tree.
 
     split iv_path at '/' into table lt_path.
     delete lt_path where table_line is initial.
-    lv_size = lines( lt_path ).
 
     do.
       node_parent = node_ref.
@@ -216,19 +214,19 @@ CLASS ZCL_AJSON IMPLEMENTATION.
           path = lv_cur_path
           name = lv_cur_name.
       if sy-subrc <> 0. " New node, assume it is always object as it has a named child, use touch_array to init array
-        clear node_tmp.
+        clear ls_new_node.
         if node_parent is not initial. " if has parent
           node_parent->children = node_parent->children + 1.
           if node_parent->type = 'array'.
-            node_tmp-index = lcl_utils=>validate_array_index(
+            ls_new_node-index = lcl_utils=>validate_array_index(
               iv_path  = lv_cur_path
               iv_index = lv_cur_name ).
           endif.
         endif.
-        node_tmp-path = lv_cur_path.
-        node_tmp-name = lv_cur_name.
-        node_tmp-type = 'object'.
-        insert node_tmp into table mt_json_tree reference into node_ref.
+        ls_new_node-path = lv_cur_path.
+        ls_new_node-name = lv_cur_name.
+        ls_new_node-type = 'object'.
+        insert ls_new_node into table mt_json_tree reference into node_ref.
       endif.
       insert node_ref into rt_node_stack index 1.
       lv_cur_path = lv_cur_path && lv_cur_name && '/'.
