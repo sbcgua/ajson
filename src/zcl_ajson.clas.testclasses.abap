@@ -1412,6 +1412,7 @@ class ltcl_writer_test definition final
     methods set_int for testing raising zcx_ajson_error.
     methods set_date for testing raising zcx_ajson_error.
     methods read_only for testing raising zcx_ajson_error.
+    methods set_array_obj for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -2176,6 +2177,47 @@ class ltcl_writer_test implementation.
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error.
     endtry.
+
+  endmethod.
+
+  method set_array_obj.
+
+    data lo_cut type ref to zcl_ajson.
+    data nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson_writer.
+
+    create object nodes_exp.
+    nodes_exp->add( '                 |         |object |                        |  |1' ).
+    nodes_exp->add( '/                |issues   |array  |                        |  |2' ).
+    nodes_exp->add( '/issues/         |1        |object |                        |1 |1' ).
+    nodes_exp->add( '/issues/         |2        |object |                        |2 |1' ).
+    nodes_exp->add( '/issues/1/       |end      |object |                        |  |2' ).
+    nodes_exp->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
+    nodes_exp->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
+    nodes_exp->add( '/issues/2/       |end      |object |                        |  |2' ).
+    nodes_exp->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
+    nodes_exp->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    li_writer->touch_array( iv_path = '/issues' ).
+    li_writer->set(
+      iv_path = '/issues/1/end/col'
+      iv_val  = 26 ).
+    li_writer->set(
+      iv_path = '/issues/1/end/row'
+      iv_val  = 4 ).
+    li_writer->set(
+      iv_path = '/issues/2/end/col'
+      iv_val  = 22 ).
+    li_writer->set(
+      iv_path = '/issues/2/end/row'
+      iv_val  = 3 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
 
   endmethod.
 
