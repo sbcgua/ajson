@@ -355,6 +355,17 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson_reader~get_node_type.
+
+    data lv_item type ref to ty_node.
+    lv_item = get_item( iv_path ).
+    if lv_item is not initial.
+      rv_node_type = lv_item->type.
+    endif.
+
+  endmethod.
+
+
   method zif_ajson_reader~get_number.
 
     data lv_item type ref to ty_node.

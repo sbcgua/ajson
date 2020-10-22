@@ -16,6 +16,11 @@ interface zif_ajson_reader
       iv_path type string
     returning
       value(rv_value) type string.
+  methods get_node_type
+    importing
+      iv_path type string
+    returning
+      value(rv_node_type) type string.
   methods get_boolean
     importing
       iv_path type string

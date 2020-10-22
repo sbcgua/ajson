@@ -89,6 +89,15 @@ data payload type ref to zif_ajson_reader.
 payload = r->slice( '/payload' ). 
 ```
 
+#### Getting node type
+
+In some case you might want to know node type prior to accessing it first. Type can be 'str', 'num', 'null', 'bool', 'object', 'array'.
+
+```abap
+r->get_node_type( '/payload/false' ).         " returns "bool"
+r->get_node_type( '/payload/text' ).          " returns "str"
+```
+
 #### Converting to abap structure
 
 ```abap
