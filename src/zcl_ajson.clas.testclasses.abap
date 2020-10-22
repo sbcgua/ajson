@@ -627,6 +627,7 @@ class ltcl_reader_test definition final
   private section.
 
     methods get_value for testing raising zcx_ajson_error.
+    methods get_node_type for testing raising zcx_ajson_error.
     methods exists for testing raising zcx_ajson_error.
     methods value_integer for testing raising zcx_ajson_error.
     methods value_number for testing raising zcx_ajson_error.
@@ -752,6 +753,41 @@ class ltcl_reader_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->get( '/issues/2/start/row' )
       exp = '3' ).
+
+  endmethod.
+
+  method get_node_type.
+
+    data li_cut type ref to zif_ajson_reader.
+    li_cut = zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/' )
+      exp = 'object' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/string' )
+      exp = 'str' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/number' )
+      exp = 'num' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/float' )
+      exp = 'num' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/boolean' )
+      exp = 'bool' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/false' )
+      exp = 'bool' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/null' )
+      exp = 'null' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/date' )
+      exp = 'str' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/issues' )
+      exp = 'array' ).
 
   endmethod.
 
