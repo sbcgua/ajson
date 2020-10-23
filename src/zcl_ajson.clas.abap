@@ -78,6 +78,8 @@ class zcl_ajson definition
 
     methods freeze.
 
+    data mt_json_tree type ty_nodes_ts read-only.
+
   protected section.
 
   private section.
