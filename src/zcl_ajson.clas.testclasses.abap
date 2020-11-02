@@ -1449,6 +1449,14 @@ class ltcl_writer_test definition final
     methods set_date for testing raising zcx_ajson_error.
     methods read_only for testing raising zcx_ajson_error.
     methods set_array_obj for testing raising zcx_ajson_error.
+    methods set_with_type for testing raising zcx_ajson_error.
+    methods set_with_type_slice
+      importing
+        io_json_in type ref to zcl_ajson
+        io_json_out type ref to zif_ajson_writer
+        iv_path type string
+      raising
+        zcx_ajson_error.
 
 endclass.
 
@@ -2257,6 +2265,53 @@ class ltcl_writer_test implementation.
 
   endmethod.
 
+  method set_with_type.
+
+    data lo_sample type ref to zcl_ajson.
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson_writer.
+
+    lo_sample = zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    set_with_type_slice( io_json_in  = lo_sample
+                         io_json_out = li_writer
+                         iv_path     = '/' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = lo_sample->mt_json_tree ).
+
+  endmethod.
+
+  method set_with_type_slice.
+
+    data lv_path type string.
+
+    field-symbols <ls_node> type zcl_ajson=>ty_node.
+
+    loop at io_json_in->mt_json_tree assigning <ls_node> where path = iv_path.
+      lv_path = <ls_node>-path && <ls_node>-name && '/'.
+      case <ls_node>-type.
+        when 'array'.
+          io_json_out->touch_array( lv_path ).
+          set_with_type_slice( io_json_in  = io_json_in
+                               io_json_out = io_json_out
+                               iv_path     = lv_path ).
+        when 'object'.
+          set_with_type_slice( io_json_in  = io_json_in
+                               io_json_out = io_json_out
+                               iv_path     = lv_path ).
+        when others.
+          io_json_out->set_with_type( iv_path = lv_path
+                                      iv_val  = <ls_node>-value
+                                      iv_type = <ls_node>-type ).
+      endcase.
+    endloop.
+
+  endmethod.
 endclass.
 
 
