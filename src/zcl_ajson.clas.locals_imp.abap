@@ -1057,26 +1057,20 @@ class lcl_abap_to_json implementation.
 
     if io_type->type_kind co 'CNgXyDT'. " Char like, date/time, xstring
       if iv_type = 'bool' and iv_data <> 'true' and iv_data <> 'false'.
-        zcx_ajson_error=>raise( |Unexpected boolean value [{
-          iv_data }] @{ is_prefix-path && is_prefix-name }| ).
+        zcx_ajson_error=>raise( |Unexpected boolean value [{ iv_data }] @{ is_prefix-path && is_prefix-name }| ).
       elseif iv_type = 'null' and iv_data is not initial.
-        zcx_ajson_error=>raise( |Unexpected null value [{
-          iv_data }] @{ is_prefix-path && is_prefix-name }| ).
+        zcx_ajson_error=>raise( |Unexpected null value [{ iv_data }] @{ is_prefix-path && is_prefix-name }| ).
       elseif iv_type = 'num' and iv_data cn '0123456789. E+-'.
-        zcx_ajson_error=>raise( |Unexpected numeric value [{
-          iv_data }] @{ is_prefix-path && is_prefix-name }| ).
+        zcx_ajson_error=>raise( |Unexpected numeric value [{ iv_data }] @{ is_prefix-path && is_prefix-name }| ).
       elseif iv_type <> 'str' and iv_type <> 'bool' and iv_type <> 'null' and iv_type <> 'num'.
-        zcx_ajson_error=>raise( |Unexpected type for value [{
-          iv_type },{ iv_data }] @{ is_prefix-path && is_prefix-name }| ).
+        zcx_ajson_error=>raise( |Unexpected type for value [{ iv_type },{ iv_data }] @{ is_prefix-path && is_prefix-name }| ).
       endif.
     elseif io_type->type_kind co 'bsI8PaeF'. " Numeric
       if iv_type <> 'num'.
-        zcx_ajson_error=>raise( |Unexpected value for numeric [{
-          iv_data }] @{ is_prefix-path && is_prefix-name }| ).
+        zcx_ajson_error=>raise( |Unexpected value for numeric [{ iv_data }] @{ is_prefix-path && is_prefix-name }| ).
       endif.
     else.
-      zcx_ajson_error=>raise( |Unexpected type [{
-        io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
+      zcx_ajson_error=>raise( |Unexpected type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
     endif.
 
     append initial line to ct_nodes assigning <n>.
