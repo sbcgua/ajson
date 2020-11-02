@@ -4,7 +4,8 @@ class zcl_ajson definition
 
   public section.
 
-    constants version type string value 'v1.0.0'.
+    constants version type string value 'v1.0.1'.
+    constants origin type string value 'https://github.com/sbcgua/ajson'.
 
     interfaces zif_ajson_reader .
     interfaces zif_ajson_writer .
@@ -78,6 +79,8 @@ class zcl_ajson definition
 
     methods freeze.
 
+    data mt_json_tree type ty_nodes_ts read-only.
+
   protected section.
 
   private section.
@@ -85,7 +88,6 @@ class zcl_ajson definition
     types:
       tty_node_stack type standard table of ref to ty_node with default key.
 
-    data mt_json_tree type ty_nodes_ts.
     data mv_read_only type abap_bool.
 
     methods get_item
@@ -350,6 +352,17 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     lv_item = get_item( iv_path ).
     if lv_item is not initial and lv_item->type = 'num'.
       rv_value = lv_item->value.
+    endif.
+
+  endmethod.
+
+
+  method zif_ajson_reader~get_node_type.
+
+    data lv_item type ref to ty_node.
+    lv_item = get_item( iv_path ).
+    if lv_item is not initial.
+      rv_node_type = lv_item->type.
     endif.
 
   endmethod.
