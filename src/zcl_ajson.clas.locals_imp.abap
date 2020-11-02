@@ -1053,24 +1053,27 @@ class lcl_abap_to_json implementation.
 
   method insert_value_with_type.
 
+    data lv_prefix type string.
+
     field-symbols <n> like line of ct_nodes.
 
+    lv_prefix = is_prefix-path && is_prefix-name.
     if io_type->type_kind co 'CNgXyDT'. " Char like, date/time, xstring
       if iv_type = 'bool' and iv_data <> 'true' and iv_data <> 'false'.
-        zcx_ajson_error=>raise( |Unexpected boolean value [{ iv_data }] @{ is_prefix-path && is_prefix-name }| ).
+        zcx_ajson_error=>raise( |Unexpected boolean value [{ iv_data }] @{ lv_prefix }| ).
       elseif iv_type = 'null' and iv_data is not initial.
-        zcx_ajson_error=>raise( |Unexpected null value [{ iv_data }] @{ is_prefix-path && is_prefix-name }| ).
+        zcx_ajson_error=>raise( |Unexpected null value [{ iv_data }] @{ lv_prefix }| ).
       elseif iv_type = 'num' and iv_data cn '0123456789. E+-'.
-        zcx_ajson_error=>raise( |Unexpected numeric value [{ iv_data }] @{ is_prefix-path && is_prefix-name }| ).
+        zcx_ajson_error=>raise( |Unexpected numeric value [{ iv_data }] @{ lv_prefix }| ).
       elseif iv_type <> 'str' and iv_type <> 'bool' and iv_type <> 'null' and iv_type <> 'num'.
-        zcx_ajson_error=>raise( |Unexpected type for value [{ iv_type },{ iv_data }] @{ is_prefix-path && is_prefix-name }| ).
+        zcx_ajson_error=>raise( |Unexpected type for value [{ iv_type },{ iv_data }] @{ lv_prefix }| ).
       endif.
     elseif io_type->type_kind co 'bsI8PaeF'. " Numeric
       if iv_type <> 'num'.
-        zcx_ajson_error=>raise( |Unexpected value for numeric [{ iv_data }] @{ is_prefix-path && is_prefix-name }| ).
+        zcx_ajson_error=>raise( |Unexpected value for numeric [{ iv_data }] @{ lv_prefix }| ).
       endif.
     else.
-      zcx_ajson_error=>raise( |Unexpected type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
+      zcx_ajson_error=>raise( |Unexpected type [{ io_type->type_kind }] @{ lv_prefix }| ).
     endif.
 
     append initial line to ct_nodes assigning <n>.
