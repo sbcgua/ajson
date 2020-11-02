@@ -5,7 +5,7 @@
 class lcl_nodes_helper definition final.
   public section.
 
-    data mt_nodes type zcl_ajson=>ty_nodes_tt.
+    data mt_nodes type zcl_ajson=>ty_nodes_tt read-only.
     methods add
       importing
         iv_str type string.
