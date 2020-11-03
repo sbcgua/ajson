@@ -30,19 +30,20 @@ class zcl_ajson_utilities definition
 
     methods diff_a_b
       importing
-        iv_path type string
+        !iv_path type string
       raising
         zcx_ajson_error.
 
     methods diff_b_a
       importing
-        iv_path type string
+        !iv_path type string
+        !iv_all  TYPE abap_bool DEFAULT abap_false
       raising
         zcx_ajson_error.
 
     methods delete_empty_nodes
       importing
-        io_json type ref to zcl_ajson
+        !io_json type ref to zcl_ajson
       raising
         zcx_ajson_error.
 
@@ -146,12 +147,19 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
           read table mo_json_b->mt_json_tree assigning <ls_node_b>
             with table key path = <ls_node_a>-path name = <ls_node_a>-name.
           if sy-subrc = 0.
-            if <ls_node_a>-type <> <ls_node_b>-type or <ls_node_a>-value <> <ls_node_b>-value.
-              " save as change
+            IF <ls_node_a>-type = <ls_node_b>-type AND <ls_node_a>-value <> <ls_node_b>-value.
+              " save as changed value
               mo_change->set_with_type( iv_path = <ls_node_b>-path && <ls_node_b>-name && '/'
                                         iv_val  = <ls_node_b>-value
                                         iv_type = <ls_node_b>-type ).
-            endif.
+            ELSEIF <ls_node_a>-type <> <ls_node_b>-type.
+              " save changed type as delete + insert
+              mo_delete->set_with_type( iv_path = lv_path
+                                        iv_val  = <ls_node_a>-value
+                                        iv_type = <ls_node_a>-type ).
+              diff_b_a( iv_path = <ls_node_b>-path && <ls_node_b>-name && '/'
+                        iv_all  = abap_true ).
+            ENDIF.
           else.
             " save as delete
             mo_delete->set_with_type( iv_path = lv_path
@@ -184,7 +192,7 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
         when others.
           read table mo_json_a->mt_json_tree assigning <ls_node_a>
             with table key path = <ls_node_b>-path name = <ls_node_b>-name.
-          if sy-subrc <> 0.
+          if sy-subrc <> 0 or iv_all = abap_true.
             " save as insert
             mo_insert->set_with_type( iv_path = <ls_node_b>-path && <ls_node_b>-name && '/'
                                       iv_val  = <ls_node_b>-value
