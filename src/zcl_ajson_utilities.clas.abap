@@ -40,7 +40,7 @@ class zcl_ajson_utilities definition
       raising
         zcx_ajson_error.
 
-    methods delete_empty_arrays
+    methods delete_empty_nodes
       importing
         io_json type ref to zcl_ajson
       raising
@@ -53,16 +53,30 @@ ENDCLASS.
 CLASS zcl_ajson_utilities IMPLEMENTATION.
 
 
-  method delete_empty_arrays.
+  method delete_empty_nodes.
 
     data ls_json_tree type zcl_ajson=>ty_node.
+    data lv_subrc TYPE sy-subrc.
 
-    loop at io_json->mt_json_tree into ls_json_tree
-      where type = 'array' and children = 0.
+    do.
+      loop at io_json->mt_json_tree into ls_json_tree
+        where type = 'array' and children = 0.
 
-      io_json->delete( ls_json_tree-path && '/' && ls_json_tree-name ).
+        io_json->delete( ls_json_tree-path && ls_json_tree-name ).
 
-    endloop.
+      endloop.
+      lv_subrc = sy-subrc.
+
+      loop at io_json->mt_json_tree into ls_json_tree
+        where type = 'object' and children = 0.
+
+        io_json->delete( ls_json_tree-path && ls_json_tree-name ).
+
+      endloop.
+      if lv_subrc = 4 and sy-subrc = 4.
+        exit. " nothing else to delete
+      endif.
+    enddo.
 
   endmethod.
 
