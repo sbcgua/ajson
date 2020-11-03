@@ -1,6 +1,6 @@
 class zcl_ajson_utilities definition
   public
-  create private .
+  create public .
 
   public section.
 
