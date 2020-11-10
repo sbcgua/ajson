@@ -57,7 +57,7 @@ class zcl_ajson_utilities implementation.
   method delete_empty_nodes.
 
     data ls_json_tree type zcl_ajson=>ty_node.
-    data lv_subrc TYPE sy-subrc.
+    data lv_subrc type sy-subrc.
 
     do.
       loop at io_json->mt_json_tree into ls_json_tree
@@ -118,9 +118,9 @@ class zcl_ajson_utilities implementation.
     eo_delete ?= mo_delete.
     eo_change ?= mo_change.
 
-    delete_empty_arrays( eo_insert ).
-    delete_empty_arrays( eo_delete ).
-    delete_empty_arrays( eo_change ).
+    delete_empty_nodes( eo_insert ).
+    delete_empty_nodes( eo_delete ).
+    delete_empty_nodes( eo_change ).
 
   endmethod.
 
