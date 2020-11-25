@@ -283,7 +283,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
           endif.
           append lv_tmp to rt_string_table.
         when others.
-          zcx_ajson_error=>raise( |Cannot convert [{ <item>-type }] to string at [{ <item>-path }{ <item>-name }]| ).
+          zcx_ajson_error=>raise( |Cannot convert [{ <item>-type 
+            }] to string at [{ <item>-path }{ <item>-name }]| ).
       endcase.
     endloop.
 
