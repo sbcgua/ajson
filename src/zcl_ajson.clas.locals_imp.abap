@@ -831,7 +831,7 @@ class lcl_abap_to_json implementation.
             changing
               ct_nodes = ct_nodes ).
         else.
-          zcx_ajson_error=>raise( |Unsupported type [{ io_type->type_kind 
+          zcx_ajson_error=>raise( |Unsupported type [{ io_type->type_kind
             }] @{ is_prefix-path && is_prefix-name }| ).
         endif.
 
