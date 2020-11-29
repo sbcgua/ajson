@@ -32,7 +32,8 @@
       "statics": true,
       "systemCall": true,
       "defaultKey": false,
-      "break": true
+      "break": true,
+      "describeLines": true
     },
     "begin_end_names": true,
     "chain_mainly_declarations": true,
@@ -162,7 +163,7 @@
       "patternKind": "required",
       "ignoreNames": [],
       "ignorePatterns": [],
-      "expectedData": ".*",
+      "expectedData": "^L.*",
       "expectedConstant": "^LC_.+$",
       "expectedFS": ".*"
     },
@@ -198,7 +199,7 @@
       "logic": "less"
     },
     "no_public_attributes": {
-      "exclude": ["zcl_ajson.clas.testclasses.abap"],
+      "exclude": ["testclasses.abap$"],
       "allowReadOnly": true
     },
     "object_naming": {
@@ -237,7 +238,10 @@
       "requested": true,
       "occurs": true,
       "setExtended": true,
-      "withHeaderLine": true
+      "withHeaderLine": true,
+      "fieldSymbolStructure": true,
+      "load": true,
+      "typePools": true
     },
     "parser_error": true,
     "prefer_inline": true,
@@ -261,7 +265,8 @@
     "release_idoc": true,
     "remove_descriptions": {
       "exclude": [],
-      "ignoreExceptions": true
+      "ignoreExceptions": true,
+      "ignoreWorkflow": true
     },
     "rfc_error_handling": true,
     "selection_screen_naming": {
@@ -293,7 +298,6 @@
     "superclass_final": true,
     "tabl_enhancement_category": true,
     "try_without_catch": true,
-    "type_begin_single_include": true,
     "type_form_parameters": true,
     "types_naming": {
       "exclude": [],
