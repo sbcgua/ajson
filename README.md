@@ -155,6 +155,13 @@ w->set(
   iv_ignore_empty = abap_false
   iv_path = '/a'
   iv_val  = 0 ). " => "a": 0
+
+" With explicit type
+w->set(
+  iv_path      = '/a'
+  iv_val       = '0'
+  iv_node_type = 'num' ). " => "a": 0
+
 ```
 
 #### Individual TYPED values
