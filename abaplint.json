@@ -165,7 +165,7 @@
       "ignorePatterns": [],
       "expectedData": "^L.*",
       "expectedConstant": "^LC_.+$",
-      "expectedFS": ".*"
+      "expectedFS": "^(?!<L.?_).+" // No prefixes in field symbols please
     },
     "main_file_contents": true,
     "max_one_statement": true,

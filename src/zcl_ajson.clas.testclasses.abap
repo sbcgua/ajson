@@ -2290,11 +2290,11 @@ class ltcl_writer_test implementation.
 
     data lv_path type string.
 
-    field-symbols <ls_node> type zcl_ajson=>ty_node.
+    field-symbols <node> type zcl_ajson=>ty_node.
 
-    loop at io_json_in->mt_json_tree assigning <ls_node> where path = iv_path.
-      lv_path = <ls_node>-path && <ls_node>-name && '/'.
-      case <ls_node>-type.
+    loop at io_json_in->mt_json_tree assigning <node> where path = iv_path.
+      lv_path = <node>-path && <node>-name && '/'.
+      case <node>-type.
         when 'array'.
           io_json_out->touch_array( lv_path ).
           set_with_type_slice( io_json_in  = io_json_in
@@ -2306,8 +2306,8 @@ class ltcl_writer_test implementation.
                                iv_path     = lv_path ).
         when others.
           io_json_out->set_with_type( iv_path = lv_path
-                                      iv_val  = <ls_node>-value
-                                      iv_type = <ls_node>-type ).
+                                      iv_val  = <node>-value
+                                      iv_type = <node>-type ).
       endcase.
     endloop.
 
