@@ -2307,8 +2307,8 @@ class ltcl_writer_test implementation.
         when others.
           io_json_out->set(
             iv_path      = lv_path
-            iv_val       = <ls_node>-value
-            iv_node_type = <ls_node>-type ).
+            iv_val       = <node>-value
+            iv_node_type = <node>-type ).
       endcase.
     endloop.
 
