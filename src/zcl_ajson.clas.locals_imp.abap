@@ -512,7 +512,7 @@ class lcl_json_to_abap implementation.
 
   method to_abap.
 
-    data ref type ref to data.
+    data lr_ref type ref to data.
     data lv_type type c.
     data lx type ref to cx_root.
     field-symbols <n> like line of it_nodes.
@@ -520,11 +520,11 @@ class lcl_json_to_abap implementation.
 
     try.
       loop at it_nodes assigning <n> using key array_index.
-        ref = find_loc(
+        lr_ref = find_loc(
           iv_append_tables = abap_true
           iv_path = <n>-path
           iv_name = <n>-name ).
-        assign ref->* to <value>.
+        assign lr_ref->* to <value>.
         assert sy-subrc = 0.
         describe field <value> type lv_type.
 
