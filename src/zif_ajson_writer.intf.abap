@@ -10,6 +10,7 @@ interface zif_ajson_writer
       iv_path type string
       iv_val type any
       iv_ignore_empty type abap_bool default abap_true
+      iv_node_type type string optional
     raising
       zcx_ajson_error.
 
@@ -64,14 +65,6 @@ interface zif_ajson_writer
     importing
       iv_path type string
       iv_val type any
-    raising
-      zcx_ajson_error.
-
-  methods set_with_type
-    importing
-      iv_path type string
-      iv_val type any
-      iv_type type string
     raising
       zcx_ajson_error.
 
