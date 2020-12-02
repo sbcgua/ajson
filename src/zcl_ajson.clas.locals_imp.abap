@@ -767,8 +767,6 @@ class lcl_abap_to_json definition final.
 
 endclass.
 
-class zcl_ajson definition local friends lcl_abap_to_json.
-
 class lcl_abap_to_json implementation.
 
   method class_constructor.
