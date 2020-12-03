@@ -131,8 +131,6 @@ class ltcl_json_utils definition
 
 endclass.
 
-class zcl_ajson_utilities definition local friends ltcl_json_utils.
-
 class ltcl_json_utils implementation.
 
   method json_diff.
