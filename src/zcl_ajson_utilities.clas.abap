@@ -1,54 +1,54 @@
-CLASS zcl_ajson_utilities DEFINITION
-  PUBLIC
-  CREATE PUBLIC .
+class zcl_ajson_utilities definition
+  public
+  create public .
 
-  PUBLIC SECTION.
+  public section.
 
-    METHODS diff
-      IMPORTING
-        !iv_json_a TYPE string OPTIONAL
-        !iv_json_b TYPE string OPTIONAL
-        !io_json_a TYPE REF TO zcl_ajson OPTIONAL
-        !io_json_b TYPE REF TO zcl_ajson OPTIONAL
-      EXPORTING
-        !eo_insert TYPE REF TO zcl_ajson
-        !eo_delete TYPE REF TO zcl_ajson
-        !eo_change TYPE REF TO zcl_ajson
-      RAISING
+    methods diff
+      importing
+        !iv_json_a type string optional
+        !iv_json_b type string optional
+        !io_json_a type ref to zcl_ajson optional
+        !io_json_b type ref to zcl_ajson optional
+      exporting
+        !eo_insert type ref to zcl_ajson
+        !eo_delete type ref to zcl_ajson
+        !eo_change type ref to zcl_ajson
+      raising
         zcx_ajson_error .
-    METHODS sort
-      IMPORTING
-        !iv_json         TYPE string OPTIONAL
-        !io_json         TYPE REF TO zcl_ajson OPTIONAL
-      RETURNING
-        VALUE(rv_sorted) TYPE string
-      RAISING
+    methods sort
+      importing
+        !iv_json         type string optional
+        !io_json         type ref to zcl_ajson optional
+      returning
+        value(rv_sorted) type string
+      raising
         zcx_ajson_error .
   protected section.
 
-  PRIVATE SECTION.
+  private section.
 
-    DATA mo_json_a TYPE REF TO zcl_ajson .
-    DATA mo_json_b TYPE REF TO zcl_ajson .
-    DATA mo_insert TYPE REF TO zif_ajson_writer .
-    DATA mo_delete TYPE REF TO zif_ajson_writer .
-    DATA mo_change TYPE REF TO zif_ajson_writer .
+    data mo_json_a type ref to zcl_ajson .
+    data mo_json_b type ref to zcl_ajson .
+    data mo_insert type ref to zif_ajson_writer .
+    data mo_delete type ref to zif_ajson_writer .
+    data mo_change type ref to zif_ajson_writer .
 
-    METHODS diff_a_b
-      IMPORTING
-        !iv_path TYPE string
-      RAISING
+    methods diff_a_b
+      importing
+        !iv_path type string
+      raising
         zcx_ajson_error .
-    METHODS diff_b_a
-      IMPORTING
-        !iv_path TYPE string
-        !iv_all  TYPE abap_bool DEFAULT abap_false
-      RAISING
+    methods diff_b_a
+      importing
+        !iv_path type string
+        !iv_all  type abap_bool default abap_false
+      raising
         zcx_ajson_error .
-    METHODS delete_empty_nodes
-      IMPORTING
-        !io_json TYPE REF TO zcl_ajson
-      RAISING
+    methods delete_empty_nodes
+      importing
+        !io_json type ref to zcl_ajson
+      raising
         zcx_ajson_error .
 ENDCLASS.
 
@@ -128,39 +128,39 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
   endmethod.
 
 
-  METHOD diff_a_b.
+  method diff_a_b.
 
-    DATA:
-      lv_path_a TYPE string,
-      lv_path_b TYPE string.
+    data:
+      lv_path_a type string,
+      lv_path_b type string.
 
-    FIELD-SYMBOLS:
-      <ls_node_a> TYPE zcl_ajson=>ty_node,
-      <ls_node_b> TYPE zcl_ajson=>ty_node.
+    field-symbols:
+      <ls_node_a> type zcl_ajson=>ty_node,
+      <ls_node_b> type zcl_ajson=>ty_node.
 
-    LOOP AT mo_json_a->mt_json_tree ASSIGNING <ls_node_a> WHERE path = iv_path.
+    loop at mo_json_a->mt_json_tree assigning <ls_node_a> where path = iv_path.
       lv_path_a = <ls_node_a>-path && <ls_node_a>-name && '/'.
 
-      CASE <ls_node_a>-type.
-        WHEN 'array'.
+      case <ls_node_a>-type.
+        when 'array'.
           mo_change->touch_array( lv_path_a ).
           mo_delete->touch_array( lv_path_a ).
           diff_a_b( lv_path_a ).
-        WHEN 'object'.
+        when 'object'.
           diff_a_b( lv_path_a ).
-        WHEN OTHERS.
-          READ TABLE mo_json_b->mt_json_tree ASSIGNING <ls_node_b>
-            WITH TABLE KEY path = <ls_node_a>-path name = <ls_node_a>-name.
-          IF sy-subrc = 0.
+        when others.
+          read table mo_json_b->mt_json_tree assigning <ls_node_b>
+            with table key path = <ls_node_a>-path name = <ls_node_a>-name.
+          if sy-subrc = 0.
             lv_path_b = <ls_node_b>-path && <ls_node_b>-name && '/'.
 
-            IF <ls_node_a>-type = <ls_node_b>-type AND <ls_node_a>-value <> <ls_node_b>-value.
+            if <ls_node_a>-type = <ls_node_b>-type and <ls_node_a>-value <> <ls_node_b>-value.
               " save as changed value
               mo_change->set(
                 iv_path      = lv_path_b
                 iv_val       = <ls_node_b>-value
                 iv_node_type = <ls_node_b>-type ).
-            ELSEIF <ls_node_a>-type <> <ls_node_b>-type.
+            elseif <ls_node_a>-type <> <ls_node_b>-type.
               " save changed type as delete + insert
               mo_delete->set(
                 iv_path      = lv_path_a
@@ -172,18 +172,18 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
                 iv_node_type = <ls_node_b>-type ).
               " new type might have sub-nodes
               diff_b_a( lv_path_b ).
-            ENDIF.
-          ELSE.
+            endif.
+          else.
             " save as delete
             mo_delete->set(
               iv_path      = lv_path_a
               iv_val       = <ls_node_a>-value
               iv_node_type = <ls_node_a>-type ).
-          ENDIF.
-      ENDCASE.
-    ENDLOOP.
+          endif.
+      endcase.
+    endloop.
 
-  ENDMETHOD.
+  endmethod.
 
 
   method diff_b_a.
