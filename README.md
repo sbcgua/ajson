@@ -276,7 +276,7 @@ w->touch_array( '/array2' ).
 
 Currently not supported, but maybe in future. Except initial data ref which is equivalent to `set_null`.
 
-#### Freezing json (read only)
+#### Freezing JSON (read only)
 
 It is possible to set an instance of ajson immutable (read only). It is done on object level with method `freeze` or at parse time with `iv_freeze = abap_true` param. This is one way only change. After this `set`, `delete`, `clear` and other modification methods will raise exceptions if used. Useful to freeze some kind of settings or service responses.
 
@@ -319,6 +319,77 @@ It is possible to set an instance of ajson immutable (read only). It is done on 
     "     5
     "   ]
     " }
+```
+
+## Utilities
+
+Class `zcl_ajson_utilities` provides the following methods:
+- `diff` - returns all inserts, deletions, and changes between two JSON objects
+- `sort` - returns JSON string with nodes sorted alphabetically
+
+### Difference between JSON
+
+The delta between two JSON objects or strings is returned as three JSON objects containing nodes that where inserted, deleted, or changed. 
+
+Notes:
+- In case the type of a node changes, it is returned as a deletion of the old node and an insert of the new node (since arrays or objects could be involved).
+- The order of nodes is irrelevant for the comparison.
+
+```abap
+  data:
+    lo_util       type ref to zcl_ajson_utilities,
+    lv_original   type string,
+    lv_comparison type string,
+    lo_insert     type ref to zcl_ajson,
+    lo_delete     type ref to zcl_ajson,
+    lo_change     type ref to zcl_ajson.
+
+  lv_original = '{"a":1,"b":"B","e":[],"f":[5]}'.
+  
+  lv_comparison = '{"a":2,"c":"C","e":[1],"f":[4]}'.
+  
+  create object lo_util.
+
+  lo_util->diff(
+    exporting
+      iv_json_a = lv_original
+      iv_json_b = lv_comparison
+    importing
+      eo_insert = lo_insert
+      eo_delete = lo_delete
+      eo_change = lo_change ).
+
+  " lo_insert
+  " {"c":"C","e":[1]}
+  " lo_delete
+  " {"b":"B"}
+  " lo_change
+  " {"a":2,"f":[5]}
+```
+
+You can see a more complex example in the test class of `zcl_ajson_utilities`.
+
+### Sorting of JSON object or string
+
+```abap
+  data:
+    lo_util type ref to zcl_ajson_utilities,
+    lv_original type string,
+    lv_sorted type string.
+    
+  lv_original = '{"e":[],"b":"B","f":[5],"a":1}'.
+
+  create object lo_util.
+
+  lv_sorted = lo_util->sort( iv_json = lv_original ).
+  " {
+  "   "a": 1,
+  "   "b": "B",
+  "   "e": [],
+  "   "f": [
+  "     5
+  "   ]
+  " }
 ```
 
 ## Known issues
