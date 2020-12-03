@@ -6,6 +6,7 @@ class lcl_nodes_helper definition final.
   public section.
 
     data mt_nodes type zcl_ajson=>ty_nodes_tt read-only.
+
     methods add
       importing
         iv_str type string.
@@ -114,10 +115,10 @@ class ltcl_parser_test implementation.
 endclass.
 
 **********************************************************************
-* JSON DIFF
+* JSON UTILITIES
 **********************************************************************
 
-class ltcl_json_diff definition
+class ltcl_json_utils definition
   for testing
   risk level harmless
   duration short
@@ -125,19 +126,20 @@ class ltcl_json_diff definition
 
   private section.
 
-    methods diff for testing raising zcx_ajson_error.
+    methods json_diff for testing raising zcx_ajson_error.
+    methods json_sort for testing raising zcx_ajson_error.
 
 endclass.
 
-class zcl_ajson_utilities definition local friends ltcl_json_diff.
+class zcl_ajson_utilities definition local friends ltcl_json_utils.
 
-class ltcl_json_diff implementation.
+class ltcl_json_utils implementation.
 
-  method diff.
+  method json_diff.
 
     data:
       lv_json       type string,
-      lo_diff       type ref to zcl_ajson_utilities,
+      lo_util       type ref to zcl_ajson_utilities,
       lo_insert     type ref to zcl_ajson,
       lo_delete     type ref to zcl_ajson,
       lo_change     type ref to zcl_ajson,
@@ -147,8 +149,8 @@ class ltcl_json_diff implementation.
 
     lv_json =
       '{\n' &&
-      '  "string": "abc",\n' && "no changes
-      '  "number": 789,\n' &&   "changed value
+      '  "string": "abc",\n' && " no changes
+      '  "number": 789,\n' &&   " changed value
       '  "float": 123.45,\n' &&
       '  "boolean": "true",\n' && " changed type
       '  "true": true,\n' &&    " insert
@@ -189,33 +191,34 @@ class ltcl_json_diff implementation.
     replace all occurrences of '\n' in lv_json with cl_abap_char_utilities=>newline.
 
     create object lo_insert_exp.
-    lo_insert_exp->add( '                |        |object |        |0|2' ).
+    lo_insert_exp->add( '                |        |object |        |0|3' ).
+    lo_insert_exp->add( '/               |boolean |str    |true    |0|0' ). " changed type (insert new)
     lo_insert_exp->add( '/               |issues  |array  |        |0|1' ).
-    lo_insert_exp->add( '/               |true    |bool   |true    |0|0' ).
+    lo_insert_exp->add( '/               |true    |bool   |true    |0|0' ). " insert
     lo_insert_exp->add( '/issues/        |1       |object |        |1|1' ).
     lo_insert_exp->add( '/issues/1/      |end     |object |        |0|1' ).
-    lo_insert_exp->add( '/issues/1/end/  |new     |num    |1       |0|0' ).
+    lo_insert_exp->add( '/issues/1/end/  |new     |num    |1       |0|0' ). " array insert
 
     create object lo_delete_exp.
-    lo_delete_exp->add( '                |        |object |        |0|2' ).
-    lo_delete_exp->add( '/               |false   |bool   |false   |0|0' ).
+    lo_delete_exp->add( '                |        |object |        |0|3' ).
+    lo_delete_exp->add( '/               |boolean |bool   |true    |0|0' ). " changed type (delete old)
+    lo_delete_exp->add( '/               |false   |bool   |false   |0|0' ). " delete
     lo_delete_exp->add( '/               |issues  |array  |        |0|1' ).
     lo_delete_exp->add( '/issues/        |1       |object |        |1|1' ).
     lo_delete_exp->add( '/issues/1/      |end     |object |        |0|1' ).
-    lo_delete_exp->add( '/issues/1/end/  |row     |num    |4       |0|0' ).
+    lo_delete_exp->add( '/issues/1/end/  |row     |num    |4       |0|0' ). " array delete
 
     create object lo_change_exp.
-    lo_change_exp->add( '                |        |object |        |0|3' ).
-    lo_change_exp->add( '/               |boolean |str    |true    |0|0' ).
+    lo_change_exp->add( '                |        |object |        |0|2' ).
     lo_change_exp->add( '/               |issues  |array  |        |0|1' ).
-    lo_change_exp->add( '/               |number  |num    |789     |0|0' ).
+    lo_change_exp->add( '/               |number  |num    |789     |0|0' ). " changed value
     lo_change_exp->add( '/issues/        |1       |object |        |1|1' ).
     lo_change_exp->add( '/issues/1/      |start   |object |        |0|1' ).
-    lo_change_exp->add( '/issues/1/start/|row     |num    |5       |0|0' ).
+    lo_change_exp->add( '/issues/1/start/|row     |num    |5       |0|0' ). " array change
 
-    create object lo_diff.
+    create object lo_util.
 
-    lo_diff->diff(
+    lo_util->diff(
       exporting
         iv_json_a = ltcl_parser_test=>sample_json( )
         iv_json_b = lv_json
@@ -235,6 +238,52 @@ class ltcl_json_diff implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_change->mt_json_tree
       exp = lo_change_exp->mt_nodes ).
+
+  endmethod.
+
+  method json_sort.
+
+    data:
+      lv_json       type string,
+      lo_util       type ref to zcl_ajson_utilities,
+      lv_sorted     type string,
+      lv_sorted_exp type string.
+
+    lv_json =
+      '{\n' &&
+      '  "string": "abc",\n' &&
+      '  "number": 789,\n' &&
+      '  "float": 123.45,\n' &&
+      '  "boolean": "true",\n' &&
+      '  "true": true,\n' &&
+      '  "false": false,\n' &&
+      '  "null": null,\n' &&
+      '  "date": "2020-03-15"\n' &&
+      '}'.
+
+    replace all occurrences of '\n' in lv_json with cl_abap_char_utilities=>newline.
+
+    lv_sorted_exp =
+      '{\n' &&
+      '  "boolean": "true",\n' &&
+      '  "date": "2020-03-15",\n' &&
+      '  "false": false,\n' &&
+      '  "float": 123.45,\n' &&
+      '  "null": null,\n' &&
+      '  "number": 789,\n' &&
+      '  "string": "abc",\n' &&
+      '  "true": true\n' &&
+      '}'.
+
+    replace all occurrences of '\n' in lv_sorted_exp with cl_abap_char_utilities=>newline.
+
+    create object lo_util.
+
+    lv_sorted = lo_util->sort( iv_json = lv_json ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_sorted
+      exp = lv_sorted_exp ).
 
   endmethod.
 
