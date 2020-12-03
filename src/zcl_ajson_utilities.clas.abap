@@ -135,13 +135,13 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
       lv_path_b type string.
 
     field-symbols:
-      <ls_node_a> type zcl_ajson=>ty_node,
-      <ls_node_b> type zcl_ajson=>ty_node.
+      <node_a> type zcl_ajson=>ty_node,
+      <node_b> type zcl_ajson=>ty_node.
 
-    loop at mo_json_a->mt_json_tree assigning <ls_node_a> where path = iv_path.
-      lv_path_a = <ls_node_a>-path && <ls_node_a>-name && '/'.
+    loop at mo_json_a->mt_json_tree assigning <node_a> where path = iv_path.
+      lv_path_a = <node_a>-path && <node_a>-name && '/'.
 
-      case <ls_node_a>-type.
+      case <node_a>-type.
         when 'array'.
           mo_change->touch_array( lv_path_a ).
           mo_delete->touch_array( lv_path_a ).
@@ -149,27 +149,27 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
         when 'object'.
           diff_a_b( lv_path_a ).
         when others.
-          read table mo_json_b->mt_json_tree assigning <ls_node_b>
-            with table key path = <ls_node_a>-path name = <ls_node_a>-name.
+          read table mo_json_b->mt_json_tree assigning <node_b>
+            with table key path = <node_a>-path name = <node_a>-name.
           if sy-subrc = 0.
-            lv_path_b = <ls_node_b>-path && <ls_node_b>-name && '/'.
+            lv_path_b = <node_b>-path && <node_b>-name && '/'.
 
-            if <ls_node_a>-type = <ls_node_b>-type and <ls_node_a>-value <> <ls_node_b>-value.
+            if <node_a>-type = <node_b>-type and <node_a>-value <> <node_b>-value.
               " save as changed value
               mo_change->set(
                 iv_path      = lv_path_b
-                iv_val       = <ls_node_b>-value
-                iv_node_type = <ls_node_b>-type ).
-            elseif <ls_node_a>-type <> <ls_node_b>-type.
+                iv_val       = <node_b>-value
+                iv_node_type = <node_b>-type ).
+            elseif <node_a>-type <> <node_b>-type.
               " save changed type as delete + insert
               mo_delete->set(
                 iv_path      = lv_path_a
-                iv_val       = <ls_node_a>-value
-                iv_node_type = <ls_node_a>-type ).
+                iv_val       = <node_a>-value
+                iv_node_type = <node_a>-type ).
               mo_insert->set(
                 iv_path      = lv_path_b
-                iv_val       = <ls_node_b>-value
-                iv_node_type = <ls_node_b>-type ).
+                iv_val       = <node_b>-value
+                iv_node_type = <node_b>-type ).
               " new type might have sub-nodes
               diff_b_a( lv_path_b ).
             endif.
@@ -177,8 +177,8 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
             " save as delete
             mo_delete->set(
               iv_path      = lv_path_a
-              iv_val       = <ls_node_a>-value
-              iv_node_type = <ls_node_a>-type ).
+              iv_val       = <node_a>-value
+              iv_node_type = <node_a>-type ).
           endif.
       endcase.
     endloop.
@@ -191,27 +191,27 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
     data lv_path type string.
 
     field-symbols:
-      <ls_node_a> type zcl_ajson=>ty_node,
-      <ls_node_b> type zcl_ajson=>ty_node.
+      <node_a> type zcl_ajson=>ty_node,
+      <node_b> type zcl_ajson=>ty_node.
 
-    loop at mo_json_b->mt_json_tree assigning <ls_node_b> where path = iv_path.
-      lv_path = <ls_node_b>-path && <ls_node_b>-name && '/'.
+    loop at mo_json_b->mt_json_tree assigning <node_b> where path = iv_path.
+      lv_path = <node_b>-path && <node_b>-name && '/'.
 
-      case <ls_node_b>-type.
+      case <node_b>-type.
         when 'array'.
           mo_insert->touch_array( lv_path ).
           diff_b_a( lv_path ).
         when 'object'.
           diff_b_a( lv_path ).
         when others.
-          read table mo_json_a->mt_json_tree assigning <ls_node_a>
-            with table key path = <ls_node_b>-path name = <ls_node_b>-name.
+          read table mo_json_a->mt_json_tree assigning <node_a>
+            with table key path = <node_b>-path name = <node_b>-name.
           if sy-subrc <> 0 or iv_all = abap_true.
             " save as insert
             mo_insert->set(
-              iv_path      = <ls_node_b>-path && <ls_node_b>-name && '/'
-              iv_val       = <ls_node_b>-value
-              iv_node_type = <ls_node_b>-type ).
+              iv_path      = <node_b>-path && <node_b>-name && '/'
+              iv_val       = <node_b>-value
+              iv_node_type = <node_b>-type ).
           endif.
       endcase.
     endloop.
@@ -233,7 +233,7 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
       lo_json = io_json.
     else.
       zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
-    ENDIF.
+    endif.
 
     " Nodes are parsed into a sorted table, so no explicit sorting required
     rv_sorted = lo_json->stringify( 2 ).
