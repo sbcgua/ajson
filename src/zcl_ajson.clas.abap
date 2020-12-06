@@ -200,8 +200,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method prove_path_exists.
 
     data lt_path type string_table.
-    data node_ref like line of rt_node_stack.
-    data node_parent like line of rt_node_stack.
+    data lr_node like line of rt_node_stack.
+    data lr_node_parent like line of rt_node_stack.
     data lv_cur_path type string.
     data lv_cur_name type string.
     data ls_new_node like line of mt_json_tree.
@@ -210,16 +210,16 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     delete lt_path where table_line is initial.
 
     do.
-      node_parent = node_ref.
-      read table mt_json_tree reference into node_ref
+      lr_node_parent = lr_node.
+      read table mt_json_tree reference into lr_node
         with key
           path = lv_cur_path
           name = lv_cur_name.
       if sy-subrc <> 0. " New node, assume it is always object as it has a named child, use touch_array to init array
         clear ls_new_node.
-        if node_parent is not initial. " if has parent
-          node_parent->children = node_parent->children + 1.
-          if node_parent->type = 'array'.
+        if lr_node_parent is not initial. " if has parent
+          lr_node_parent->children = lr_node_parent->children + 1.
+          if lr_node_parent->type = 'array'.
             ls_new_node-index = lcl_utils=>validate_array_index(
               iv_path  = lv_cur_path
               iv_index = lv_cur_name ).
@@ -228,9 +228,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         ls_new_node-path = lv_cur_path.
         ls_new_node-name = lv_cur_name.
         ls_new_node-type = 'object'.
-        insert ls_new_node into table mt_json_tree reference into node_ref.
+        insert ls_new_node into table mt_json_tree reference into lr_node.
       endif.
-      insert node_ref into rt_node_stack index 1.
+      insert lr_node into rt_node_stack index 1.
       lv_cur_path = lv_cur_path && lv_cur_name && '/'.
       read table lt_path index sy-index into lv_cur_name.
       if sy-subrc <> 0.
@@ -283,7 +283,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
           endif.
           append lv_tmp to rt_string_table.
         when others.
-          zcx_ajson_error=>raise( |Cannot convert [{ <item>-type }] to string at [{ <item>-path }{ <item>-name }]| ).
+          zcx_ajson_error=>raise( |Cannot convert [{ <item>-type
+            }] to string at [{ <item>-path }{ <item>-name }]| ).
       endcase.
     endloop.
 
@@ -477,20 +478,20 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson_writer~push.
 
-    data parent_ref type ref to ty_node.
-    data new_node_ref type ref to ty_node.
+    data lr_parent type ref to ty_node.
+    data lr_new_node type ref to ty_node.
 
     if mv_read_only = abap_true.
       zcx_ajson_error=>raise( 'This json instance is read only' ).
     endif.
 
-    parent_ref = get_item( iv_path ).
+    lr_parent = get_item( iv_path ).
 
-    if parent_ref is initial.
+    if lr_parent is initial.
       zcx_ajson_error=>raise( |Path [{ iv_path }] does not exist| ).
     endif.
 
-    if parent_ref->type <> 'array'.
+    if lr_parent->type <> 'array'.
       zcx_ajson_error=>raise( |Path [{ iv_path }] is not array| ).
     endif.
 
@@ -498,17 +499,17 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data ls_new_path type ty_path_name.
 
     ls_new_path-path = lcl_utils=>normalize_path( iv_path ).
-    ls_new_path-name = |{ parent_ref->children + 1 }|.
+    ls_new_path-name = |{ lr_parent->children + 1 }|.
 
     lt_new_nodes = lcl_abap_to_json=>convert(
       iv_data   = iv_val
       is_prefix = ls_new_path ).
-    read table lt_new_nodes index 1 reference into new_node_ref. " assume first record is the array item - not ideal !
+    read table lt_new_nodes index 1 reference into lr_new_node. " assume first record is the array item - not ideal !
     assert sy-subrc = 0.
-    new_node_ref->index = parent_ref->children + 1.
+    lr_new_node->index = lr_parent->children + 1.
 
     " update data
-    parent_ref->children = parent_ref->children + 1.
+    lr_parent->children = lr_parent->children + 1.
     insert lines of lt_new_nodes into table mt_json_tree.
 
   endmethod.
@@ -518,7 +519,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     data lt_path type string_table.
     data ls_split_path type ty_path_name.
-    data parent_ref type ref to ty_node.
+    data lr_parent type ref to ty_node.
     data lt_node_stack type table of ref to ty_node.
     field-symbols <topnode> type ty_node.
 
@@ -526,21 +527,33 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       zcx_ajson_error=>raise( 'This json instance is read only' ).
     endif.
 
-    if iv_val is initial and iv_ignore_empty = abap_true.
+    if iv_val is initial and iv_ignore_empty = abap_true and iv_node_type is initial.
       return. " nothing to assign
+    endif.
+
+    if iv_node_type is not initial
+      and iv_node_type <> 'bool' and iv_node_type <> 'null' and iv_node_type <> 'num' and iv_node_type <> 'str'.
+      zcx_ajson_error=>raise( |Unexpected type { iv_node_type }| ).
     endif.
 
     ls_split_path = lcl_utils=>split_path( iv_path ).
     if ls_split_path is initial. " Assign root, exceptional processing
-      mt_json_tree = lcl_abap_to_json=>convert(
-        iv_data   = iv_val
-        is_prefix = ls_split_path ).
+      if iv_node_type is not initial.
+        mt_json_tree = lcl_abap_to_json=>insert_with_type(
+          iv_data   = iv_val
+          iv_type   = iv_node_type
+          is_prefix = ls_split_path ).
+      else.
+        mt_json_tree = lcl_abap_to_json=>convert(
+          iv_data   = iv_val
+          is_prefix = ls_split_path ).
+      endif.
       return.
     endif.
 
     " Ensure whole path exists
     lt_node_stack = prove_path_exists( ls_split_path-path ).
-    read table lt_node_stack index 1 into parent_ref.
+    read table lt_node_stack index 1 into lr_parent.
     assert sy-subrc = 0.
 
     " delete if exists with subtree
@@ -552,19 +565,27 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lt_new_nodes type ty_nodes_tt.
     data lv_array_index type i.
 
-    if parent_ref->type = 'array'.
+    if lr_parent->type = 'array'.
       lv_array_index = lcl_utils=>validate_array_index(
         iv_path  = ls_split_path-path
         iv_index = ls_split_path-name ).
     endif.
 
-    lt_new_nodes = lcl_abap_to_json=>convert(
-      iv_data        = iv_val
-      iv_array_index = lv_array_index
-      is_prefix      = ls_split_path ).
+    if iv_node_type is not initial.
+      lt_new_nodes = lcl_abap_to_json=>insert_with_type(
+        iv_data        = iv_val
+        iv_type        = iv_node_type
+        iv_array_index = lv_array_index
+        is_prefix      = ls_split_path ).
+    else.
+      lt_new_nodes = lcl_abap_to_json=>convert(
+        iv_data        = iv_val
+        iv_array_index = lv_array_index
+        is_prefix      = ls_split_path ).
+    endif.
 
     " update data
-    parent_ref->children = parent_ref->children + 1.
+    lr_parent->children = lr_parent->children + 1.
     insert lines of lt_new_nodes into table mt_json_tree.
 
   endmethod.
@@ -633,7 +654,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson_writer~touch_array.
 
-    data node_ref type ref to ty_node.
+    data lr_node type ref to ty_node.
     data ls_new_node like line of mt_json_tree.
     data ls_split_path type ty_path_name.
 
@@ -655,25 +676,25 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         iv_path = ls_split_path-path
         iv_name = ls_split_path-name ).
     else.
-      node_ref = get_item( iv_path ).
+      lr_node = get_item( iv_path ).
     endif.
 
-    if node_ref is initial. " Or node was cleared
+    if lr_node is initial. " Or node was cleared
 
-      data parent_ref type ref to ty_node.
+      data lr_parent type ref to ty_node.
       data lt_node_stack type table of ref to ty_node.
 
       lt_node_stack = prove_path_exists( ls_split_path-path ).
-      read table lt_node_stack index 1 into parent_ref.
+      read table lt_node_stack index 1 into lr_parent.
       assert sy-subrc = 0.
-      parent_ref->children = parent_ref->children + 1.
+      lr_parent->children = lr_parent->children + 1.
 
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
       ls_new_node-type = 'array'.
       insert ls_new_node into table mt_json_tree.
 
-    elseif node_ref->type <> 'array'.
+    elseif lr_node->type <> 'array'.
       zcx_ajson_error=>raise( |Path [{ iv_path }] already used and is not array| ).
     endif.
 

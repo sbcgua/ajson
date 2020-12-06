@@ -512,7 +512,7 @@ class lcl_json_to_abap implementation.
 
   method to_abap.
 
-    data ref type ref to data.
+    data lr_ref type ref to data.
     data lv_type type c.
     data lx type ref to cx_root.
     field-symbols <n> like line of it_nodes.
@@ -520,11 +520,11 @@ class lcl_json_to_abap implementation.
 
     try.
       loop at it_nodes assigning <n> using key array_index.
-        ref = find_loc(
+        lr_ref = find_loc(
           iv_append_tables = abap_true
           iv_path = <n>-path
           iv_name = <n>-name ).
-        assign ref->* to <value>.
+        assign lr_ref->* to <value>.
         assert sy-subrc = 0.
         describe field <value> type lv_type.
 
@@ -672,6 +672,17 @@ class lcl_abap_to_json definition final.
       raising
         zcx_ajson_error.
 
+    class-methods insert_with_type
+      importing
+        iv_data type any
+        iv_type type string
+        is_prefix type zcl_ajson=>ty_path_name optional
+        iv_array_index type i default 0
+      returning
+        value(rt_nodes) type zcl_ajson=>ty_nodes_tt
+      raising
+        zcx_ajson_error.
+
     class-methods class_constructor.
 
   private section.
@@ -742,9 +753,19 @@ class lcl_abap_to_json definition final.
       raising
         zcx_ajson_error.
 
-endclass.
+    methods insert_value_with_type
+      importing
+        iv_data type any
+        iv_type type string
+        io_type type ref to cl_abap_typedescr
+        is_prefix type zcl_ajson=>ty_path_name
+        iv_index type i default 0
+      changing
+        ct_nodes type zcl_ajson=>ty_nodes_tt
+      raising
+        zcx_ajson_error.
 
-class zcl_ajson definition local friends lcl_abap_to_json.
+endclass.
 
 class lcl_abap_to_json implementation.
 
@@ -831,7 +852,8 @@ class lcl_abap_to_json implementation.
             changing
               ct_nodes = ct_nodes ).
         else.
-          zcx_ajson_error=>raise( |Unsupported type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
+          zcx_ajson_error=>raise( |Unsupported type [{ io_type->type_kind
+            }] @{ is_prefix-path && is_prefix-name }| ).
         endif.
 
     endcase.
@@ -1005,6 +1027,61 @@ class lcl_abap_to_json implementation.
 
       <root>-children = <root>-children + 1.
     endloop.
+
+  endmethod.
+
+  method insert_with_type.
+
+    data lo_type type ref to cl_abap_typedescr.
+    data lo_converter type ref to lcl_abap_to_json.
+
+    lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
+    create object lo_converter.
+
+    lo_converter->insert_value_with_type(
+      exporting
+        iv_data   = iv_data
+        iv_type   = iv_type
+        io_type   = lo_type
+        is_prefix = is_prefix
+        iv_index  = iv_array_index
+      changing
+        ct_nodes = rt_nodes ).
+
+  endmethod.
+
+  method insert_value_with_type.
+
+    data lv_prefix type string.
+
+    field-symbols <n> like line of ct_nodes.
+
+    lv_prefix = is_prefix-path && is_prefix-name.
+    if io_type->type_kind co 'CNgXyDT'. " Char like, date/time, xstring
+      if iv_type = 'bool' and iv_data <> 'true' and iv_data <> 'false'.
+        zcx_ajson_error=>raise( |Unexpected boolean value [{ iv_data }] @{ lv_prefix }| ).
+      elseif iv_type = 'null' and iv_data is not initial.
+        zcx_ajson_error=>raise( |Unexpected null value [{ iv_data }] @{ lv_prefix }| ).
+      elseif iv_type = 'num' and iv_data cn '0123456789. E+-'.
+        zcx_ajson_error=>raise( |Unexpected numeric value [{ iv_data }] @{ lv_prefix }| ).
+      elseif iv_type <> 'str' and iv_type <> 'bool' and iv_type <> 'null' and iv_type <> 'num'.
+        zcx_ajson_error=>raise( |Unexpected type for value [{ iv_type },{ iv_data }] @{ lv_prefix }| ).
+      endif.
+    elseif io_type->type_kind co 'bsI8PaeF'. " Numeric
+      if iv_type <> 'num'.
+        zcx_ajson_error=>raise( |Unexpected value for numeric [{ iv_data }] @{ lv_prefix }| ).
+      endif.
+    else.
+      zcx_ajson_error=>raise( |Unexpected type [{ io_type->type_kind }] @{ lv_prefix }| ).
+    endif.
+
+    append initial line to ct_nodes assigning <n>.
+
+    <n>-path  = is_prefix-path.
+    <n>-name  = is_prefix-name.
+    <n>-index = iv_index.
+    <n>-value = iv_data.
+    <n>-type  = iv_type.
 
   endmethod.
 
