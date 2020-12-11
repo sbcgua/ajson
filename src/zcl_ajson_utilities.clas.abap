@@ -26,28 +26,28 @@ class zcl_ajson_utilities definition
         zcx_ajson_error .
   protected section.
 
-  PRIVATE SECTION.
+  private section.
 
-    DATA mo_json_a TYPE REF TO zcl_ajson .
-    DATA mo_json_b TYPE REF TO zcl_ajson .
-    DATA mo_insert TYPE REF TO zif_ajson_writer .
-    DATA mo_delete TYPE REF TO zif_ajson_writer .
-    DATA mo_change TYPE REF TO zif_ajson_writer .
+    data mo_json_a type ref to zcl_ajson .
+    data mo_json_b type ref to zcl_ajson .
+    data mo_insert type ref to zif_ajson_writer .
+    data mo_delete type ref to zif_ajson_writer .
+    data mo_change type ref to zif_ajson_writer .
 
-    METHODS diff_a_b
-      IMPORTING
-        !iv_path TYPE string
-      RAISING
+    methods diff_a_b
+      importing
+        !iv_path type string
+      raising
         zcx_ajson_error .
-    METHODS diff_b_a
-      IMPORTING
-        !iv_path TYPE string
-      RAISING
+    methods diff_b_a
+      importing
+        !iv_path type string
+      raising
         zcx_ajson_error .
-    METHODS delete_empty_nodes
-      IMPORTING
-        !io_json TYPE REF TO zcl_ajson
-      RAISING
+    methods delete_empty_nodes
+      importing
+        !io_json type ref to zcl_ajson
+      raising
         zcx_ajson_error .
 ENDCLASS.
 
