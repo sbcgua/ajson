@@ -127,6 +127,7 @@ class ltcl_json_utils definition
   private section.
 
     methods json_diff for testing raising zcx_ajson_error.
+    methods json_diff_types for testing raising zcx_ajson_error.
     methods json_sort for testing raising zcx_ajson_error.
 
 endclass.
@@ -236,6 +237,96 @@ class ltcl_json_utils implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_change->mt_json_tree
       exp = lo_change_exp->mt_nodes ).
+
+  endmethod.
+
+  method json_diff_types.
+
+    data:
+      lv_json_a     type string,
+      lv_json_b     type string,
+      lo_util       type ref to zcl_ajson_utilities,
+      lo_insert     type ref to zcl_ajson,
+      lo_delete     type ref to zcl_ajson,
+      lo_change     type ref to zcl_ajson,
+      lo_insert_exp type ref to lcl_nodes_helper,
+      lo_delete_exp type ref to lcl_nodes_helper.
+
+    " Change single value to array
+    lv_json_a =
+      '{\n' &&
+      '  "string": "abc",\n' &&
+      '  "number": 123\n' &&
+      '}'.
+
+    lv_json_b =
+      '{\n' &&
+      '  "string": [\n' &&
+      '    "a",\n' &&
+      '    "b",\n' &&
+      '    "c"\n' &&
+      '  ],\n' &&
+      '  "number": 123\n' &&
+      '}'.
+
+    replace all occurrences of '\n' in lv_json_a with cl_abap_char_utilities=>newline.
+    replace all occurrences of '\n' in lv_json_b with cl_abap_char_utilities=>newline.
+
+    create object lo_insert_exp.
+    lo_insert_exp->add( '                |        |object |        |0|1' ).
+    lo_insert_exp->add( '/               |string  |array  |        |0|3' ).
+    lo_insert_exp->add( '/string/        |1       |str    |a       |1|0' ).
+    lo_insert_exp->add( '/string/        |2       |str    |b       |2|0' ).
+    lo_insert_exp->add( '/string/        |3       |str    |c       |3|0' ).
+
+    create object lo_delete_exp.
+    lo_delete_exp->add( '                |        |object |        |0|1' ).
+    lo_delete_exp->add( '/               |string  |str    |abc     |0|0' ).
+
+    create object lo_util.
+
+    lo_util->diff(
+      exporting
+        iv_json_a = lv_json_a
+        iv_json_b = lv_json_b
+      importing
+        eo_insert = lo_insert
+        eo_delete = lo_delete
+        eo_change = lo_change ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_insert->mt_json_tree
+      exp = lo_insert_exp->mt_nodes ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_delete->mt_json_tree
+      exp = lo_delete_exp->mt_nodes ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_change->mt_json_tree )
+      exp = 0 ).
+
+    " Change array to single value
+    lo_util->diff(
+      exporting
+        iv_json_a = lv_json_b
+        iv_json_b = lv_json_a
+      importing
+        eo_insert = lo_insert
+        eo_delete = lo_delete
+        eo_change = lo_change ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_insert->mt_json_tree
+      exp = lo_delete_exp->mt_nodes ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_delete->mt_json_tree
+      exp = lo_insert_exp->mt_nodes ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_change->mt_json_tree )
+      exp = 0 ).
 
   endmethod.
 
