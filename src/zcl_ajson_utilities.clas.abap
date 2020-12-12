@@ -42,7 +42,6 @@ class zcl_ajson_utilities definition
     methods diff_b_a
       importing
         !iv_path type string
-        !iv_all  type abap_bool default abap_false
       raising
         zcx_ajson_error .
     methods delete_empty_nodes
@@ -141,46 +140,71 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
     loop at mo_json_a->mt_json_tree assigning <node_a> where path = iv_path.
       lv_path_a = <node_a>-path && <node_a>-name && '/'.
 
-      case <node_a>-type.
-        when 'array'.
-          mo_change->touch_array( lv_path_a ).
-          mo_delete->touch_array( lv_path_a ).
-          diff_a_b( lv_path_a ).
-        when 'object'.
-          diff_a_b( lv_path_a ).
-        when others.
-          read table mo_json_b->mt_json_tree assigning <node_b>
-            with table key path = <node_a>-path name = <node_a>-name.
-          if sy-subrc = 0.
-            lv_path_b = <node_b>-path && <node_b>-name && '/'.
+      read table mo_json_b->mt_json_tree assigning <node_b>
+        with table key path = <node_a>-path name = <node_a>-name.
+      if sy-subrc = 0.
+        lv_path_b = <node_b>-path && <node_b>-name && '/'.
 
-            if <node_a>-type = <node_b>-type and <node_a>-value <> <node_b>-value.
-              " save as changed value
-              mo_change->set(
-                iv_path      = lv_path_b
-                iv_val       = <node_b>-value
-                iv_node_type = <node_b>-type ).
-            elseif <node_a>-type <> <node_b>-type.
-              " save changed type as delete + insert
+        if <node_a>-type = <node_b>-type.
+          case <node_a>-type.
+            when 'array'.
+              mo_insert->touch_array( lv_path_a ).
+              mo_change->touch_array( lv_path_a ).
+              mo_delete->touch_array( lv_path_a ).
+              diff_a_b( lv_path_a ).
+            when 'object'.
+              diff_a_b( lv_path_a ).
+            when others.
+              if <node_a>-value <> <node_b>-value.
+                " save as changed value
+                mo_change->set(
+                  iv_path      = lv_path_b
+                  iv_val       = <node_b>-value
+                  iv_node_type = <node_b>-type ).
+              endif.
+          endcase.
+        else.
+          " save changed type as delete + insert
+          case <node_a>-type.
+            when 'array'.
+              mo_delete->touch_array( lv_path_a ).
+              diff_a_b( lv_path_a ).
+            when 'object'.
+              diff_a_b( lv_path_a ).
+            when others.
               mo_delete->set(
                 iv_path      = lv_path_a
                 iv_val       = <node_a>-value
                 iv_node_type = <node_a>-type ).
+          endcase.
+          case <node_b>-type.
+            when 'array'.
+              mo_insert->touch_array( lv_path_b ).
+              diff_b_a( lv_path_b ).
+            when 'object'.
+              diff_b_a( lv_path_b ).
+            when others.
               mo_insert->set(
                 iv_path      = lv_path_b
                 iv_val       = <node_b>-value
                 iv_node_type = <node_b>-type ).
-              " new type might have sub-nodes
-              diff_b_a( lv_path_b ).
-            endif.
-          else.
-            " save as delete
+          endcase.
+        endif.
+      else.
+        " save as delete
+        case <node_a>-type.
+          when 'array'.
+            mo_delete->touch_array( lv_path_a ).
+            diff_a_b( lv_path_a ).
+          when 'object'.
+            diff_a_b( lv_path_a ).
+          when others.
             mo_delete->set(
               iv_path      = lv_path_a
               iv_val       = <node_a>-value
               iv_node_type = <node_a>-type ).
-          endif.
-      endcase.
+        endcase.
+      endif.
     endloop.
 
   endmethod.
@@ -206,10 +230,10 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
         when others.
           read table mo_json_a->mt_json_tree assigning <node_a>
             with table key path = <node_b>-path name = <node_b>-name.
-          if sy-subrc <> 0 or iv_all = abap_true.
+          if sy-subrc <> 0.
             " save as insert
             mo_insert->set(
-              iv_path      = <node_b>-path && <node_b>-name && '/'
+              iv_path      = lv_path
               iv_val       = <node_b>-value
               iv_node_type = <node_b>-type ).
           endif.
