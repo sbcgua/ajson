@@ -10,6 +10,16 @@ class zcl_ajson definition
     interfaces zif_ajson_reader .
     interfaces zif_ajson_writer .
 
+    constants:
+      BEGIN OF type,
+        boolean TYPE string VALUE 'bool',
+        string  TYPE string VALUE 'str',
+        number  TYPE string VALUE 'num',
+        null    TYPE string VALUE 'null',
+        array   TYPE string VALUE 'array',
+        object  TYPE string VALUE 'object',
+      END OF type.
+
     aliases:
       exists for zif_ajson_reader~exists,
       members for zif_ajson_reader~members,
@@ -219,7 +229,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         clear ls_new_node.
         if lr_node_parent is not initial. " if has parent
           lr_node_parent->children = lr_node_parent->children + 1.
-          if lr_node_parent->type = 'array'.
+          if lr_node_parent->type = type-array.
             ls_new_node-index = lcl_utils=>validate_array_index(
               iv_path  = lv_cur_path
               iv_index = lv_cur_name ).
@@ -227,7 +237,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         endif.
         ls_new_node-path = lv_cur_path.
         ls_new_node-name = lv_cur_name.
-        ls_new_node-type = 'object'.
+        ls_new_node-type = type-object.
         insert ls_new_node into table mt_json_tree reference into lr_node.
       endif.
       insert lr_node into rt_node_stack index 1.
@@ -264,17 +274,17 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     if lr_node is initial.
       zcx_ajson_error=>raise( |Path not found: { iv_path }| ).
     endif.
-    if lr_node->type <> 'array'.
+    if lr_node->type <> type-array.
       zcx_ajson_error=>raise( |Array expected at: { iv_path }| ).
     endif.
 
     loop at mt_json_tree assigning <item> where path = lv_normalized_path.
       case <item>-type.
-        when 'num' or 'str'.
+        when type-number or type-string.
           append <item>-value to rt_string_table.
-        when 'null'.
+        when type-null.
           append '' to rt_string_table.
-        when 'bool'.
+        when type-boolean.
           data lv_tmp type string.
           if <item>-value = 'true'.
             lv_tmp = abap_true.
@@ -317,9 +327,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     data lv_item type ref to ty_node.
     lv_item = get_item( iv_path ).
-    if lv_item is initial or lv_item->type = 'null'.
+    if lv_item is initial or lv_item->type = type-null.
       return.
-    elseif lv_item->type = 'bool'.
+    elseif lv_item->type = type-boolean.
       rv_value = boolc( lv_item->value = 'true' ).
     elseif lv_item->value is not initial.
       rv_value = abap_true.
@@ -337,7 +347,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     lv_item = get_item( iv_path ).
 
-    if lv_item is not initial and lv_item->type = 'str'.
+    if lv_item is not initial and lv_item->type = type-string.
       find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)'
         in lv_item->value
         submatches lv_y lv_m lv_d.
@@ -351,7 +361,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     data lv_item type ref to ty_node.
     lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type = 'num'.
+    if lv_item is not initial and lv_item->type = type-number.
       rv_value = lv_item->value.
     endif.
 
@@ -373,7 +383,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     data lv_item type ref to ty_node.
     lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type = 'num'.
+    if lv_item is not initial and lv_item->type = type-number.
       rv_value = lv_item->value.
     endif.
 
@@ -384,7 +394,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     data lv_item type ref to ty_node.
     lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type <> 'null'.
+    if lv_item is not initial and lv_item->type <> type-null.
       rv_value = lv_item->value.
     endif.
 
@@ -491,7 +501,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       zcx_ajson_error=>raise( |Path [{ iv_path }] does not exist| ).
     endif.
 
-    if lr_parent->type <> 'array'.
+    if lr_parent->type <> type-array.
       zcx_ajson_error=>raise( |Path [{ iv_path }] is not array| ).
     endif.
 
@@ -532,7 +542,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     endif.
 
     if iv_node_type is not initial
-      and iv_node_type <> 'bool' and iv_node_type <> 'null' and iv_node_type <> 'num' and iv_node_type <> 'str'.
+      and iv_node_type <> type-boolean and iv_node_type <> type-null
+      and iv_node_type <> type-number and iv_node_type <> type-string.
       zcx_ajson_error=>raise( |Unexpected type { iv_node_type }| ).
     endif.
 
@@ -565,7 +576,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lt_new_nodes type ty_nodes_tt.
     data lv_array_index type i.
 
-    if lr_parent->type = 'array'.
+    if lr_parent->type = type-array.
       lv_array_index = lcl_utils=>validate_array_index(
         iv_path  = ls_split_path-path
         iv_index = ls_split_path-name ).
@@ -691,10 +702,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
-      ls_new_node-type = 'array'.
+      ls_new_node-type = type-array.
       insert ls_new_node into table mt_json_tree.
 
-    elseif lr_node->type <> 'array'.
+    elseif lr_node->type <> type-array.
       zcx_ajson_error=>raise( |Path [{ iv_path }] already used and is not array| ).
     endif.
 
