@@ -12,12 +12,12 @@ class zcl_ajson definition
 
     constants:
       begin of type,
-        boolean type string VALUE 'bool',
-        string  type string VALUE 'str',
-        number  type string VALUE 'num',
-        null    type string VALUE 'null',
-        array   type string VALUE 'array',
-        object  type string VALUE 'object',
+        boolean type string value 'bool',
+        string  type string value 'str',
+        number  type string value 'num',
+        null    type string value 'null',
+        array   type string value 'array',
+        object  type string value 'object',
       end of type.
 
     aliases:
