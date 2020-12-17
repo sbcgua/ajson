@@ -11,14 +11,14 @@ class zcl_ajson definition
     interfaces zif_ajson_writer .
 
     constants:
-      BEGIN OF type,
-        boolean TYPE string VALUE 'bool',
-        string  TYPE string VALUE 'str',
-        number  TYPE string VALUE 'num',
-        null    TYPE string VALUE 'null',
-        array   TYPE string VALUE 'array',
-        object  TYPE string VALUE 'object',
-      END OF type.
+      begin of type,
+        boolean type string VALUE 'bool',
+        string  type string VALUE 'str',
+        number  type string VALUE 'num',
+        null    type string VALUE 'null',
+        array   type string VALUE 'array',
+        object  type string VALUE 'object',
+      end of type.
 
     aliases:
       exists for zif_ajson_reader~exists,
