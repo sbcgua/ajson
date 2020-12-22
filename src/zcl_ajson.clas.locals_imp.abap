@@ -362,7 +362,8 @@ class lcl_json_serializer implementation.
           iv_location = is_node-path && is_node-name ).
     endcase.
 
-    if mv_indent_step > 0 and ( is_node-type = zcl_ajson=>node_type-array or is_node-type = zcl_ajson=>node_type-object )
+    if mv_indent_step > 0
+      and ( is_node-type = zcl_ajson=>node_type-array or is_node-type = zcl_ajson=>node_type-object )
       and is_node-children > 0.
       mv_level = mv_level + 1.
       lv_item = lv_item && cl_abap_char_utilities=>newline.
