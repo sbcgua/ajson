@@ -1,0 +1,15 @@
+AJSON changelog
+===============
+
+Legend
+------
+* : fixed
+! : changed
++ : added
+- : removed
+
+v1.0.3, 2021-01-04
+------------------
+! move stringify to writer interface
+* diff fixes @mbtools
+* node types to constants @jrodriguez-rc
