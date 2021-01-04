@@ -43,7 +43,8 @@ class zcl_ajson definition
       set_null for zif_ajson_writer~set_null,
       delete for zif_ajson_writer~delete,
       touch_array for zif_ajson_writer~touch_array,
-      push for zif_ajson_writer~push.
+      push for zif_ajson_writer~push,
+      stringify for zif_ajson_writer~stringify.
 
     types:
       begin of ty_node,
@@ -78,14 +79,6 @@ class zcl_ajson definition
     class-methods create_empty
       returning
         value(ro_instance) type ref to zcl_ajson.
-
-    methods stringify
-      importing
-        iv_indent type i default 0
-      returning
-        value(rv_json) type string
-      raising
-        zcx_ajson_error.
 
     methods freeze.
 
