@@ -48,11 +48,11 @@ class zcl_ajson definition
 
     types:
       begin of ty_node,
-        path type string,
-        name type string,
-        type type string,
-        value type string,
-        index type i,
+        path     type string,
+        name     type string,
+        type     type string,
+        value    type string,
+        index    type i,
         children type i,
       end of ty_node .
     types:
@@ -69,8 +69,8 @@ class zcl_ajson definition
 
     class-methods parse
       importing
-        !iv_json type string
-        !iv_freeze type abap_bool default abap_false
+        !iv_json           type string
+        !iv_freeze         type abap_bool default abap_false
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
@@ -95,28 +95,28 @@ class zcl_ajson definition
 
     methods get_item
       importing
-        iv_path type string
+        iv_path        type string
       returning
         value(rv_item) type ref to ty_node.
     methods prove_path_exists
       importing
-        iv_path type string
+        iv_path              type string
       returning
         value(rt_node_stack) type tty_node_stack
       raising
         zcx_ajson_error.
     methods delete_subtree
       importing
-        iv_path type string
-        iv_name type string
+        iv_path           type string
+        iv_name           type string
       returning
         value(rv_deleted) type abap_bool.
 
-ENDCLASS.
+endclass.
 
 
 
-CLASS ZCL_AJSON IMPLEMENTATION.
+class zcl_ajson implementation.
 
 
   method create_empty.
@@ -444,9 +444,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     clear ev_container.
     lcl_json_to_abap=>bind(
+      exporting
+        it_mapping_fields = it_mapping_fields
       changing
-        c_obj = ev_container
-        co_instance = lo_to_abap ).
+        c_obj             = ev_container
+        co_instance       = lo_to_abap ).
     lo_to_abap->to_abap( mt_json_tree ).
 
   endmethod.
@@ -703,4 +705,4 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     endif.
 
   endmethod.
-ENDCLASS.
+endclass.

@@ -1078,6 +1078,7 @@ class ltcl_json_to_abap definition
     methods find_loc_negative for testing.
     methods find_loc_append for testing raising zcx_ajson_error.
     methods to_abap for testing raising zcx_ajson_error.
+    methods to_abap_mapping for testing raising zcx_ajson_error.
     methods to_abap_negative for testing.
 
     methods prepare_cut
@@ -1348,6 +1349,35 @@ class ltcl_json_to_abap implementation.
     cl_abap_unit_assert=>assert_equals(
       act = ls_elem-a
       exp = 'Two' ).
+
+  endmethod.
+
+  method to_abap_mapping.
+
+    data lo_ajson type ref to zcl_ajson.
+    data lt_mapping type zif_ajson_reader=>ty_field_mapping_tt.
+    data ls_mapping like line of lt_mapping.
+
+    data:
+      begin of ls_result,
+        sap_field type string,
+      end of ls_result.
+
+    lo_ajson = zcl_ajson=>parse( '{"json_field":"value"}' ).
+
+    ls_mapping-json = 'json_field'.
+    ls_mapping-sap  = 'sap_field'.
+    insert ls_mapping into table lt_mapping.
+
+    lo_ajson->to_abap(
+      exporting
+        it_mapping_fields = lt_mapping
+      importing
+        ev_container      = ls_result ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-sap_field
+      exp = 'value' ).
 
   endmethod.
 

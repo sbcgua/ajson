@@ -7,18 +7,18 @@ class lcl_utils definition final.
 
     class-methods normalize_path
       importing
-        iv_path type string
+        iv_path        type string
       returning
         value(rv_path) type string.
     class-methods split_path
       importing
-        iv_path type string
+        iv_path             type string
       returning
         value(rv_path_name) type zcl_ajson=>ty_path_name.
     class-methods validate_array_index
       importing
-        iv_path type string
-        iv_index type string
+        iv_path         type string
+        iv_index        type string
       returning
         value(rv_index) type i
       raising
@@ -93,7 +93,7 @@ class lcl_json_parser definition final.
 
     methods parse
       importing
-        iv_json type string
+        iv_json             type string
       returning
         value(rt_json_tree) type zcl_ajson=>ty_nodes_tt
       raising
@@ -108,7 +108,7 @@ class lcl_json_parser definition final.
 
     class-methods join_path
       importing
-        it_stack type ty_stack_tt
+        it_stack       type ty_stack_tt
       returning
         value(rv_path) type string.
 
@@ -120,7 +120,7 @@ class lcl_json_parser definition final.
 
     methods _parse
       importing
-        iv_json type string
+        iv_json             type string
       returning
         value(rt_json_tree) type zcl_ajson=>ty_nodes_tt
       raising
@@ -133,9 +133,9 @@ class lcl_json_parser implementation.
   method parse.
     data lx_sxml type ref to cx_sxml_error.
     try.
-      rt_json_tree = _parse( iv_json ).
-    catch cx_sxml_error into lx_sxml.
-      zcx_ajson_error=>raise( `SXML: ` && lx_sxml->get_text( ) ).
+        rt_json_tree = _parse( iv_json ).
+      catch cx_sxml_error into lx_sxml.
+        zcx_ajson_error=>raise( `SXML: ` && lx_sxml->get_text( ) ).
     endtry.
   endmethod.
 
@@ -249,8 +249,8 @@ class lcl_json_serializer definition final create private.
 
     class-methods stringify
       importing
-        it_json_tree type zcl_ajson=>ty_nodes_ts
-        iv_indent type i default 0
+        it_json_tree          type zcl_ajson=>ty_nodes_ts
+        iv_indent             type i default 0
       returning
         value(rv_json_string) type string
       raising
@@ -269,7 +269,7 @@ class lcl_json_serializer definition final create private.
 
     class-methods escape
       importing
-        iv_unescaped type string
+        iv_unescaped      type string
       returning
         value(rv_escaped) type string.
 
@@ -288,7 +288,7 @@ class lcl_json_serializer definition final create private.
     methods stringify_set
       importing
         iv_parent_path type string
-        iv_array type abap_bool
+        iv_array       type abap_bool
       raising
         zcx_ajson_error.
 
@@ -482,18 +482,20 @@ class lcl_json_to_abap definition final.
 
     methods find_loc
       importing
-        iv_path type string
-        iv_name type string optional " not mandatory
+        iv_path          type string
+        iv_name          type string optional " not mandatory
         iv_append_tables type abap_bool default abap_false
       returning
-        value(r_ref) type ref to data
+        value(r_ref)     type ref to data
       raising
         zcx_ajson_error.
 
     class-methods bind
+      importing
+        it_mapping_fields type zif_ajson_reader=>ty_field_mapping_tt optional
       changing
-        c_obj type any
-        co_instance type ref to lcl_json_to_abap.
+        c_obj             type any
+        co_instance       type ref to lcl_json_to_abap.
 
     methods to_abap
       importing
@@ -503,13 +505,25 @@ class lcl_json_to_abap definition final.
 
   private section.
     data mr_obj type ref to data.
+    data mt_mapping_fields type zif_ajson_reader=>ty_field_mapping_tt.
+
 endclass.
 
 class lcl_json_to_abap implementation.
 
   method bind.
+
+    data ls_mapping_field like line of it_mapping_fields.
+
     create object co_instance.
     get reference of c_obj into co_instance->mr_obj.
+
+    loop at it_mapping_fields into ls_mapping_field.
+      ls_mapping_field-sap  = to_upper( ls_mapping_field-sap ).
+      ls_mapping_field-json = to_upper( ls_mapping_field-json ).
+      insert ls_mapping_field into table co_instance->mt_mapping_fields.
+    endloop.
+
   endmethod.
 
   method to_abap.
@@ -521,63 +535,66 @@ class lcl_json_to_abap implementation.
     field-symbols <value> type any.
 
     try.
-      loop at it_nodes assigning <n> using key array_index.
-        lr_ref = find_loc(
-          iv_append_tables = abap_true
-          iv_path = <n>-path
-          iv_name = <n>-name ).
-        assign lr_ref->* to <value>.
-        assert sy-subrc = 0.
-        describe field <value> type lv_type.
+        loop at it_nodes assigning <n> using key array_index.
 
-        case <n>-type.
-          when zcl_ajson=>node_type-null.
-            " Do nothing
-          when zcl_ajson=>node_type-boolean.
-            <value> = boolc( <n>-value = 'true' ).
-          when zcl_ajson=>node_type-number.
-            <value> = <n>-value.
-          when zcl_ajson=>node_type-string.
-            if lv_type = 'D' and <n>-value is not initial.
-              data lv_y type c length 4.
-              data lv_m type c length 2.
-              data lv_d type c length 2.
+          lr_ref = find_loc(
+            iv_append_tables = abap_true
+            iv_path          = <n>-path
+            iv_name          = <n>-name ).
 
-              find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)'
-                in <n>-value
-                submatches lv_y lv_m lv_d.
-              if sy-subrc <> 0.
+          assign lr_ref->* to <value>.
+          assert sy-subrc = 0.
+
+          describe field <value> type lv_type.
+
+          case <n>-type.
+            when zcl_ajson=>node_type-null.
+              " Do nothing
+            when zcl_ajson=>node_type-boolean.
+              <value> = boolc( <n>-value = 'true' ).
+            when zcl_ajson=>node_type-number.
+              <value> = <n>-value.
+            when zcl_ajson=>node_type-string.
+              if lv_type = 'D' and <n>-value is not initial.
+                data lv_y type c length 4.
+                data lv_m type c length 2.
+                data lv_d type c length 2.
+
+                find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)'
+                  in <n>-value
+                  submatches lv_y lv_m lv_d.
+                if sy-subrc <> 0.
+                  zcx_ajson_error=>raise(
+                    iv_msg      = 'Unexpected date format'
+                    iv_location = <n>-path && <n>-name ).
+                endif.
+                concatenate lv_y lv_m lv_d into <value>.
+              else.
+                <value> = <n>-value.
+              endif.
+            when zcl_ajson=>node_type-object.
+              if not lv_type co 'uv'.
                 zcx_ajson_error=>raise(
-                  iv_msg      = 'Unexpected date format'
+                  iv_msg      = 'Expected structure'
                   iv_location = <n>-path && <n>-name ).
               endif.
-              concatenate lv_y lv_m lv_d into <value>.
-            else.
-              <value> = <n>-value.
-            endif.
-          when zcl_ajson=>node_type-object.
-            if not lv_type co 'uv'.
+            when zcl_ajson=>node_type-array.
+              if not lv_type co 'h'.
+                zcx_ajson_error=>raise(
+                  iv_msg      = 'Expected table'
+                  iv_location = <n>-path && <n>-name ).
+              endif.
+            when others.
               zcx_ajson_error=>raise(
-                iv_msg      = 'Expected structure'
+                iv_msg      = |Unexpected JSON type [{ <n>-type }]|
                 iv_location = <n>-path && <n>-name ).
-            endif.
-          when zcl_ajson=>node_type-array.
-            if not lv_type co 'h'.
-              zcx_ajson_error=>raise(
-                iv_msg      = 'Expected table'
-                iv_location = <n>-path && <n>-name ).
-            endif.
-          when others.
-            zcx_ajson_error=>raise(
-              iv_msg      = |Unexpected JSON type [{ <n>-type }]|
-              iv_location = <n>-path && <n>-name ).
-        endcase.
+          endcase.
 
-      endloop.
-    catch cx_sy_conversion_no_number into lx.
-      zcx_ajson_error=>raise(
-        iv_msg      = |Source is not a number|
-        iv_location = <n>-path && <n>-name ).
+        endloop.
+      catch cx_sy_conversion_no_number into lx.
+        zcx_ajson_error=>raise(
+          iv_msg      = |Source is not a number|
+          iv_location = <n>-path && <n>-name ).
     endtry.
 
   endmethod.
@@ -589,6 +606,8 @@ class lcl_json_to_abap implementation.
     data lv_type type c.
     data lv_size type i.
     data lv_index type i.
+    data lv_seg type string.
+    data ls_mapping_field like line of mt_mapping_fields.
     field-symbols <struc> type any.
     field-symbols <table> type standard table.
     field-symbols <value> type any.
@@ -606,6 +625,13 @@ class lcl_json_to_abap implementation.
       lv_trace = lv_trace && '/' && <seg>.
       <seg> = to_upper( <seg> ).
 
+      lv_seg = <seg>.
+
+      read table mt_mapping_fields into ls_mapping_field with key json components json = lv_seg.
+      if sy-subrc = 0.
+        lv_seg = ls_mapping_field-sap.
+      endif.
+
       assign r_ref->* to <struc>.
       assert sy-subrc = 0.
       describe field <struc> type lv_type.
@@ -617,12 +643,12 @@ class lcl_json_to_abap implementation.
           iv_location = lv_trace ).
 
       elseif lv_type = 'h'. " table
-        if not <seg> co '0123456789'.
+        if not lv_seg co '0123456789'.
           zcx_ajson_error=>raise(
             iv_msg      = 'Need index to access tables'
             iv_location = lv_trace ).
         endif.
-        lv_index = <seg>.
+        lv_index = lv_seg.
         assign r_ref->* to <table>.
         assert sy-subrc = 0.
 
@@ -639,7 +665,7 @@ class lcl_json_to_abap implementation.
         endif.
 
       elseif lv_type ca 'uv'. " structure
-        assign component <seg> of structure <struc> to <value>.
+        assign component lv_seg of structure <struc> to <value>.
         if sy-subrc <> 0.
           zcx_ajson_error=>raise(
             iv_msg      = 'Path not found'
@@ -666,9 +692,9 @@ class lcl_abap_to_json definition final.
 
     class-methods convert
       importing
-        iv_data type any
-        is_prefix type zcl_ajson=>ty_path_name optional
-        iv_array_index type i default 0
+        iv_data         type any
+        is_prefix       type zcl_ajson=>ty_path_name optional
+        iv_array_index  type i default 0
       returning
         value(rt_nodes) type zcl_ajson=>ty_nodes_tt
       raising
@@ -676,10 +702,10 @@ class lcl_abap_to_json definition final.
 
     class-methods insert_with_type
       importing
-        iv_data type any
-        iv_type type string
-        is_prefix type zcl_ajson=>ty_path_name optional
-        iv_array_index type i default 0
+        iv_data         type any
+        iv_type         type string
+        is_prefix       type zcl_ajson=>ty_path_name optional
+        iv_array_index  type i default 0
       returning
         value(rt_nodes) type zcl_ajson=>ty_nodes_tt
       raising
@@ -693,77 +719,77 @@ class lcl_abap_to_json definition final.
 
     methods convert_any
       importing
-        iv_data type any
-        io_type type ref to cl_abap_typedescr
+        iv_data   type any
+        io_type   type ref to cl_abap_typedescr
         is_prefix type zcl_ajson=>ty_path_name
-        iv_index type i default 0
+        iv_index  type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes  type zcl_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
     methods convert_ajson
       importing
-        io_json type ref to zcl_ajson
+        io_json   type ref to zcl_ajson
         is_prefix type zcl_ajson=>ty_path_name
-        iv_index type i default 0
+        iv_index  type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt.
+        ct_nodes  type zcl_ajson=>ty_nodes_tt.
 
     methods convert_value
       importing
-        iv_data type any
-        io_type type ref to cl_abap_typedescr
+        iv_data   type any
+        io_type   type ref to cl_abap_typedescr
         is_prefix type zcl_ajson=>ty_path_name
-        iv_index type i default 0
+        iv_index  type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes  type zcl_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
     methods convert_ref
       importing
-        iv_data type any
-        io_type type ref to cl_abap_typedescr
+        iv_data   type any
+        io_type   type ref to cl_abap_typedescr
         is_prefix type zcl_ajson=>ty_path_name
-        iv_index type i default 0
+        iv_index  type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes  type zcl_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
     methods convert_struc
       importing
-        iv_data type any
-        io_type type ref to cl_abap_typedescr
+        iv_data   type any
+        io_type   type ref to cl_abap_typedescr
         is_prefix type zcl_ajson=>ty_path_name
-        iv_index type i default 0
+        iv_index  type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
-        cs_root  type zcl_ajson=>ty_node optional
+        ct_nodes  type zcl_ajson=>ty_nodes_tt
+        cs_root   type zcl_ajson=>ty_node optional
       raising
         zcx_ajson_error.
 
     methods convert_table
       importing
-        iv_data type any
-        io_type type ref to cl_abap_typedescr
+        iv_data   type any
+        io_type   type ref to cl_abap_typedescr
         is_prefix type zcl_ajson=>ty_path_name
-        iv_index type i default 0
+        iv_index  type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes  type zcl_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
     methods insert_value_with_type
       importing
-        iv_data type any
-        iv_type type string
-        io_type type ref to cl_abap_typedescr
+        iv_data   type any
+        iv_type   type string
+        io_type   type ref to cl_abap_typedescr
         is_prefix type zcl_ajson=>ty_path_name
-        iv_index type i default 0
+        iv_index  type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes  type zcl_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
