@@ -1,8 +1,6 @@
 interface zif_ajson_reader
   public .
 
-  type-pools abap.
-
   types:
     begin of ty_field_mapping_ts,
       sap  type string,
