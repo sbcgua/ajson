@@ -68,4 +68,12 @@ interface zif_ajson_writer
     raising
       zcx_ajson_error.
 
+  methods stringify
+    importing
+      iv_indent type i default 0
+    returning
+      value(rv_json) type string
+    raising
+      zcx_ajson_error.
+
 endinterface.

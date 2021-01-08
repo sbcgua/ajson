@@ -289,7 +289,7 @@ It is possible to set an instance of ajson immutable (read only). It is done on 
 
 ### Rendering to JSON string
 
-`zcl_ajson` instance content can be rendered to JSON string using `stringify` method. It also supports optional indentation.
+`zcl_ajson` instance content can be rendered to JSON string using `zif_ajson_writer~stringify` method (also has alias at class level). It also supports optional indentation.
 
 ```abap
 
@@ -314,7 +314,7 @@ It is possible to set an instance of ajson immutable (read only). It is done on 
       iv_val  = 5 ).
 
     data lv type string.
-    lv = lo_json->stringify( ).
+    lv = lo_json->stringify( ). " or li_writer->stringify( ).
     " {"a":1,"b":"B","e":[],"f":[5]}
 
     lv = lo_json->stringify( iv_indent = 2 ). " indent with 2 spaces
