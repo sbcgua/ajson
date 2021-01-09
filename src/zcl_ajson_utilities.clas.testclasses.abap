@@ -139,9 +139,9 @@ class ltcl_json_utils implementation.
     data:
       lv_json       type string,
       lo_util       type ref to zcl_ajson_utilities,
-      lo_insert     type ref to zcl_ajson,
-      lo_delete     type ref to zcl_ajson,
-      lo_change     type ref to zcl_ajson,
+      lo_insert     type ref to zif_ajson,
+      lo_delete     type ref to zif_ajson,
+      lo_change     type ref to zif_ajson,
       lo_insert_exp type ref to lcl_nodes_helper,
       lo_delete_exp type ref to lcl_nodes_helper,
       lo_change_exp type ref to lcl_nodes_helper.
@@ -246,9 +246,9 @@ class ltcl_json_utils implementation.
       lv_json_a     type string,
       lv_json_b     type string,
       lo_util       type ref to zcl_ajson_utilities,
-      lo_insert     type ref to zcl_ajson,
-      lo_delete     type ref to zcl_ajson,
-      lo_change     type ref to zcl_ajson,
+      lo_insert     type ref to zif_ajson,
+      lo_delete     type ref to zif_ajson,
+      lo_change     type ref to zif_ajson,
       lo_insert_exp type ref to lcl_nodes_helper,
       lo_delete_exp type ref to lcl_nodes_helper.
 
