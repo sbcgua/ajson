@@ -1,5 +1,5 @@
 ![abaplint](https://github.com/sbcgua/ajson/workflows/abaplint/badge.svg)
-![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/sbcgua/ajson/src/zcl_ajson.clas.abap)
+![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/sbcgua/ajson/src/zif_ajson.clas.abap)
 
 # abap json (ajson)
 
@@ -20,6 +20,8 @@ Installed using [abapGit](https://github.com/larshp/abapGit)
 The class `zcl_ajson` implements 2 interfaces:
 - `zif_ajson_reader` - used to access items of the json data
 - `zif_ajson_writer` - used to set items of the json data
+
+Since v1.0.4 it also implements `zif_ajson` which unites all the types, constants in methods in one interface. This very probably will become the recommended approach to use ajson. Reader and writer may be potentially deprecated (not decided yet), follow the updates.
 
 ### Instantiating and basics
 
