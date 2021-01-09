@@ -133,9 +133,9 @@ class lcl_json_parser implementation.
   method parse.
     data lx_sxml type ref to cx_sxml_error.
     try.
-        rt_json_tree = _parse( iv_json ).
-      catch cx_sxml_error into lx_sxml.
-        zcx_ajson_error=>raise( `SXML: ` && lx_sxml->get_text( ) ).
+      rt_json_tree = _parse( iv_json ).
+    catch cx_sxml_error into lx_sxml.
+      zcx_ajson_error=>raise( `SXML: ` && lx_sxml->get_text( ) ).
     endtry.
   endmethod.
 
@@ -535,66 +535,66 @@ class lcl_json_to_abap implementation.
     field-symbols <value> type any.
 
     try.
-        loop at it_nodes assigning <n> using key array_index.
+      loop at it_nodes assigning <n> using key array_index.
 
-          lr_ref = find_loc(
-            iv_append_tables = abap_true
-            iv_path          = <n>-path
-            iv_name          = <n>-name ).
+        lr_ref = find_loc(
+          iv_append_tables = abap_true
+          iv_path          = <n>-path
+          iv_name          = <n>-name ).
 
-          assign lr_ref->* to <value>.
-          assert sy-subrc = 0.
+        assign lr_ref->* to <value>.
+        assert sy-subrc = 0.
 
-          describe field <value> type lv_type.
+        describe field <value> type lv_type.
 
-          case <n>-type.
-            when zcl_ajson=>node_type-null.
-              " Do nothing
-            when zcl_ajson=>node_type-boolean.
-              <value> = boolc( <n>-value = 'true' ).
-            when zcl_ajson=>node_type-number.
+        case <n>-type.
+          when zcl_ajson=>node_type-null.
+            " Do nothing
+          when zcl_ajson=>node_type-boolean.
+            <value> = boolc( <n>-value = 'true' ).
+          when zcl_ajson=>node_type-number.
+            <value> = <n>-value.
+          when zcl_ajson=>node_type-string.
+            if lv_type = 'D' and <n>-value is not initial.
+              data lv_y type c length 4.
+              data lv_m type c length 2.
+              data lv_d type c length 2.
+
+            find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)'
+                in <n>-value
+                submatches lv_y lv_m lv_d.
+              if sy-subrc <> 0.
+                zcx_ajson_error=>raise(
+                  iv_msg      = 'Unexpected date format'
+                  iv_location = <n>-path && <n>-name ).
+              endif.
+              concatenate lv_y lv_m lv_d into <value>.
+            else.
               <value> = <n>-value.
-            when zcl_ajson=>node_type-string.
-              if lv_type = 'D' and <n>-value is not initial.
-                data lv_y type c length 4.
-                data lv_m type c length 2.
-                data lv_d type c length 2.
-
-                find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)'
-                  in <n>-value
-                  submatches lv_y lv_m lv_d.
-                if sy-subrc <> 0.
-                  zcx_ajson_error=>raise(
-                    iv_msg      = 'Unexpected date format'
-                    iv_location = <n>-path && <n>-name ).
-                endif.
-                concatenate lv_y lv_m lv_d into <value>.
-              else.
-                <value> = <n>-value.
-              endif.
-            when zcl_ajson=>node_type-object.
-              if not lv_type co 'uv'.
-                zcx_ajson_error=>raise(
-                  iv_msg      = 'Expected structure'
-                  iv_location = <n>-path && <n>-name ).
-              endif.
-            when zcl_ajson=>node_type-array.
-              if not lv_type co 'h'.
-                zcx_ajson_error=>raise(
-                  iv_msg      = 'Expected table'
-                  iv_location = <n>-path && <n>-name ).
-              endif.
-            when others.
+            endif.
+          when zcl_ajson=>node_type-object.
+            if not lv_type co 'uv'.
               zcx_ajson_error=>raise(
-                iv_msg      = |Unexpected JSON type [{ <n>-type }]|
+                iv_msg      = 'Expected structure'
                 iv_location = <n>-path && <n>-name ).
-          endcase.
+            endif.
+          when zcl_ajson=>node_type-array.
+            if not lv_type co 'h'.
+              zcx_ajson_error=>raise(
+                iv_msg      = 'Expected table'
+                iv_location = <n>-path && <n>-name ).
+            endif.
+          when others.
+            zcx_ajson_error=>raise(
+              iv_msg      = |Unexpected JSON type [{ <n>-type }]|
+              iv_location = <n>-path && <n>-name ).
+        endcase.
 
-        endloop.
-      catch cx_sy_conversion_no_number into lx.
-        zcx_ajson_error=>raise(
-          iv_msg      = |Source is not a number|
-          iv_location = <n>-path && <n>-name ).
+      endloop.
+    catch cx_sy_conversion_no_number into lx.
+      zcx_ajson_error=>raise(
+        iv_msg      = |Source is not a number|
+        iv_location = <n>-path && <n>-name ).
     endtry.
 
   endmethod.
