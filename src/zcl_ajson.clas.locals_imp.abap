@@ -560,7 +560,7 @@ class lcl_json_to_abap implementation.
               data lv_m type c length 2.
               data lv_d type c length 2.
 
-            find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)'
+              find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)'
                 in <n>-value
                 submatches lv_y lv_m lv_d.
               if sy-subrc <> 0.
