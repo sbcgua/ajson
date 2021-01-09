@@ -53,12 +53,12 @@ ENDCLASS.
 
 
 
-CLASS zcl_ajson_utilities IMPLEMENTATION.
+CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
 
   method delete_empty_nodes.
 
-    data ls_json_tree type zcl_ajson=>ty_node.
+    data ls_json_tree like line of io_json->mt_json_tree.
     data lv_subrc type sy-subrc.
 
     do.
@@ -134,8 +134,8 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
       lv_path_b type string.
 
     field-symbols:
-      <node_a> type zcl_ajson=>ty_node,
-      <node_b> type zcl_ajson=>ty_node.
+      <node_a> like line of mo_json_a->mt_json_tree,
+      <node_b> like line of mo_json_a->mt_json_tree.
 
     loop at mo_json_a->mt_json_tree assigning <node_a> where path = iv_path.
       lv_path_a = <node_a>-path && <node_a>-name && '/'.
@@ -215,8 +215,8 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
     data lv_path type string.
 
     field-symbols:
-      <node_a> type zcl_ajson=>ty_node,
-      <node_b> type zcl_ajson=>ty_node.
+      <node_a> like line of mo_json_b->mt_json_tree,
+      <node_b> like line of mo_json_b->mt_json_tree.
 
     loop at mo_json_b->mt_json_tree assigning <node_b> where path = iv_path.
       lv_path = <node_b>-path && <node_b>-name && '/'.

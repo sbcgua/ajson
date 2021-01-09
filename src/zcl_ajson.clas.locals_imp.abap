@@ -14,7 +14,7 @@ class lcl_utils definition final.
       importing
         iv_path type string
       returning
-        value(rv_path_name) type zcl_ajson=>ty_path_name.
+        value(rv_path_name) type zif_ajson=>ty_path_name.
     class-methods validate_array_index
       importing
         iv_path type string
@@ -95,14 +95,14 @@ class lcl_json_parser definition final.
       importing
         iv_json type string
       returning
-        value(rt_json_tree) type zcl_ajson=>ty_nodes_tt
+        value(rt_json_tree) type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
   private section.
 
     types:
-      ty_stack_tt type standard table of ref to zcl_ajson=>ty_node.
+      ty_stack_tt type standard table of ref to zif_ajson=>ty_node.
 
     data mt_stack type ty_stack_tt.
 
@@ -122,7 +122,7 @@ class lcl_json_parser definition final.
       importing
         iv_json type string
       returning
-        value(rt_json_tree) type zcl_ajson=>ty_nodes_tt
+        value(rt_json_tree) type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error cx_sxml_error.
 
@@ -249,7 +249,7 @@ class lcl_json_serializer definition final create private.
 
     class-methods stringify
       importing
-        it_json_tree type zcl_ajson=>ty_nodes_ts
+        it_json_tree type zif_ajson=>ty_nodes_ts
         iv_indent type i default 0
       returning
         value(rv_json_string) type string
@@ -262,7 +262,7 @@ class lcl_json_serializer definition final create private.
 
     class-data gv_comma_with_lf type string.
 
-    data mt_json_tree type zcl_ajson=>ty_nodes_ts.
+    data mt_json_tree type zif_ajson=>ty_nodes_ts.
     data mt_buffer type string_table.
     data mv_indent_step type i.
     data mv_level type i.
@@ -281,7 +281,7 @@ class lcl_json_serializer definition final create private.
 
     methods stringify_node
       importing
-        is_node type zcl_ajson=>ty_node
+        is_node type zif_ajson=>ty_node
       raising
         zcx_ajson_error.
 
@@ -346,15 +346,15 @@ class lcl_json_serializer implementation.
     endif.
 
     case is_node-type.
-      when zcl_ajson=>node_type-array.
+      when zif_ajson=>node_type-array.
         lv_item = lv_item && '['.
-      when zcl_ajson=>node_type-object.
+      when zif_ajson=>node_type-object.
         lv_item = lv_item && '{'.
-      when zcl_ajson=>node_type-string.
+      when zif_ajson=>node_type-string.
         lv_item = lv_item && |"{ escape( is_node-value ) }"|.
-      when zcl_ajson=>node_type-boolean or zcl_ajson=>node_type-number.
+      when zif_ajson=>node_type-boolean or zif_ajson=>node_type-number.
         lv_item = lv_item && is_node-value.
-      when zcl_ajson=>node_type-null.
+      when zif_ajson=>node_type-null.
         lv_item = lv_item && 'null'.
       when others.
         zcx_ajson_error=>raise(
@@ -363,7 +363,7 @@ class lcl_json_serializer implementation.
     endcase.
 
     if mv_indent_step > 0
-      and ( is_node-type = zcl_ajson=>node_type-array or is_node-type = zcl_ajson=>node_type-object )
+      and ( is_node-type = zif_ajson=>node_type-array or is_node-type = zif_ajson=>node_type-object )
       and is_node-children > 0.
       mv_level = mv_level + 1.
       lv_item = lv_item && cl_abap_char_utilities=>newline.
@@ -373,21 +373,21 @@ class lcl_json_serializer implementation.
 
     " finish complex item
 
-    if is_node-type = zcl_ajson=>node_type-array or is_node-type = zcl_ajson=>node_type-object.
+    if is_node-type = zif_ajson=>node_type-array or is_node-type = zif_ajson=>node_type-object.
       data lv_children_path type string.
       data lv_tail type string.
 
       lv_children_path = is_node-path && is_node-name && '/'. " for root: path = '' and name = '', so result is '/'
 
       case is_node-type.
-        when zcl_ajson=>node_type-array.
+        when zif_ajson=>node_type-array.
           if is_node-children > 0.
             stringify_set(
               iv_parent_path = lv_children_path
               iv_array       = abap_true ).
           endif.
           lv_tail = ']'.
-        when zcl_ajson=>node_type-object.
+        when zif_ajson=>node_type-object.
           if is_node-children > 0.
             stringify_set(
               iv_parent_path = lv_children_path
@@ -497,7 +497,7 @@ class lcl_json_to_abap definition final.
 
     methods to_abap
       importing
-        it_nodes type zcl_ajson=>ty_nodes_ts
+        it_nodes type zif_ajson=>ty_nodes_ts
       raising
         zcx_ajson_error.
 
@@ -531,13 +531,13 @@ class lcl_json_to_abap implementation.
         describe field <value> type lv_type.
 
         case <n>-type.
-          when zcl_ajson=>node_type-null.
+          when zif_ajson=>node_type-null.
             " Do nothing
-          when zcl_ajson=>node_type-boolean.
+          when zif_ajson=>node_type-boolean.
             <value> = boolc( <n>-value = 'true' ).
-          when zcl_ajson=>node_type-number.
+          when zif_ajson=>node_type-number.
             <value> = <n>-value.
-          when zcl_ajson=>node_type-string.
+          when zif_ajson=>node_type-string.
             if lv_type = 'D' and <n>-value is not initial.
               data lv_y type c length 4.
               data lv_m type c length 2.
@@ -555,13 +555,13 @@ class lcl_json_to_abap implementation.
             else.
               <value> = <n>-value.
             endif.
-          when zcl_ajson=>node_type-object.
+          when zif_ajson=>node_type-object.
             if not lv_type co 'uv'.
               zcx_ajson_error=>raise(
                 iv_msg      = 'Expected structure'
                 iv_location = <n>-path && <n>-name ).
             endif.
-          when zcl_ajson=>node_type-array.
+          when zif_ajson=>node_type-array.
             if not lv_type co 'h'.
               zcx_ajson_error=>raise(
                 iv_msg      = 'Expected table'
@@ -667,10 +667,10 @@ class lcl_abap_to_json definition final.
     class-methods convert
       importing
         iv_data type any
-        is_prefix type zcl_ajson=>ty_path_name optional
+        is_prefix type zif_ajson=>ty_path_name optional
         iv_array_index type i default 0
       returning
-        value(rt_nodes) type zcl_ajson=>ty_nodes_tt
+        value(rt_nodes) type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
@@ -678,10 +678,10 @@ class lcl_abap_to_json definition final.
       importing
         iv_data type any
         iv_type type string
-        is_prefix type zcl_ajson=>ty_path_name optional
+        is_prefix type zif_ajson=>ty_path_name optional
         iv_array_index type i default 0
       returning
-        value(rt_nodes) type zcl_ajson=>ty_nodes_tt
+        value(rt_nodes) type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
@@ -695,29 +695,29 @@ class lcl_abap_to_json definition final.
       importing
         iv_data type any
         io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
     methods convert_ajson
       importing
         io_json type ref to zcl_ajson
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt.
+        ct_nodes type zif_ajson=>ty_nodes_tt.
 
     methods convert_value
       importing
         iv_data type any
         io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
@@ -725,10 +725,10 @@ class lcl_abap_to_json definition final.
       importing
         iv_data type any
         io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
@@ -736,11 +736,11 @@ class lcl_abap_to_json definition final.
       importing
         iv_data type any
         io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
-        cs_root  type zcl_ajson=>ty_node optional
+        ct_nodes type zif_ajson=>ty_nodes_tt
+        cs_root  type zif_ajson=>ty_node optional
       raising
         zcx_ajson_error.
 
@@ -748,10 +748,10 @@ class lcl_abap_to_json definition final.
       importing
         iv_data type any
         io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
@@ -760,10 +760,10 @@ class lcl_abap_to_json definition final.
         iv_data type any
         iv_type type string
         io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
@@ -891,17 +891,17 @@ class lcl_abap_to_json implementation.
     <n>-index = iv_index.
 
     if io_type->absolute_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL' or io_type->absolute_name = '\TYPE=XFELD'.
-      <n>-type = zcl_ajson=>node_type-boolean.
+      <n>-type = zif_ajson=>node_type-boolean.
       if iv_data is not initial.
         <n>-value = 'true'.
       else.
         <n>-value = 'false'.
       endif.
     elseif io_type->type_kind co 'CNgXyDT'. " Char like, date/time, xstring
-      <n>-type = zcl_ajson=>node_type-string.
+      <n>-type = zif_ajson=>node_type-string.
       <n>-value = |{ iv_data }|.
     elseif io_type->type_kind co 'bsI8PaeF'. " Numeric
-      <n>-type = zcl_ajson=>node_type-number.
+      <n>-type = zif_ajson=>node_type-number.
       <n>-value = |{ iv_data }|.
     else.
       zcx_ajson_error=>raise( |Unexpected elemetary type [{
@@ -921,7 +921,7 @@ class lcl_abap_to_json implementation.
     <n>-index = iv_index.
 
     if iv_data is initial.
-      <n>-type  = zcl_ajson=>node_type-null.
+      <n>-type  = zif_ajson=>node_type-null.
       <n>-value = 'null'.
     else.
       " TODO support data references
@@ -953,7 +953,7 @@ class lcl_abap_to_json implementation.
       append initial line to ct_nodes assigning <root>.
       <root>-path  = is_prefix-path.
       <root>-name  = is_prefix-name.
-      <root>-type  = zcl_ajson=>node_type-object.
+      <root>-type  = zif_ajson=>node_type-object.
       <root>-index = iv_index.
     endif.
 
@@ -1009,7 +1009,7 @@ class lcl_abap_to_json implementation.
     append initial line to ct_nodes assigning <root>.
     <root>-path  = is_prefix-path.
     <root>-name  = is_prefix-name.
-    <root>-type  = zcl_ajson=>node_type-array.
+    <root>-type  = zif_ajson=>node_type-array.
     <root>-index = iv_index.
 
     ls_next_prefix-path = is_prefix-path && is_prefix-name && '/'.
@@ -1060,18 +1060,18 @@ class lcl_abap_to_json implementation.
 
     lv_prefix = is_prefix-path && is_prefix-name.
     if io_type->type_kind co 'CNgXyDT'. " Char like, date/time, xstring
-      if iv_type = zcl_ajson=>node_type-boolean and iv_data <> 'true' and iv_data <> 'false'.
+      if iv_type = zif_ajson=>node_type-boolean and iv_data <> 'true' and iv_data <> 'false'.
         zcx_ajson_error=>raise( |Unexpected boolean value [{ iv_data }] @{ lv_prefix }| ).
-      elseif iv_type = zcl_ajson=>node_type-null and iv_data is not initial.
+      elseif iv_type = zif_ajson=>node_type-null and iv_data is not initial.
         zcx_ajson_error=>raise( |Unexpected null value [{ iv_data }] @{ lv_prefix }| ).
-      elseif iv_type = zcl_ajson=>node_type-number and iv_data cn '0123456789. E+-'.
+      elseif iv_type = zif_ajson=>node_type-number and iv_data cn '0123456789. E+-'.
         zcx_ajson_error=>raise( |Unexpected numeric value [{ iv_data }] @{ lv_prefix }| ).
-      elseif iv_type <> zcl_ajson=>node_type-string and iv_type <> zcl_ajson=>node_type-boolean
-        and iv_type <> zcl_ajson=>node_type-null and iv_type <> zcl_ajson=>node_type-number.
+      elseif iv_type <> zif_ajson=>node_type-string and iv_type <> zif_ajson=>node_type-boolean
+        and iv_type <> zif_ajson=>node_type-null and iv_type <> zif_ajson=>node_type-number.
         zcx_ajson_error=>raise( |Unexpected type for value [{ iv_type },{ iv_data }] @{ lv_prefix }| ).
       endif.
     elseif io_type->type_kind co 'bsI8PaeF'. " Numeric
-      if iv_type <> zcl_ajson=>node_type-number.
+      if iv_type <> zif_ajson=>node_type-number.
         zcx_ajson_error=>raise( |Unexpected value for numeric [{ iv_data }] @{ lv_prefix }| ).
       endif.
     else.
