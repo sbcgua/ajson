@@ -8,8 +8,9 @@ Legend
 + : added
 - : removed
 
-v1.0.3, 2021-01-04
+v1.0.3, 2021-01-09
 ------------------
+A stable version before interface changes !
 ! move stringify to writer interface
 * diff fixes @mbtools
 * node types to constants @jrodriguez-rc

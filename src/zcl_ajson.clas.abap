@@ -4,7 +4,7 @@ class zcl_ajson definition
 
   public section.
 
-    constants version type string value 'v1.0.2'.
+    constants version type string value 'v1.0.3'.
     constants origin type string value 'https://github.com/sbcgua/ajson'.
 
     interfaces zif_ajson_reader .
