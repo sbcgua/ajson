@@ -8,18 +8,18 @@ class zcl_ajson_utilities definition
       importing
         !iv_json_a type string optional
         !iv_json_b type string optional
-        !io_json_a type ref to zcl_ajson optional
-        !io_json_b type ref to zcl_ajson optional
+        !io_json_a type ref to zif_ajson optional
+        !io_json_b type ref to zif_ajson optional
       exporting
-        !eo_insert type ref to zcl_ajson
-        !eo_delete type ref to zcl_ajson
-        !eo_change type ref to zcl_ajson
+        !eo_insert type ref to zif_ajson
+        !eo_delete type ref to zif_ajson
+        !eo_change type ref to zif_ajson
       raising
         zcx_ajson_error .
     methods sort
       importing
         !iv_json         type string optional
-        !io_json         type ref to zcl_ajson optional
+        !io_json         type ref to zif_ajson optional
       returning
         value(rv_sorted) type string
       raising
@@ -28,8 +28,8 @@ class zcl_ajson_utilities definition
 
   private section.
 
-    data mo_json_a type ref to zcl_ajson .
-    data mo_json_b type ref to zcl_ajson .
+    data mo_json_a type ref to zif_ajson .
+    data mo_json_b type ref to zif_ajson .
     data mo_insert type ref to zif_ajson_writer .
     data mo_delete type ref to zif_ajson_writer .
     data mo_change type ref to zif_ajson_writer .
@@ -46,7 +46,7 @@ class zcl_ajson_utilities definition
         zcx_ajson_error .
     methods delete_empty_nodes
       importing
-        !io_json type ref to zcl_ajson
+        !io_json type ref to zif_ajson
       raising
         zcx_ajson_error .
 ENDCLASS.
@@ -245,7 +245,7 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
   method sort.
 
-    data lo_json type ref to zcl_ajson.
+    data lo_json type ref to zif_ajson.
 
     if boolc( iv_json is supplied ) = boolc( io_json is supplied ).
       zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
