@@ -12,7 +12,9 @@ jobs:
     name: abaplint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12'
       - uses: actions/checkout@v2
       - name: Run abaplint # @2.36.9 ?
         run: |
