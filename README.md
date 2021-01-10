@@ -330,6 +330,26 @@ It is possible to set an instance of ajson immutable (read only). It is done on 
     " }
 ```
 
+#### Keep item order
+
+Sometimes you may want to keep order of json items in the same order as it was in abap structure (assuming you `set` structures or table of structures). To do this call `keep_item_order` after creation of instance, before any `set`.
+
+```abap
+  data:
+    begin of ls_dummy,
+      zulu type string,
+      alpha type string,
+      beta type string,
+    end of ls_dummy.
+
+  li_json->keep_item_order( ).
+  li_json->set(
+    iv_path = '/'
+    iv_val  = ls_dummy ).
+  li_json->stringify( ). " '{"zulu":"z","alpha":"a","beta":"b"}'
+  " otherwise - '{"alpha":"a","beta":"b","zulu":"z"}'
+```
+
 ## Utilities
 
 Class `zcl_ajson_utilities` provides the following methods:
