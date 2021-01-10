@@ -8,6 +8,10 @@ Legend
 + : added
 - : removed
 
+v1.0.4, 2021-??
+------------------
+! BREAKING: Move types, constants to zif_ajson, also alias methods of reader/writer
+
 v1.0.3, 2021-01-09
 ------------------
 A stable version before interface changes !

@@ -8,18 +8,18 @@ class zcl_ajson_utilities definition
       importing
         !iv_json_a type string optional
         !iv_json_b type string optional
-        !io_json_a type ref to zcl_ajson optional
-        !io_json_b type ref to zcl_ajson optional
+        !io_json_a type ref to zif_ajson optional
+        !io_json_b type ref to zif_ajson optional
       exporting
-        !eo_insert type ref to zcl_ajson
-        !eo_delete type ref to zcl_ajson
-        !eo_change type ref to zcl_ajson
+        !eo_insert type ref to zif_ajson
+        !eo_delete type ref to zif_ajson
+        !eo_change type ref to zif_ajson
       raising
         zcx_ajson_error .
     methods sort
       importing
         !iv_json         type string optional
-        !io_json         type ref to zcl_ajson optional
+        !io_json         type ref to zif_ajson optional
       returning
         value(rv_sorted) type string
       raising
@@ -28,8 +28,8 @@ class zcl_ajson_utilities definition
 
   private section.
 
-    data mo_json_a type ref to zcl_ajson .
-    data mo_json_b type ref to zcl_ajson .
+    data mo_json_a type ref to zif_ajson .
+    data mo_json_b type ref to zif_ajson .
     data mo_insert type ref to zif_ajson_writer .
     data mo_delete type ref to zif_ajson_writer .
     data mo_change type ref to zif_ajson_writer .
@@ -46,19 +46,19 @@ class zcl_ajson_utilities definition
         zcx_ajson_error .
     methods delete_empty_nodes
       importing
-        !io_json type ref to zcl_ajson
+        !io_json type ref to zif_ajson
       raising
         zcx_ajson_error .
 ENDCLASS.
 
 
 
-CLASS zcl_ajson_utilities IMPLEMENTATION.
+CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
 
   method delete_empty_nodes.
 
-    data ls_json_tree type zcl_ajson=>ty_node.
+    data ls_json_tree like line of io_json->mt_json_tree.
     data lv_subrc type sy-subrc.
 
     do.
@@ -134,8 +134,8 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
       lv_path_b type string.
 
     field-symbols:
-      <node_a> type zcl_ajson=>ty_node,
-      <node_b> type zcl_ajson=>ty_node.
+      <node_a> like line of mo_json_a->mt_json_tree,
+      <node_b> like line of mo_json_a->mt_json_tree.
 
     loop at mo_json_a->mt_json_tree assigning <node_a> where path = iv_path.
       lv_path_a = <node_a>-path && <node_a>-name && '/'.
@@ -215,8 +215,8 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
     data lv_path type string.
 
     field-symbols:
-      <node_a> type zcl_ajson=>ty_node,
-      <node_b> type zcl_ajson=>ty_node.
+      <node_a> like line of mo_json_b->mt_json_tree,
+      <node_b> like line of mo_json_b->mt_json_tree.
 
     loop at mo_json_b->mt_json_tree assigning <node_b> where path = iv_path.
       lv_path = <node_b>-path && <node_b>-name && '/'.
@@ -245,7 +245,7 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
 
   method sort.
 
-    data lo_json type ref to zcl_ajson.
+    data lo_json type ref to zif_ajson.
 
     if boolc( iv_json is supplied ) = boolc( io_json is supplied ).
       zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).

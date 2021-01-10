@@ -6,13 +6,13 @@
 class lcl_nodes_helper definition final.
   public section.
 
-    data mt_nodes type zcl_ajson=>ty_nodes_tt.
+    data mt_nodes type zif_ajson=>ty_nodes_tt.
     methods add
       importing
         iv_str type string.
     methods sorted
       returning
-        value(rt_nodes) type zcl_ajson=>ty_nodes_ts.
+        value(rt_nodes) type zif_ajson=>ty_nodes_ts.
 
 endclass.
 
@@ -119,7 +119,7 @@ class ltcl_parser_test implementation.
   method parse.
 
     data lo_cut type ref to lcl_json_parser.
-    data lt_act type zcl_ajson=>ty_nodes_tt.
+    data lt_act type zif_ajson=>ty_nodes_tt.
     data lo_nodes type ref to lcl_nodes_helper.
 
     create object lo_nodes.
@@ -189,7 +189,7 @@ class ltcl_serializer_test definition final
         value(rv_json) type string.
     class-methods sample_nodes
       returning
-        value(rt_nodes) type zcl_ajson=>ty_nodes_ts.
+        value(rt_nodes) type zif_ajson=>ty_nodes_ts.
 
   private section.
 
@@ -552,7 +552,7 @@ class ltcl_utils_test implementation.
 
   method split_path.
 
-    data ls_exp type zcl_ajson=>ty_path_name.
+    data ls_exp type zif_ajson=>ty_path_name.
     data lv_path type string.
 
     lv_path     = ''. " alias to root
@@ -2290,7 +2290,7 @@ class ltcl_writer_test implementation.
 
     data lv_path type string.
 
-    field-symbols <node> type zcl_ajson=>ty_node.
+    field-symbols <node> type zif_ajson=>ty_node.
 
     loop at io_json_in->mt_json_tree assigning <node> where path = iv_path.
       lv_path = <node>-path && <node>-name && '/'.
@@ -2597,7 +2597,7 @@ class ltcl_abap_to_json implementation.
     lo_nodes->add( '/a/b/   |c     |object |     ||0' ).
     lo_src->mt_json_tree = lo_nodes->mt_nodes.
 
-    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lo_src ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -2609,7 +2609,7 @@ class ltcl_abap_to_json implementation.
   method set_value.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
 
     " number
     create object lo_nodes_exp.
@@ -2668,7 +2668,7 @@ class ltcl_abap_to_json implementation.
   method set_null.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
     data lv_null_ref type ref to data.
 
     " null
@@ -2686,8 +2686,8 @@ class ltcl_abap_to_json implementation.
   method prefix.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zcl_ajson=>ty_nodes_tt.
-    data ls_prefix type zcl_ajson=>ty_path_name.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data ls_prefix type zif_ajson=>ty_path_name.
 
     ls_prefix-path = '/a/'.
     ls_prefix-name = 'b'.
@@ -2708,7 +2708,7 @@ class ltcl_abap_to_json implementation.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
     data ls_struc type ty_struc.
-    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
 
     ls_struc-a = 'abc'.
     ls_struc-b = 10.
@@ -2734,7 +2734,7 @@ class ltcl_abap_to_json implementation.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
     data ls_struc type ty_struc_complex.
-    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
     field-symbols <i> like line of ls_struc-tab.
 
     ls_struc-a = 'abc'.
@@ -2794,7 +2794,7 @@ class ltcl_abap_to_json implementation.
   method set_array.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zcl_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
 
     data lt_tab type table of ty_struc.
     field-symbols <s> like line of lt_tab.
