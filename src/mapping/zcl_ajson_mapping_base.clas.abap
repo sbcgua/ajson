@@ -26,11 +26,11 @@ class zcl_ajson_mapping_base definition
   private section.
     data mt_mapping_fields type ty_mapping_fields_tt.
 
-ENDCLASS.
+endclass.
 
 
 
-CLASS ZCL_AJSON_MAPPING_BASE IMPLEMENTATION.
+class zcl_ajson_mapping_base implementation.
 
 
   method constructor.
@@ -73,4 +73,4 @@ CLASS ZCL_AJSON_MAPPING_BASE IMPLEMENTATION.
     endif.
 
   endmethod.
-ENDCLASS.
+endclass.
