@@ -616,6 +616,16 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson_writer~stringify.
+
+    rv_json = lcl_json_serializer=>stringify(
+      it_json_tree       = mt_json_tree
+      iv_keep_item_order = mv_keep_item_order
+      iv_indent          = iv_indent ).
+
+  endmethod.
+
+
   method zif_ajson_writer~touch_array.
 
     data lr_node type ref to zif_ajson=>ty_node.
@@ -672,15 +682,5 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~keep_item_order.
     mv_keep_item_order = abap_true.
-  endmethod.
-
-
-  method zif_ajson~stringify.
-
-    rv_json = lcl_json_serializer=>stringify(
-      it_json_tree       = mt_json_tree
-      iv_keep_item_order = mv_keep_item_order
-      iv_indent          = iv_indent ).
-
   endmethod.
 ENDCLASS.
