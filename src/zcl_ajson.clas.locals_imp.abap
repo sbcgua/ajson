@@ -611,17 +611,15 @@ class lcl_json_to_abap implementation.
     loop at lt_path assigning <seg>.
       lv_trace = lv_trace && '/' && <seg>.
 
-      <seg> = to_upper( <seg> ).
-
       if mi_custom_mapping is bound.
         lv_seg =
             mi_custom_mapping->to_abap(
                 iv_path    = iv_path
                 iv_name    = iv_name
                 iv_segment = <seg> ).
-      else.
-        lv_seg = <seg>.
       endif.
+
+      <seg> = to_upper( <seg> ).
 
       assign r_ref->* to <struc>.
       assert sy-subrc = 0.

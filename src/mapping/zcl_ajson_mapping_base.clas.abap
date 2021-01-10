@@ -62,10 +62,13 @@ class zcl_ajson_mapping_base implementation.
 
   method zif_ajson_custom_mapping~to_json.
 
+    data lv_field type string.
     data ls_mapping_field like line of mt_mapping_fields.
 
+    lv_field = to_upper( is_prefix-name ).
+
     read table mt_mapping_fields into ls_mapping_field
-      with key sap = is_prefix-name.
+      with key sap = lv_field.
     if sy-subrc = 0.
       rv_result = ls_mapping_field-json.
     else.
@@ -73,4 +76,6 @@ class zcl_ajson_mapping_base implementation.
     endif.
 
   endmethod.
+
+
 endclass.

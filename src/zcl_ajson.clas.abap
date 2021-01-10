@@ -417,9 +417,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     clear ev_container.
     lcl_json_to_abap=>bind(
+      exporting
+        ii_custom_mapping = mi_custom_mapping
       changing
-        c_obj = ev_container
-        co_instance = lo_to_abap ).
+        c_obj             = ev_container
+        co_instance       = lo_to_abap ).
     lo_to_abap->to_abap( mt_json_tree ).
 
   endmethod.
@@ -517,13 +519,15 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     if ls_split_path is initial. " Assign root, exceptional processing
       if iv_node_type is not initial.
         mt_json_tree = lcl_abap_to_json=>insert_with_type(
-          iv_data   = iv_val
-          iv_type   = iv_node_type
-          is_prefix = ls_split_path ).
+          iv_data           = iv_val
+          iv_type           = iv_node_type
+          is_prefix         = ls_split_path
+          ii_custom_mapping = mi_custom_mapping ).
       else.
         mt_json_tree = lcl_abap_to_json=>convert(
-          iv_data   = iv_val
-          is_prefix = ls_split_path ).
+          iv_data           = iv_val
+          is_prefix         = ls_split_path
+          ii_custom_mapping = mi_custom_mapping ).
       endif.
       return.
     endif.
@@ -550,15 +554,17 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     if iv_node_type is not initial.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
-        iv_data        = iv_val
-        iv_type        = iv_node_type
-        iv_array_index = lv_array_index
-        is_prefix      = ls_split_path ).
+        iv_data           = iv_val
+        iv_type           = iv_node_type
+        iv_array_index    = lv_array_index
+        is_prefix         = ls_split_path
+        ii_custom_mapping = mi_custom_mapping ).
     else.
       lt_new_nodes = lcl_abap_to_json=>convert(
-        iv_data        = iv_val
-        iv_array_index = lv_array_index
-        is_prefix      = ls_split_path ).
+        iv_data           = iv_val
+        iv_array_index    = lv_array_index
+        is_prefix         = ls_split_path
+        ii_custom_mapping = mi_custom_mapping ).
     endif.
 
     " update data
