@@ -40,14 +40,17 @@ class zcl_ajson definition
 
     class-methods parse
       importing
-        !iv_json type string
-        !iv_freeze type abap_bool default abap_false
+        !iv_json           type string
+        !iv_freeze         type abap_bool default abap_false
+        !ii_custom_mapping type ref to zif_ajson_custom_mapping optional
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
         zcx_ajson_error .
 
     class-methods create_empty
+      importing
+        !ii_custom_mapping type ref to zif_ajson_custom_mapping optional
       returning
         value(ro_instance) type ref to zcl_ajson.
 
@@ -59,6 +62,7 @@ class zcl_ajson definition
       tty_node_stack type standard table of ref to zif_ajson=>ty_node with default key.
 
     data mv_read_only type abap_bool.
+    data mi_custom_mapping type ref to zif_ajson_custom_mapping.
 
     methods get_item
       importing
@@ -88,6 +92,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method create_empty.
     create object ro_instance.
+    ro_instance->mi_custom_mapping = ii_custom_mapping.
   endmethod.
 
 
@@ -159,6 +164,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     create object ro_instance.
     create object lo_parser.
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
+    ro_instance->mi_custom_mapping = ii_custom_mapping.
 
     if iv_freeze = abap_true.
       ro_instance->freeze( ).
