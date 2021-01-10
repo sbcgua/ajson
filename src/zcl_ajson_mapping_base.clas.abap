@@ -5,6 +5,9 @@ class zcl_ajson_mapping_base definition
   public section.
     interfaces zif_ajson_custom_mapping.
 
+    aliases to_abap for zif_ajson_custom_mapping~to_abap.
+    aliases to_json for zif_ajson_custom_mapping~to_json.
+
     types:
       begin of ty_mapping_field_ts,
         sap  type string,
@@ -16,18 +19,18 @@ class zcl_ajson_mapping_base definition
 
     methods constructor
       importing
-        it_mapping_fields type ty_mapping_fields_tt.
+        it_mapping_fields type ty_mapping_fields_tt optional.
 
   protected section.
 
   private section.
     data mt_mapping_fields type ty_mapping_fields_tt.
 
-endclass.
+ENDCLASS.
 
 
 
-class zcl_ajson_mapping_base implementation.
+CLASS ZCL_AJSON_MAPPING_BASE IMPLEMENTATION.
 
 
   method constructor.
@@ -70,6 +73,4 @@ class zcl_ajson_mapping_base implementation.
     endif.
 
   endmethod.
-
-
-endclass.
+ENDCLASS.
