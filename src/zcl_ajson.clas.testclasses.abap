@@ -22,6 +22,7 @@ class lcl_nodes_helper implementation.
     field-symbols <n> like line of mt_nodes.
     data lv_children type string.
     data lv_index type string.
+    data lv_order type string.
 
     append initial line to mt_nodes assigning <n>.
 
@@ -31,13 +32,15 @@ class lcl_nodes_helper implementation.
       <n>-type
       <n>-value
       lv_index
-      lv_children.
+      lv_children
+      lv_order.
     condense <n>-path.
     condense <n>-name.
     condense <n>-type.
     condense <n>-value.
     <n>-index = lv_index.
     <n>-children = lv_children.
+    <n>-order = lv_order.
 
   endmethod.
 
@@ -196,6 +199,7 @@ class ltcl_serializer_test definition final
     methods stringify_condensed for testing raising zcx_ajson_error.
     methods stringify_indented for testing raising zcx_ajson_error.
     methods array_index for testing raising zcx_ajson_error.
+    methods item_order for testing raising zcx_ajson_error.
     methods simple_indented for testing raising zcx_ajson_error.
     methods empty_set for testing raising zcx_ajson_error.
     methods escape for testing raising zcx_ajson_error.
@@ -374,6 +378,36 @@ class ltcl_serializer_test implementation.
 
     lv_act = lcl_json_serializer=>stringify( lo_nodes->sorted( ) ).
     lv_exp = '[123,"abc",123.45]'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+  endmethod.
+
+  method item_order.
+
+    data lv_act type string.
+    data lv_exp type string.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '                |       |object |                   |  |3 |0' ).
+    lo_nodes->add( '/               |beta   |str    |b                  |  |0 |3' ).
+    lo_nodes->add( '/               |zulu   |str    |z                  |  |0 |1' ).
+    lo_nodes->add( '/               |alpha  |str    |a                  |  |0 |2' ).
+
+    lv_act = lcl_json_serializer=>stringify( lo_nodes->sorted( ) ).
+    lv_exp = '{"alpha":"a","beta":"b","zulu":"z"}'. " NAME order ! (it is also a UT)
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+    lv_act = lcl_json_serializer=>stringify(
+      it_json_tree = lo_nodes->sorted( )
+      iv_keep_item_order = abap_true ).
+    lv_exp = '{"zulu":"z","alpha":"a","beta":"b"}'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_act
@@ -2355,6 +2389,7 @@ class ltcl_integrated definition
     methods array_index for testing raising zcx_ajson_error.
     methods array_simple for testing raising zcx_ajson_error.
     methods stringify for testing raising zcx_ajson_error.
+    methods item_order_integrated for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -2536,6 +2571,52 @@ class ltcl_integrated implementation.
       occ = 0 ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->stringify( iv_indent = 2 )
+      exp = lv_exp ).
+
+  endmethod.
+
+  method item_order_integrated.
+
+    data:
+      begin of ls_dummy,
+        zulu type string,
+        alpha type string,
+        beta type string,
+      end of ls_dummy.
+
+    data lv_act type string.
+    data lv_exp type string.
+    data li_cut type ref to zif_ajson.
+
+    ls_dummy-alpha = 'a'.
+    ls_dummy-beta  = 'b'.
+    ls_dummy-zulu  = 'z'.
+
+    " NAME order
+    li_cut = zcl_ajson=>create_empty( ).
+    li_cut->set(
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    lv_act = li_cut->stringify( ).
+    lv_exp = '{"alpha":"a","beta":"b","zulu":"z"}'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+    " STRUC order (keep)
+    li_cut = zcl_ajson=>create_empty( ).
+    li_cut->keep_item_order( ).
+    li_cut->set(
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    lv_act = li_cut->stringify( ).
+    lv_exp = '{"zulu":"z","alpha":"a","beta":"b"}'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
       exp = lv_exp ).
 
   endmethod.

@@ -24,6 +24,7 @@ interface zif_ajson
       type type string,
       value type string,
       index type i,
+      order type i,
       children type i,
     end of ty_node .
   types:
@@ -31,7 +32,8 @@ interface zif_ajson
   types:
     ty_nodes_ts type sorted table of ty_node
       with unique key path name
-      with non-unique sorted key array_index components path index .
+      with non-unique sorted key array_index components path index
+      with non-unique sorted key item_order components path order .
   types:
     begin of ty_path_name,
       path type string,
@@ -45,6 +47,7 @@ interface zif_ajson
   " METHODS
 
   methods freeze.
+  methods keep_item_order.
 
   " METHODS (merged from reader/writer), maybe will completely move to this IF in future !
 
