@@ -14,11 +14,12 @@ class zcl_ajson_mapping_to_upper definition
   private section.
     data mi_mapping_fields type ref to zif_ajson_field_mapping.
 
-endclass.
+ENDCLASS.
 
 
 
-class zcl_ajson_mapping_to_upper implementation.
+CLASS ZCL_AJSON_MAPPING_TO_UPPER IMPLEMENTATION.
+
 
   method constructor.
 
@@ -50,6 +51,4 @@ class zcl_ajson_mapping_to_upper implementation.
     rv_result = to_upper( iv_name ).
 
   endmethod.
-
-
-endclass.
+ENDCLASS.
