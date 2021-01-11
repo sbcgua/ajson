@@ -44,8 +44,6 @@ class zcl_ajson_mapping_fields implementation.
       with key json components json = iv_name.
     if sy-subrc = 0.
       rv_result = ls_mapping_field-sap.
-    else.
-      rv_result = iv_name.
     endif.
 
   endmethod.
@@ -62,8 +60,6 @@ class zcl_ajson_mapping_fields implementation.
       with key sap = lv_field.
     if sy-subrc = 0.
       rv_result = ls_mapping_field-json.
-    else.
-      rv_result = iv_name.
     endif.
 
   endmethod.

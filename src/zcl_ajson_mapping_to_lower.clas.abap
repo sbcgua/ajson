@@ -43,11 +43,11 @@ class zcl_ajson_mapping_to_lower implementation.
 
     rv_result = mi_mapping_fields->to_json( iv_path = iv_path iv_name = iv_name ).
 
-    if rv_result <> iv_name. " Mapping found
+    if rv_result is not initial. " Mapping found
       return.
     endif.
 
-    rv_result = to_lower( rv_result ).
+    rv_result = to_lower( iv_name ).
 
   endmethod.
 

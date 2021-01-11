@@ -37,9 +37,11 @@ class zcl_ajson_mapping_camel implementation.
 
     rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
 
-    if rv_result <> iv_name. " Mapping found
+    if rv_result is not initial. " Mapping found
       return.
     endif.
+
+    rv_result = iv_name.
 
     replace all occurrences of regex `([a-z])([A-Z])` in rv_result with `$1_$2`.
 
@@ -55,9 +57,11 @@ class zcl_ajson_mapping_camel implementation.
 
     rv_result = mi_mapping_fields->to_json( iv_path = iv_path iv_name = iv_name ).
 
-    if rv_result <> iv_name. " Mapping found
+    if rv_result is not initial. " Mapping found
       return.
     endif.
+
+    rv_result = iv_name.
 
     replace all occurrences of `__` in rv_result with `*`.
 

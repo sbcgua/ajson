@@ -596,6 +596,7 @@ class lcl_json_to_abap implementation.
 
     data lt_path type string_table.
     data lv_trace type string.
+    data lv_seg like line of lt_path.
     data lv_type type c.
     data lv_size type i.
     data lv_index type i.
@@ -616,13 +617,17 @@ class lcl_json_to_abap implementation.
       lv_trace = lv_trace && '/' && <seg>.
 
       if mi_custom_mapping is bound.
-        <seg> =
+        lv_seg =
             mi_custom_mapping->to_abap(
                 iv_path = iv_path
                 iv_name = <seg> ).
       endif.
 
-      <seg> = to_upper( <seg> ).
+      if lv_seg is initial.
+        lv_seg = to_upper( <seg> ).
+      else.
+        lv_seg = to_upper( lv_seg ).
+      endif.
 
       assign r_ref->* to <struc>.
       assert sy-subrc = 0.
@@ -635,12 +640,12 @@ class lcl_json_to_abap implementation.
           iv_location = lv_trace ).
 
       elseif lv_type = 'h'. " table
-        if not <seg> co '0123456789'.
+        if not lv_seg co '0123456789'.
           zcx_ajson_error=>raise(
             iv_msg      = 'Need index to access tables'
             iv_location = lv_trace ).
         endif.
-        lv_index = <seg>.
+        lv_index = lv_seg.
         assign r_ref->* to <table>.
         assert sy-subrc = 0.
 
@@ -657,7 +662,7 @@ class lcl_json_to_abap implementation.
         endif.
 
       elseif lv_type ca 'uv'. " structure
-        assign component <seg> of structure <struc> to <value>.
+        assign component lv_seg of structure <struc> to <value>.
         if sy-subrc <> 0.
           zcx_ajson_error=>raise(
             iv_msg      = 'Path not found'
@@ -932,6 +937,10 @@ class lcl_abap_to_json implementation.
       <n>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
     endif.
 
+    if <n>-name is initial.
+      <n>-name  = is_prefix-name.
+    endif.
+
     if io_type->absolute_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL' or io_type->absolute_name = '\TYPE=XFELD'.
       <n>-type = zif_ajson=>node_type-boolean.
       if iv_data is not initial.
@@ -965,6 +974,10 @@ class lcl_abap_to_json implementation.
 
     if mi_custom_mapping is bound.
       <n>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
+    endif.
+
+    if <n>-name is initial.
+      <n>-name  = is_prefix-name.
     endif.
 
     if iv_data is initial.
@@ -1007,6 +1020,10 @@ class lcl_abap_to_json implementation.
       if mi_custom_mapping is bound.
         <root>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
       endif.
+
+    if <root>-name is initial.
+      <root>-name  = is_prefix-name.
+    endif.
 
       <root>-order = iv_item_order.
     endif.
@@ -1074,6 +1091,10 @@ class lcl_abap_to_json implementation.
 
     if mi_custom_mapping is bound.
       <root>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
+    endif.
+
+    if <root>-name is initial.
+      <root>-name  = is_prefix-name.
     endif.
 
     ls_next_prefix-path = is_prefix-path && is_prefix-name && '/'.
@@ -1156,6 +1177,10 @@ class lcl_abap_to_json implementation.
 
     if mi_custom_mapping is bound.
       <n>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
+    endif.
+
+    if <n>-name is initial.
+      <n>-name  = is_prefix-name.
     endif.
 
   endmethod.
