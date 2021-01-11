@@ -595,7 +595,6 @@ class lcl_json_to_abap implementation.
   method find_loc.
 
     data lt_path type string_table.
-    data lv_seg like line of lt_path.
     data lv_trace type string.
     data lv_type type c.
     data lv_size type i.
@@ -617,12 +616,10 @@ class lcl_json_to_abap implementation.
       lv_trace = lv_trace && '/' && <seg>.
 
       if mi_custom_mapping is bound.
-        lv_seg =
+        <seg> =
             mi_custom_mapping->to_abap(
                 iv_path = iv_path
                 iv_name = <seg> ).
-      else.
-        lv_seg = <seg>.
       endif.
 
       <seg> = to_upper( <seg> ).
@@ -638,12 +635,12 @@ class lcl_json_to_abap implementation.
           iv_location = lv_trace ).
 
       elseif lv_type = 'h'. " table
-        if not lv_seg co '0123456789'.
+        if not <seg> co '0123456789'.
           zcx_ajson_error=>raise(
             iv_msg      = 'Need index to access tables'
             iv_location = lv_trace ).
         endif.
-        lv_index = lv_seg.
+        lv_index = <seg>.
         assign r_ref->* to <table>.
         assert sy-subrc = 0.
 
@@ -660,7 +657,7 @@ class lcl_json_to_abap implementation.
         endif.
 
       elseif lv_type ca 'uv'. " structure
-        assign component lv_seg of structure <struc> to <value>.
+        assign component <seg> of structure <struc> to <value>.
         if sy-subrc <> 0.
           zcx_ajson_error=>raise(
             iv_msg      = 'Path not found'
