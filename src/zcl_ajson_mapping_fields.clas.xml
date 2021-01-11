@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>ZCL_AJSON_MAPPING_BASE</CLSNAME>
+    <CLSNAME>ZCL_AJSON_MAPPING_FIELDS</CLSNAME>
     <LANGU>E</LANGU>
     <DESCRIPT>AJSON Custom Mapping: Base</DESCRIPT>
     <STATE>1</STATE>

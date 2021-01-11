@@ -17,7 +17,7 @@ class ltcl_mapping implementation.
     data:
       lo_ajson          type ref to zcl_ajson,
       li_mapping        type ref to zif_ajson_custom_mapping,
-      lt_mapping_fields type zcl_ajson_mapping_base=>ty_mapping_fields_tt,
+      lt_mapping_fields type zif_ajson_custom_mapping=>ty_mapping_fields_tt,
       ls_mapping_field  like line of lt_mapping_fields.
     data:
       begin of ls_result,
@@ -29,7 +29,7 @@ class ltcl_mapping implementation.
     ls_mapping_field-json = 'json.field'.
     insert ls_mapping_field into table lt_mapping_fields.
 
-    create object li_mapping type zcl_ajson_mapping_base
+    create object li_mapping type zcl_ajson_mapping_fields
       exporting
         it_mapping_fields = lt_mapping_fields.
 
@@ -49,7 +49,7 @@ class ltcl_mapping implementation.
     data:
       lo_ajson          type ref to zcl_ajson,
       li_mapping        type ref to zif_ajson_custom_mapping,
-      lt_mapping_fields type zcl_ajson_mapping_base=>ty_mapping_fields_tt,
+      lt_mapping_fields type zif_ajson_custom_mapping=>ty_mapping_fields_tt,
       ls_mapping_field  like line of lt_mapping_fields.
     data:
       begin of ls_result,
@@ -61,7 +61,7 @@ class ltcl_mapping implementation.
     ls_mapping_field-json = 'json.field'.
     insert ls_mapping_field into table lt_mapping_fields.
 
-    create object li_mapping type zcl_ajson_mapping_base
+    create object li_mapping type zcl_ajson_mapping_fields
       exporting
         it_mapping_fields = lt_mapping_fields.
 
