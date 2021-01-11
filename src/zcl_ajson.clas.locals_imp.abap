@@ -617,10 +617,7 @@ class lcl_json_to_abap implementation.
       lv_trace = lv_trace && '/' && <seg>.
 
       if mi_custom_mapping is bound.
-        lv_seg =
-            mi_custom_mapping->to_abap(
-                iv_path = iv_path
-                iv_name = <seg> ).
+        lv_seg = mi_custom_mapping->to_abap( iv_path = iv_path iv_name = <seg> ).
       endif.
 
       if lv_seg is initial.
@@ -1021,9 +1018,9 @@ class lcl_abap_to_json implementation.
         <root>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
       endif.
 
-    if <root>-name is initial.
-      <root>-name  = is_prefix-name.
-    endif.
+      if <root>-name is initial.
+        <root>-name  = is_prefix-name.
+      endif.
 
       <root>-order = iv_item_order.
     endif.
