@@ -2,11 +2,11 @@ interface zif_ajson_custom_mapping
   public.
 
   types:
-    begin of ty_mapping_field_ts,
+    begin of ty_mapping_field,
       sap  type string,
       json type string,
-    end of ty_mapping_field_ts,
-    ty_mapping_fields_tt type sorted table of ty_mapping_field_ts
+    end of ty_mapping_field,
+    ty_mapping_fields type sorted table of ty_mapping_field
       with unique key sap
       with unique sorted key json components json.
 

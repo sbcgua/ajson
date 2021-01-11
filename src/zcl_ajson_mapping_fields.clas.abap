@@ -10,12 +10,12 @@ class zcl_ajson_mapping_fields definition
 
     methods constructor
       importing
-        it_mapping_fields type zif_ajson_custom_mapping~ty_mapping_fields_tt optional.
+        it_mapping_fields type zif_ajson_custom_mapping~ty_mapping_fields optional.
 
   protected section.
 
   private section.
-    data mt_mapping_fields type zif_ajson_custom_mapping~ty_mapping_fields_tt.
+    data mt_mapping_fields type zif_ajson_custom_mapping~ty_mapping_fields.
 
 endclass.
 

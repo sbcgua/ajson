@@ -7,7 +7,7 @@ class zcl_ajson_mapping_to_upper definition
 
     methods constructor
       importing
-        it_mapping_fields type zif_ajson_custom_mapping~ty_mapping_fields_tt optional.
+        it_mapping_fields type zif_ajson_custom_mapping~ty_mapping_fields optional.
 
   protected section.
 

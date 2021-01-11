@@ -17,7 +17,7 @@ class ltcl_mapping implementation.
     data:
       lo_ajson          type ref to zcl_ajson,
       li_mapping        type ref to zif_ajson_custom_mapping,
-      lt_mapping_fields type zif_ajson_custom_mapping=>ty_mapping_fields_tt,
+      lt_mapping_fields type zif_ajson_custom_mapping=>ty_mapping_fields,
       ls_mapping_field  like line of lt_mapping_fields.
     data:
       begin of ls_result,
@@ -49,7 +49,7 @@ class ltcl_mapping implementation.
     data:
       lo_ajson          type ref to zcl_ajson,
       li_mapping        type ref to zif_ajson_custom_mapping,
-      lt_mapping_fields type zif_ajson_custom_mapping=>ty_mapping_fields_tt,
+      lt_mapping_fields type zif_ajson_custom_mapping=>ty_mapping_fields,
       ls_mapping_field  like line of lt_mapping_fields.
     data:
       begin of ls_result,
