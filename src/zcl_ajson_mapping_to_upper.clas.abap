@@ -3,16 +3,16 @@ class zcl_ajson_mapping_to_upper definition
   create public .
 
   public section.
-    interfaces zif_ajson_custom_mapping.
+    interfaces zif_ajson_field_mapping.
 
     methods constructor
       importing
-        it_mapping_fields type zif_ajson_custom_mapping~ty_mapping_fields optional.
+        it_mapping_fields type zif_ajson_field_mapping~ty_mapping_fields optional.
 
   protected section.
 
   private section.
-    data mi_mapping_fields type ref to zif_ajson_custom_mapping.
+    data mi_mapping_fields type ref to zif_ajson_field_mapping.
 
 endclass.
 
@@ -29,14 +29,14 @@ class zcl_ajson_mapping_to_upper implementation.
   endmethod.
 
 
-  method zif_ajson_custom_mapping~to_abap.
+  method zif_ajson_field_mapping~to_abap.
 
     rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
 
   endmethod.
 
 
-  method zif_ajson_custom_mapping~to_json.
+  method zif_ajson_field_mapping~to_json.
 
     data lt_tokens type standard table of char256.
     field-symbols <token> like line of lt_tokens.

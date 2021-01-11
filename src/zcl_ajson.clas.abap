@@ -43,7 +43,7 @@ class zcl_ajson definition
       importing
         !iv_json           type string
         !iv_freeze         type abap_bool default abap_false
-        !ii_custom_mapping type ref to zif_ajson_custom_mapping optional
+        !ii_custom_mapping type ref to zif_ajson_field_mapping optional
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
@@ -51,7 +51,7 @@ class zcl_ajson definition
 
     class-methods create_empty
       importing
-        !ii_custom_mapping type ref to zif_ajson_custom_mapping optional
+        !ii_custom_mapping type ref to zif_ajson_field_mapping optional
       returning
         value(ro_instance) type ref to zcl_ajson.
 
@@ -63,7 +63,7 @@ class zcl_ajson definition
       tty_node_stack type standard table of ref to zif_ajson=>ty_node with default key.
 
     data mv_read_only type abap_bool.
-    data mi_custom_mapping type ref to zif_ajson_custom_mapping.
+    data mi_custom_mapping type ref to zif_ajson_field_mapping.
     data mv_keep_item_order type abap_bool.
 
     methods get_item

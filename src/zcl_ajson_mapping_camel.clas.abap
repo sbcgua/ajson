@@ -3,18 +3,18 @@ class zcl_ajson_mapping_camel definition
   create public .
 
   public section.
-    interfaces zif_ajson_custom_mapping.
+    interfaces zif_ajson_field_mapping.
 
     methods constructor
       importing
-        it_mapping_fields   type zif_ajson_custom_mapping~ty_mapping_fields optional
+        it_mapping_fields   type zif_ajson_field_mapping~ty_mapping_fields optional
         iv_first_json_upper type abap_bool default abap_true.
 
   protected section.
 
   private section.
     data mv_first_json_upper type abap_bool.
-    data mi_mapping_fields type ref to zif_ajson_custom_mapping.
+    data mi_mapping_fields type ref to zif_ajson_field_mapping.
 
 endclass.
 
@@ -33,7 +33,7 @@ class zcl_ajson_mapping_camel implementation.
   endmethod.
 
 
-  method zif_ajson_custom_mapping~to_abap.
+  method zif_ajson_field_mapping~to_abap.
 
     rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
 
@@ -46,7 +46,7 @@ class zcl_ajson_mapping_camel implementation.
   endmethod.
 
 
-  method zif_ajson_custom_mapping~to_json.
+  method zif_ajson_field_mapping~to_json.
 
     types ty_token type c length 255.
     data lt_tokens type standard table of ty_token.

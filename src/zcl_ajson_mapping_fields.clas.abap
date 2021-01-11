@@ -3,19 +3,19 @@ class zcl_ajson_mapping_fields definition
   create public .
 
   public section.
-    interfaces zif_ajson_custom_mapping.
+    interfaces zif_ajson_field_mapping.
 
-    aliases to_abap for zif_ajson_custom_mapping~to_abap.
-    aliases to_json for zif_ajson_custom_mapping~to_json.
+    aliases to_abap for zif_ajson_field_mapping~to_abap.
+    aliases to_json for zif_ajson_field_mapping~to_json.
 
     methods constructor
       importing
-        it_mapping_fields type zif_ajson_custom_mapping~ty_mapping_fields optional.
+        it_mapping_fields type zif_ajson_field_mapping~ty_mapping_fields optional.
 
   protected section.
 
   private section.
-    data mt_mapping_fields type zif_ajson_custom_mapping~ty_mapping_fields.
+    data mt_mapping_fields type zif_ajson_field_mapping~ty_mapping_fields.
 
 endclass.
 
@@ -36,7 +36,7 @@ class zcl_ajson_mapping_fields implementation.
   endmethod.
 
 
-  method zif_ajson_custom_mapping~to_abap.
+  method zif_ajson_field_mapping~to_abap.
 
     data ls_mapping_field like line of mt_mapping_fields.
 
@@ -51,7 +51,7 @@ class zcl_ajson_mapping_fields implementation.
   endmethod.
 
 
-  method zif_ajson_custom_mapping~to_json.
+  method zif_ajson_field_mapping~to_json.
 
     data lv_field type string.
     data ls_mapping_field like line of mt_mapping_fields.
