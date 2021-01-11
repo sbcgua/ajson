@@ -21,11 +21,12 @@ class ltcl_mapping implementation.
       ls_mapping_field  like line of lt_mapping_fields.
     data:
       begin of ls_result,
-        sap_field type string,
+        abap_field type string,
+        field      type string,
       end of ls_result.
 
     clear ls_mapping_field.
-    ls_mapping_field-abap  = 'SAP_FIELD'.
+    ls_mapping_field-abap  = 'ABAP_FIELD'.
     ls_mapping_field-json = 'json.field'.
     insert ls_mapping_field into table lt_mapping_fields.
 
@@ -33,13 +34,17 @@ class ltcl_mapping implementation.
       exporting
         it_mapping_fields = lt_mapping_fields.
 
-    lo_ajson = zcl_ajson=>parse( iv_json = '{"json.field":"field_value"}' ii_custom_mapping = li_mapping ).
+    lo_ajson = zcl_ajson=>parse( iv_json = '{"json.field":"field_value","field":"value"}' ii_custom_mapping = li_mapping ).
 
     lo_ajson->to_abap( importing ev_container = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = ls_result-sap_field
+      act = ls_result-abap_field
       exp = 'field_value' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_result-field
+      exp = 'value' ).
 
   endmethod.
 
@@ -53,11 +58,12 @@ class ltcl_mapping implementation.
       ls_mapping_field  like line of lt_mapping_fields.
     data:
       begin of ls_result,
-        sap_field type string,
+        abap_field type string,
+        field      type string,
       end of ls_result.
 
     clear ls_mapping_field.
-    ls_mapping_field-abap  = 'SAP_FIELD'.
+    ls_mapping_field-abap  = 'ABAP_FIELD'.
     ls_mapping_field-json = 'json.field'.
     insert ls_mapping_field into table lt_mapping_fields.
 
@@ -65,7 +71,8 @@ class ltcl_mapping implementation.
       exporting
         it_mapping_fields = lt_mapping_fields.
 
-    ls_result-sap_field = 'field_value'.
+    ls_result-abap_field = 'field_value'.
+    ls_result-field      = 'value'.
 
     lo_ajson = zcl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
@@ -73,7 +80,7 @@ class ltcl_mapping implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
-      exp = '{"json.field":"field_value"}' ).
+      exp = '{"field":"value","json.field":"field_value"}' ).
 
   endmethod.
 
