@@ -31,7 +31,7 @@ class zcl_ajson_mapping_to_upper implementation.
 
   method zif_ajson_custom_mapping~to_abap.
 
-    rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name iv_segment = iv_segment ).
+    rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
 
   endmethod.
 
@@ -41,9 +41,9 @@ class zcl_ajson_mapping_to_upper implementation.
     data lt_tokens type standard table of char256.
     field-symbols <token> like line of lt_tokens.
 
-    rv_result = mi_mapping_fields->to_json( is_prefix ).
+    rv_result = mi_mapping_fields->to_json( iv_path = iv_path iv_name = iv_name ).
 
-    if rv_result <> is_prefix-name. " Mapping found
+    if rv_result <> iv_name. " Mapping found
       return.
     endif.
 

@@ -619,9 +619,10 @@ class lcl_json_to_abap implementation.
       if mi_custom_mapping is bound.
         lv_seg =
             mi_custom_mapping->to_abap(
-                iv_path    = iv_path
-                iv_name    = iv_name
-                iv_segment = <seg> ).
+                iv_path = iv_path
+                iv_name = <seg> ).
+      else.
+        lv_seg = <seg>.
       endif.
 
       <seg> = to_upper( <seg> ).
@@ -931,7 +932,7 @@ class lcl_abap_to_json implementation.
     <n>-order = iv_item_order.
 
     if mi_custom_mapping is bound.
-      <n>-name = mi_custom_mapping->to_json( is_prefix ).
+      <n>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
     endif.
 
     if io_type->absolute_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL' or io_type->absolute_name = '\TYPE=XFELD'.
@@ -966,7 +967,7 @@ class lcl_abap_to_json implementation.
     <n>-order = iv_item_order.
 
     if mi_custom_mapping is bound.
-      <n>-name = mi_custom_mapping->to_json( is_prefix ).
+      <n>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
     endif.
 
     if iv_data is initial.
@@ -1007,7 +1008,7 @@ class lcl_abap_to_json implementation.
       <root>-index = iv_index.
 
       if mi_custom_mapping is bound.
-        <root>-name = mi_custom_mapping->to_json( is_prefix ).
+        <root>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
       endif.
 
       <root>-order = iv_item_order.
@@ -1075,7 +1076,7 @@ class lcl_abap_to_json implementation.
     <root>-order = iv_item_order.
 
     if mi_custom_mapping is bound.
-      <root>-name = mi_custom_mapping->to_json( is_prefix ).
+      <root>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
     endif.
 
     ls_next_prefix-path = is_prefix-path && is_prefix-name && '/'.
@@ -1157,7 +1158,7 @@ class lcl_abap_to_json implementation.
     <n>-order = iv_item_order.
 
     if mi_custom_mapping is bound.
-      <n>-name = mi_custom_mapping->to_json( is_prefix ).
+      <n>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
     endif.
 
   endmethod.
