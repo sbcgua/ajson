@@ -25,7 +25,7 @@ class ltcl_mapping implementation.
       end of ls_result.
 
     clear ls_mapping_field.
-    ls_mapping_field-sap  = 'SAP_FIELD'.
+    ls_mapping_field-abap  = 'SAP_FIELD'.
     ls_mapping_field-json = 'json.field'.
     insert ls_mapping_field into table lt_mapping_fields.
 
@@ -57,7 +57,7 @@ class ltcl_mapping implementation.
       end of ls_result.
 
     clear ls_mapping_field.
-    ls_mapping_field-sap  = 'SAP_FIELD'.
+    ls_mapping_field-abap  = 'SAP_FIELD'.
     ls_mapping_field-json = 'json.field'.
     insert ls_mapping_field into table lt_mapping_fields.
 

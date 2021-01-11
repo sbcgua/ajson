@@ -29,7 +29,7 @@ class zcl_ajson_mapping_fields implementation.
     data ls_mapping_field like line of mt_mapping_fields.
 
     loop at it_mapping_fields into ls_mapping_field.
-      ls_mapping_field-sap = to_upper( ls_mapping_field-sap ).
+      ls_mapping_field-abap = to_upper( ls_mapping_field-abap ).
       insert ls_mapping_field into table mt_mapping_fields.
     endloop.
 
@@ -43,7 +43,7 @@ class zcl_ajson_mapping_fields implementation.
     read table mt_mapping_fields into ls_mapping_field
       with key json components json = iv_name.
     if sy-subrc = 0.
-      rv_result = ls_mapping_field-sap.
+      rv_result = ls_mapping_field-abap.
     endif.
 
   endmethod.
@@ -57,7 +57,7 @@ class zcl_ajson_mapping_fields implementation.
     lv_field = to_upper( iv_name ).
 
     read table mt_mapping_fields into ls_mapping_field
-      with key sap = lv_field.
+      with key abap = lv_field.
     if sy-subrc = 0.
       rv_result = ls_mapping_field-json.
     endif.

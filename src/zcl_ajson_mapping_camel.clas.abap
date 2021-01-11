@@ -22,6 +22,7 @@ endclass.
 
 class zcl_ajson_mapping_camel implementation.
 
+
   method constructor.
 
     create object mi_mapping_fields type zcl_ajson_mapping_fields

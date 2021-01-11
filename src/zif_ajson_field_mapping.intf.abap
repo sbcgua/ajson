@@ -3,11 +3,11 @@ interface zif_ajson_field_mapping
 
   types:
     begin of ty_mapping_field,
-      sap  type string,
+      abap type string,
       json type string,
     end of ty_mapping_field,
     ty_mapping_fields type sorted table of ty_mapping_field
-      with unique key sap
+      with unique key abap
       with unique sorted key json components json.
 
   methods to_abap
