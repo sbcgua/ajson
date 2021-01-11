@@ -34,7 +34,8 @@ class ltcl_mapping implementation.
       exporting
         it_mapping_fields = lt_mapping_fields.
 
-    lo_ajson = zcl_ajson=>parse( iv_json = '{"json.field":"field_value","field":"value"}' ii_custom_mapping = li_mapping ).
+    lo_ajson =
+        zcl_ajson=>parse( iv_json = '{"field":"value","json.field":"field_value"}' ii_custom_mapping = li_mapping ).
 
     lo_ajson->to_abap( importing ev_container = ls_result ).
 
