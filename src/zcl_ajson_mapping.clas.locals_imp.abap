@@ -13,7 +13,7 @@ class lcl_mapping_fields implementation.
   endmethod.
 
 
-  method zif_ajson_field_mapping~to_abap.
+  method zif_ajson_mapping~to_abap.
 
     data ls_mapping_field like line of mt_mapping_fields.
 
@@ -26,7 +26,7 @@ class lcl_mapping_fields implementation.
   endmethod.
 
 
-  method zif_ajson_field_mapping~to_json.
+  method zif_ajson_mapping~to_json.
 
     data lv_field type string.
     data ls_mapping_field like line of mt_mapping_fields.
@@ -34,7 +34,7 @@ class lcl_mapping_fields implementation.
     lv_field = to_upper( iv_name ).
 
     read table mt_mapping_fields into ls_mapping_field
-      with key abap = lv_field.
+      with key abap components abap = lv_field.
     if sy-subrc = 0.
       rv_result = ls_mapping_field-json.
     endif.
@@ -55,14 +55,14 @@ class lcl_mapping_to_upper implementation.
   endmethod.
 
 
-  method zif_ajson_field_mapping~to_abap.
+  method zif_ajson_mapping~to_abap.
 
     rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
 
   endmethod.
 
 
-  method zif_ajson_field_mapping~to_json.
+  method zif_ajson_mapping~to_json.
 
     data lt_tokens type standard table of char256.
     field-symbols <token> like line of lt_tokens.
@@ -91,14 +91,14 @@ class lcl_mapping_to_lower implementation.
   endmethod.
 
 
-  method zif_ajson_field_mapping~to_abap.
+  method zif_ajson_mapping~to_abap.
 
     rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
 
   endmethod.
 
 
-  method zif_ajson_field_mapping~to_json.
+  method zif_ajson_mapping~to_json.
 
     data lt_tokens type standard table of char256.
     field-symbols <token> like line of lt_tokens.
@@ -128,7 +128,7 @@ class lcl_mapping_camel implementation.
   endmethod.
 
 
-  method zif_ajson_field_mapping~to_abap.
+  method zif_ajson_mapping~to_abap.
 
     rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
 
@@ -143,7 +143,7 @@ class lcl_mapping_camel implementation.
   endmethod.
 
 
-  method zif_ajson_field_mapping~to_json.
+  method zif_ajson_mapping~to_json.
 
     types ty_token type c length 255.
     data lt_tokens type standard table of ty_token.

@@ -16,7 +16,7 @@ class ltcl_camel_case implementation.
 
     data:
       lo_ajson   type ref to zcl_ajson,
-      li_mapping type ref to zif_ajson_field_mapping.
+      li_mapping type ref to zif_ajson_mapping.
     data:
       begin of ls_result,
         field_data type string,
@@ -39,7 +39,7 @@ class ltcl_camel_case implementation.
 
     data:
       lo_ajson   type ref to zcl_ajson,
-      li_mapping type ref to zif_ajson_field_mapping.
+      li_mapping type ref to zif_ajson_mapping.
     data:
       begin of ls_result,
         field_data type string,
@@ -82,8 +82,8 @@ class ltcl_fields implementation.
 
     data:
       lo_ajson          type ref to zcl_ajson,
-      li_mapping        type ref to zif_ajson_field_mapping,
-      lt_mapping_fields type zif_ajson_field_mapping=>ty_mapping_fields,
+      li_mapping        type ref to zif_ajson_mapping,
+      lt_mapping_fields type zif_ajson_mapping=>ty_mapping_fields,
       ls_mapping_field  like line of lt_mapping_fields.
     data:
       begin of ls_result,
@@ -118,8 +118,8 @@ class ltcl_fields implementation.
 
     data:
       lo_ajson          type ref to zcl_ajson,
-      li_mapping        type ref to zif_ajson_field_mapping,
-      lt_mapping_fields type zif_ajson_field_mapping=>ty_mapping_fields,
+      li_mapping        type ref to zif_ajson_mapping,
+      lt_mapping_fields type zif_ajson_mapping=>ty_mapping_fields,
       ls_mapping_field  like line of lt_mapping_fields.
     data:
       begin of ls_result,
@@ -169,7 +169,7 @@ class ltcl_to_lower implementation.
 
     data:
       lo_ajson   type ref to zcl_ajson,
-      li_mapping type ref to zif_ajson_field_mapping.
+      li_mapping type ref to zif_ajson_mapping.
     data:
       begin of ls_result,
         field_data type string,
@@ -211,7 +211,7 @@ class ltcl_to_upper implementation.
 
     data:
       lo_ajson   type ref to zcl_ajson,
-      li_mapping type ref to zif_ajson_field_mapping.
+      li_mapping type ref to zif_ajson_mapping.
     data:
       begin of ls_result,
         field_data type string,

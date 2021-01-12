@@ -43,7 +43,7 @@ class zcl_ajson definition
       importing
         !iv_json           type string
         !iv_freeze         type abap_bool default abap_false
-        !ii_custom_mapping type ref to zif_ajson_field_mapping optional
+        !ii_custom_mapping type ref to zif_ajson_mapping optional
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
@@ -51,7 +51,7 @@ class zcl_ajson definition
 
     class-methods create_empty
       importing
-        !ii_custom_mapping type ref to zif_ajson_field_mapping optional
+        !ii_custom_mapping type ref to zif_ajson_mapping optional
       returning
         value(ro_instance) type ref to zcl_ajson.
 
@@ -63,33 +63,33 @@ class zcl_ajson definition
       tty_node_stack type standard table of ref to zif_ajson=>ty_node with default key.
 
     data mv_read_only type abap_bool.
-    data mi_custom_mapping type ref to zif_ajson_field_mapping.
+    data mi_custom_mapping type ref to zif_ajson_mapping.
     data mv_keep_item_order type abap_bool.
 
     methods get_item
       importing
-        iv_path type string
+        iv_path        type string
       returning
         value(rv_item) type ref to zif_ajson=>ty_node.
     methods prove_path_exists
       importing
-        iv_path type string
+        iv_path              type string
       returning
         value(rt_node_stack) type tty_node_stack
       raising
         zcx_ajson_error.
     methods delete_subtree
       importing
-        iv_path type string
-        iv_name type string
+        iv_path           type string
+        iv_name           type string
       returning
         value(rv_deleted) type abap_bool.
 
-ENDCLASS.
+endclass.
 
 
 
-CLASS ZCL_AJSON IMPLEMENTATION.
+class zcl_ajson implementation.
 
 
   method create_empty.
@@ -695,4 +695,4 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method zif_ajson~keep_item_order.
     mv_keep_item_order = abap_true.
   endmethod.
-ENDCLASS.
+endclass.

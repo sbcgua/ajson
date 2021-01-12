@@ -497,7 +497,7 @@ class lcl_json_to_abap definition final.
 
     class-methods bind
       importing
-        !ii_custom_mapping type ref to zif_ajson_field_mapping optional
+        !ii_custom_mapping type ref to zif_ajson_mapping optional
       changing
         c_obj              type any
         co_instance        type ref to lcl_json_to_abap.
@@ -510,7 +510,7 @@ class lcl_json_to_abap definition final.
 
   private section.
     data mr_obj type ref to data.
-    data mi_custom_mapping type ref to zif_ajson_field_mapping.
+    data mi_custom_mapping type ref to zif_ajson_mapping.
 
 endclass.
 
@@ -689,7 +689,7 @@ class lcl_abap_to_json definition final.
         iv_data            type any
         is_prefix          type zif_ajson=>ty_path_name optional
         iv_array_index     type i default 0
-        ii_custom_mapping  type ref to zif_ajson_field_mapping optional
+        ii_custom_mapping  type ref to zif_ajson_mapping optional
         iv_keep_item_order type abap_bool default abap_false
       returning
         value(rt_nodes)   type zif_ajson=>ty_nodes_tt
@@ -702,7 +702,7 @@ class lcl_abap_to_json definition final.
         iv_type            type string
         is_prefix          type zif_ajson=>ty_path_name optional
         iv_array_index     type i default 0
-        ii_custom_mapping  type ref to zif_ajson_field_mapping optional
+        ii_custom_mapping  type ref to zif_ajson_mapping optional
         iv_keep_item_order type abap_bool default abap_false
       returning
         value(rt_nodes)   type zif_ajson=>ty_nodes_tt
@@ -714,7 +714,7 @@ class lcl_abap_to_json definition final.
   private section.
 
     class-data gv_ajson_absolute_type_name type string.
-    data mi_custom_mapping type ref to zif_ajson_field_mapping.
+    data mi_custom_mapping type ref to zif_ajson_mapping.
     data mv_keep_item_order type abap_bool.
 
     methods convert_any

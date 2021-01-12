@@ -1,4 +1,4 @@
-interface zif_ajson_field_mapping
+interface zif_ajson_mapping
   public.
 
   types:

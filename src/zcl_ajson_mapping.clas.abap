@@ -6,28 +6,28 @@ class zcl_ajson_mapping definition
   public section.
     class-methods create_camel_case
       importing
-        it_mapping_fields   type zif_ajson_field_mapping=>ty_mapping_fields optional
+        it_mapping_fields   type zif_ajson_mapping=>ty_mapping_fields optional
         iv_first_json_upper type abap_bool default abap_true
       returning
-        value(ri_mapping)   type ref to zif_ajson_field_mapping.
+        value(ri_mapping)   type ref to zif_ajson_mapping.
 
     class-methods create_upper_case
       importing
-        it_mapping_fields type zif_ajson_field_mapping=>ty_mapping_fields optional
+        it_mapping_fields type zif_ajson_mapping=>ty_mapping_fields optional
       returning
-        value(ri_mapping) type ref to zif_ajson_field_mapping.
+        value(ri_mapping) type ref to zif_ajson_mapping.
 
     class-methods create_lower_case
       importing
-        it_mapping_fields type zif_ajson_field_mapping=>ty_mapping_fields optional
+        it_mapping_fields type zif_ajson_mapping=>ty_mapping_fields optional
       returning
-        value(ri_mapping) type ref to zif_ajson_field_mapping.
+        value(ri_mapping) type ref to zif_ajson_mapping.
 
     class-methods create_field_mapping
       importing
-        it_mapping_fields type zif_ajson_field_mapping=>ty_mapping_fields
+        it_mapping_fields type zif_ajson_mapping=>ty_mapping_fields
       returning
-        value(ri_mapping) type ref to zif_ajson_field_mapping.
+        value(ri_mapping) type ref to zif_ajson_mapping.
 
   protected section.
 
