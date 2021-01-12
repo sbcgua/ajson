@@ -50,9 +50,7 @@ class lcl_mapping_to_upper implementation.
 
   method constructor.
 
-    create object mi_mapping_fields type zcl_ajson_mapping_fields
-      exporting
-        it_mapping_fields = it_mapping_fields.
+    mi_mapping_fields = zcl_ajson_mapping=>create_field_mapping( it_mapping_fields ).
 
   endmethod.
 
@@ -88,9 +86,7 @@ class lcl_mapping_to_lower implementation.
 
   method constructor.
 
-    create object mi_mapping_fields type lcl_mapping_fields
-      exporting
-        it_mapping_fields = it_mapping_fields.
+    mi_mapping_fields = zcl_ajson_mapping=>create_field_mapping( it_mapping_fields ).
 
   endmethod.
 
@@ -126,10 +122,7 @@ class lcl_mapping_camel implementation.
 
   method constructor.
 
-    create object mi_mapping_fields type lcl_mapping_fields
-      exporting
-        it_mapping_fields = it_mapping_fields.
-
+    mi_mapping_fields   = zcl_ajson_mapping=>create_field_mapping( it_mapping_fields ).
     mv_first_json_upper = iv_first_json_upper.
 
   endmethod.

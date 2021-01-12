@@ -8,7 +8,6 @@ class zcl_ajson_mapping definition
       importing
         it_mapping_fields   type zif_ajson_field_mapping=>ty_mapping_fields optional
         iv_first_json_upper type abap_bool default abap_true
-
       returning
         value(ri_mapping)   type ref to zif_ajson_field_mapping.
 
