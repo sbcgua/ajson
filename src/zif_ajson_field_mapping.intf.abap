@@ -6,8 +6,9 @@ interface zif_ajson_field_mapping
       abap type string,
       json type string,
     end of ty_mapping_field,
-    ty_mapping_fields type sorted table of ty_mapping_field
-      with unique key abap
+    ty_mapping_fields type standard table of ty_mapping_field
+      with empty key
+      with unique sorted key abap components abap
       with unique sorted key json components json.
 
   methods to_abap
