@@ -41,14 +41,17 @@ class zcl_ajson definition
 
     class-methods parse
       importing
-        !iv_json type string
-        !iv_freeze type abap_bool default abap_false
+        !iv_json           type string
+        !iv_freeze         type abap_bool default abap_false
+        !ii_custom_mapping type ref to zif_ajson_mapping optional
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
         zcx_ajson_error .
 
     class-methods create_empty
+      importing
+        !ii_custom_mapping type ref to zif_ajson_mapping optional
       returning
         value(ro_instance) type ref to zcl_ajson.
 
@@ -60,36 +63,38 @@ class zcl_ajson definition
       tty_node_stack type standard table of ref to zif_ajson=>ty_node with default key.
 
     data mv_read_only type abap_bool.
+    data mi_custom_mapping type ref to zif_ajson_mapping.
     data mv_keep_item_order type abap_bool.
 
     methods get_item
       importing
-        iv_path type string
+        iv_path        type string
       returning
         value(rv_item) type ref to zif_ajson=>ty_node.
     methods prove_path_exists
       importing
-        iv_path type string
+        iv_path              type string
       returning
         value(rt_node_stack) type tty_node_stack
       raising
         zcx_ajson_error.
     methods delete_subtree
       importing
-        iv_path type string
-        iv_name type string
+        iv_path           type string
+        iv_name           type string
       returning
         value(rv_deleted) type abap_bool.
 
-ENDCLASS.
+endclass.
 
 
 
-CLASS ZCL_AJSON IMPLEMENTATION.
+class zcl_ajson implementation.
 
 
   method create_empty.
     create object ro_instance.
+    ro_instance->mi_custom_mapping = ii_custom_mapping.
   endmethod.
 
 
@@ -156,6 +161,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     create object ro_instance.
     create object lo_parser.
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
+    ro_instance->mi_custom_mapping = ii_custom_mapping.
 
     if iv_freeze = abap_true.
       ro_instance->freeze( ).
@@ -399,9 +405,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     clear ev_container.
     lcl_json_to_abap=>bind(
+      exporting
+        ii_custom_mapping = mi_custom_mapping
       changing
-        c_obj = ev_container
-        co_instance = lo_to_abap ).
+        c_obj             = ev_container
+        co_instance       = lo_to_abap ).
     lo_to_abap->to_abap( mt_json_tree ).
 
   endmethod.
@@ -501,14 +509,16 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       if iv_node_type is not initial.
         mt_json_tree = lcl_abap_to_json=>insert_with_type(
           iv_keep_item_order = mv_keep_item_order
-          iv_data   = iv_val
-          iv_type   = iv_node_type
-          is_prefix = ls_split_path ).
+          iv_data            = iv_val
+          iv_type            = iv_node_type
+          is_prefix          = ls_split_path
+          ii_custom_mapping  = mi_custom_mapping ).
       else.
         mt_json_tree = lcl_abap_to_json=>convert(
           iv_keep_item_order = mv_keep_item_order
-          iv_data   = iv_val
-          is_prefix = ls_split_path ).
+          iv_data            = iv_val
+          is_prefix          = ls_split_path
+          ii_custom_mapping  = mi_custom_mapping ).
       endif.
       return.
     endif.
@@ -536,16 +546,18 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     if iv_node_type is not initial.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
         iv_keep_item_order = mv_keep_item_order
-        iv_data        = iv_val
-        iv_type        = iv_node_type
-        iv_array_index = lv_array_index
-        is_prefix      = ls_split_path ).
+        iv_data            = iv_val
+        iv_type            = iv_node_type
+        iv_array_index     = lv_array_index
+        is_prefix          = ls_split_path
+        ii_custom_mapping  = mi_custom_mapping ).
     else.
       lt_new_nodes = lcl_abap_to_json=>convert(
         iv_keep_item_order = mv_keep_item_order
-        iv_data        = iv_val
-        iv_array_index = lv_array_index
-        is_prefix      = ls_split_path ).
+        iv_data            = iv_val
+        iv_array_index     = lv_array_index
+        is_prefix          = ls_split_path
+        ii_custom_mapping  = mi_custom_mapping ).
     endif.
 
     " update data
@@ -683,4 +695,4 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method zif_ajson~keep_item_order.
     mv_keep_item_order = abap_true.
   endmethod.
-ENDCLASS.
+endclass.
