@@ -618,6 +618,8 @@ class lcl_json_to_abap implementation.
 
       if mi_custom_mapping is bound.
         lv_seg = mi_custom_mapping->to_abap( iv_path = iv_path iv_name = <seg> ).
+      else.
+        clear lv_seg.
       endif.
 
       if lv_seg is initial.
