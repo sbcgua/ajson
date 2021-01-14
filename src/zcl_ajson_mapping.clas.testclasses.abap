@@ -6,7 +6,7 @@ class ltcl_camel_case definition final for testing
     methods:
       to_abap for testing raising zcx_ajson_error,
       to_json for testing raising zcx_ajson_error,
-      to_json_fist_lower for testing raising zcx_ajson_error.
+      to_json_first_lower for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -62,7 +62,7 @@ class ltcl_camel_case implementation.
   endmethod.
 
 
-  method to_json_fist_lower.
+  method to_json_first_lower.
 
     data:
       lo_ajson   type ref to zcl_ajson,
