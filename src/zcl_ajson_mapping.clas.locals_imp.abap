@@ -65,7 +65,6 @@ class lcl_mapping_to_upper implementation.
   method zif_ajson_mapping~to_json.
 
     data lt_tokens type standard table of char256.
-    field-symbols <token> like line of lt_tokens.
 
     rv_result = mi_mapping_fields->to_json( iv_path = iv_path iv_name = iv_name ).
 
@@ -101,7 +100,6 @@ class lcl_mapping_to_lower implementation.
   method zif_ajson_mapping~to_json.
 
     data lt_tokens type standard table of char256.
-    field-symbols <token> like line of lt_tokens.
 
     rv_result = mi_mapping_fields->to_json( iv_path = iv_path iv_name = iv_name ).
 
