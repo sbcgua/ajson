@@ -305,7 +305,7 @@
     },
     "unknown_types": true,
     "unreachable_code": true,
-    "unused_variables": false,
+    "unused_variables": true,
     "use_new": true,
     "when_others_last": true,
     "whitespace_end": true,
