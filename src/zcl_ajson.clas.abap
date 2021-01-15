@@ -484,7 +484,6 @@ class zcl_ajson implementation.
 
   method zif_ajson_writer~set.
 
-    data lt_path type string_table.
     data ls_split_path type zif_ajson=>ty_path_name.
     data lr_parent type ref to zif_ajson=>ty_node.
     data lt_node_stack type tty_node_stack.
