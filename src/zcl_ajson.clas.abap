@@ -487,7 +487,6 @@ class zcl_ajson implementation.
     data ls_split_path type zif_ajson=>ty_path_name.
     data lr_parent type ref to zif_ajson=>ty_node.
     data lt_node_stack type tty_node_stack.
-    field-symbols <topnode> type zif_ajson=>ty_node.
 
     if mv_read_only = abap_true.
       zcx_ajson_error=>raise( 'This json instance is read only' ).

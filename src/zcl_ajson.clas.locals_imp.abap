@@ -754,7 +754,6 @@ class lcl_abap_to_json definition final.
     methods convert_ref
       importing
         iv_data type any
-        io_type type ref to cl_abap_typedescr
         is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
         iv_item_order type i default 0
@@ -878,7 +877,6 @@ class lcl_abap_to_json implementation.
           convert_ref(
             exporting
               iv_data   = iv_data
-              io_type   = io_type
               is_prefix = is_prefix
               iv_index  = iv_index
               iv_item_order = iv_item_order

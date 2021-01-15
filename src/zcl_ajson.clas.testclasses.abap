@@ -1464,8 +1464,6 @@ class ltcl_writer_test definition final
 
   private section.
 
-    class-data gv_sample type string.
-
     methods set_ajson for testing raising zcx_ajson_error.
     methods set_value for testing raising zcx_ajson_error.
     methods ignore_empty for testing raising zcx_ajson_error.
@@ -1903,7 +1901,6 @@ class ltcl_writer_test implementation.
   method arrays_negative.
 
     data lo_cut type ref to zcl_ajson.
-    data lo_nodes_exp type ref to lcl_nodes_helper.
     data li_writer type ref to zif_ajson_writer.
 
     lo_cut = zcl_ajson=>create_empty( ).
