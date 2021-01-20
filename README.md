@@ -29,6 +29,7 @@ Since v1.0.4 it also implements `zif_ajson` which unites all the types, constant
 - To create a new empty json instance (to set values and serialize) - call `zcl_ajson=>create_empty( )`
 - Json attributes are addressed by path in form `/obj1/obj2/value` of e.g. `/a/b/c` addresses `{ "a": { "b": { "c": "this value !" } } }`
 - Array items addressed with index starting from 1: `/tab/2/val` -> `{ "tab": [ {...}, { "val": "this value !" } ] }`
+- Mapping and formatting options are available with interface `zif_ajson_mapping`. Predefined types for field mapping (ABAP <=> JSON), Camel Case, UPPER/lower case from class `zcl_ajson_mapping`
 
 ### JSON reader (zif_ajson_reader)
 
@@ -348,6 +349,211 @@ Sometimes you may want to keep order of json items in the same order as it was i
     iv_val  = ls_dummy ).
   li_json->stringify( ). " '{"zulu":"z","alpha":"a","beta":"b"}'
   " otherwise - '{"alpha":"a","beta":"b","zulu":"z"}'
+```
+
+## Mapping / Formatting JSON
+
+The interface `zif_ajson_mapping` allows to create custom mapping for ABAP and JSON fields.
+
+Some mappings are provided by default:
+- ABAP <=> JSON mapping fields
+- JSON formatting to Camel Case
+- JSON formatting to UPPER/lower case
+
+### Example: JSON => ABAP mapping fields
+
+JSON Input
+```json
+{"field":"value","json.field":"field_value"}
+```
+
+Example code snippet
+```abap
+  data:
+    lo_ajson          type ref to zcl_ajson,
+    li_mapping        type ref to zif_ajson_mapping,
+    lt_mapping_fields type zif_ajson_mapping=>ty_mapping_fields,
+    ls_mapping_field  like line of lt_mapping_fields.
+  data:
+    begin of ls_result,
+      abap_field type string,
+      field      type string,
+    end of ls_result.
+
+  clear ls_mapping_field.
+  ls_mapping_field-abap  = 'ABAP_FIELD'.
+  ls_mapping_field-json = 'json.field'.
+  insert ls_mapping_field into table lt_mapping_fields.
+
+  li_mapping = zcl_ajson_mapping=>create_field_mapping( lt_mapping_fields ).
+
+  lo_ajson =
+      zcl_ajson=>parse( iv_json = '{"field":"value","json.field":"field_value"}' ii_custom_mapping = li_mapping ).
+
+  lo_ajson->to_abap( importing ev_container = ls_result ).
+```
+
+### Example: ABAP => JSON mapping fields
+
+Example code snippet
+```abap
+  data:
+    lo_ajson          type ref to zcl_ajson,
+    li_mapping        type ref to zif_ajson_mapping,
+    lt_mapping_fields type zif_ajson_mapping=>ty_mapping_fields,
+    ls_mapping_field  like line of lt_mapping_fields.
+  data:
+    begin of ls_result,
+      abap_field type string,
+      field      type string,
+    end of ls_result.
+
+  clear ls_mapping_field.
+  ls_mapping_field-abap  = 'ABAP_FIELD'.
+  ls_mapping_field-json = 'json.field'.
+  insert ls_mapping_field into table lt_mapping_fields.
+
+  li_mapping = zcl_ajson_mapping=>create_field_mapping( lt_mapping_fields ).
+
+  ls_result-abap_field = 'field_value'.
+  ls_result-field      = 'value'.
+
+  lo_ajson = zcl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
+
+  lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+```
+
+JSON Output
+```json
+{"field":"value","json.field":"field_value"}
+```
+
+### Example: Camel Case - To JSON (first letter lower case)
+
+Example code snippet
+```abap
+  data:
+    lo_ajson   type ref to zcl_ajson,
+    li_mapping type ref to zif_ajson_mapping.
+  data:
+    begin of ls_result,
+      field_data type string,
+    end of ls_result.
+
+  li_mapping = zcl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ).
+
+  ls_result-field_data = 'field_value'.
+
+  lo_ajson = zcl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
+
+  lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+```
+
+JSON Output
+```json
+{"fieldData":"field_value"}
+```
+
+### Example: Camel Case - To JSON (first letter upper case)
+
+Example code snippet
+```abap
+  data:
+    lo_ajson   type ref to zcl_ajson,
+    li_mapping type ref to zif_ajson_mapping.
+  data:
+    begin of ls_result,
+      field_data type string,
+    end of ls_result.
+
+  li_mapping = zcl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_true ).
+
+  ls_result-field_data = 'field_value'.
+
+  lo_ajson = zcl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
+
+  lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+```
+
+JSON Output
+```json
+{"FieldData":"field_value"}
+```
+
+### Example: Camel Case - To ABAP
+
+JSON Input
+```json
+{"FieldData":"field_value"}
+```
+
+Example code snippet
+```abap
+  data:
+    lo_ajson   type ref to zcl_ajson,
+    li_mapping type ref to zif_ajson_mapping.
+  data:
+    begin of ls_result,
+      field_data type string,
+    end of ls_result.
+
+  li_mapping = zcl_ajson_mapping=>create_camel_case( ).
+
+  lo_ajson = zcl_ajson=>parse( iv_json = '{"FieldData":"field_value"}' ii_custom_mapping = li_mapping ).
+
+  lo_ajson->to_abap( importing ev_container = ls_result ).
+```
+
+### Example: Lower Case - To JSON
+
+Example code snippet
+```abap
+  data:
+    lo_ajson   type ref to zcl_ajson,
+    li_mapping type ref to zif_ajson_mapping.
+  data:
+    begin of ls_result,
+      field_data type string,
+    end of ls_result.
+
+  li_mapping = zcl_ajson_mapping=>create_lower_case( ).
+
+  ls_result-field_data = 'field_value'.
+
+  lo_ajson = zcl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
+
+  lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+```
+
+JSON Output
+```json
+{"field_data":"field_value"}
+```
+
+### Example: Upper Case - To JSON
+
+Example code snippet
+```abap
+  data:
+    lo_ajson   type ref to zcl_ajson,
+    li_mapping type ref to zif_ajson_mapping.
+  data:
+    begin of ls_result,
+      field_data type string,
+    end of ls_result.
+
+  li_mapping = zcl_ajson_mapping=>create_upper_case( ).
+
+  ls_result-field_data = 'field_value'.
+
+  lo_ajson = zcl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
+
+  lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+```
+
+JSON Output
+```json
+{"FIELD_DATA":"field_value"}
 ```
 
 ## Utilities
