@@ -508,6 +508,14 @@ class lcl_json_to_abap definition final.
       raising
         zcx_ajson_error.
 
+    methods to_timestamp
+      importing
+        is_path          type zif_ajson=>ty_node
+      returning
+        value(rv_result) type timestamp
+      raising
+        zcx_ajson_error.
+
   private section.
     data mr_obj type ref to data.
     data mi_custom_mapping type ref to zif_ajson_mapping.
@@ -562,6 +570,8 @@ class lcl_json_to_abap implementation.
                   iv_location = <n>-path && <n>-name ).
               endif.
               concatenate lv_y lv_m lv_d into <value>.
+            elseif lv_type = 'P' and <n>-value is not initial.
+              <value> = to_timestamp( is_path = <n> ).
             else.
               <value> = <n>-value.
             endif.
@@ -674,6 +684,79 @@ class lcl_json_to_abap implementation.
       endif.
       get reference of <value> into r_ref.
     endloop.
+
+  endmethod.
+
+  method to_timestamp.
+
+    constants lc_regex_ts_with_hour type string
+        value `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(\+)(\d{2}):(\d{2})`.
+    constants lc_regex_ts_utc type string
+        value `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(Z|$)`.
+
+    data:
+      begin of ls_timestamp,
+        year         type c length 4,
+        month        type c length 2,
+        day          type c length 2,
+        t            type c length 1,
+        hour         type c length 2,
+        minute       type c length 2,
+        second       type c length 2,
+        local_sign   type c length 1,
+        local_hour   type c length 2,
+        local_minute type c length 2,
+      end of ls_timestamp.
+
+    data lv_date type d.
+    data lv_time type t.
+    data lv_seconds_conv type i.
+    data lv_timestamp type timestamp.
+
+    find first occurrence of regex lc_regex_ts_with_hour
+      in is_path-value submatches ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
+                                  ls_timestamp-hour ls_timestamp-minute ls_timestamp-second
+                                  ls_timestamp-local_sign ls_timestamp-local_hour ls_timestamp-local_minute.
+
+    if sy-subrc = 0.
+
+      lv_seconds_conv = ( ls_timestamp-local_hour * 3600 ) + ( ls_timestamp-local_minute * 60 ).
+
+    else.
+
+      find first occurrence of regex lc_regex_ts_utc
+        in is_path-value submatches ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
+                                    ls_timestamp-hour ls_timestamp-minute ls_timestamp-second.
+
+      if sy-subrc <> 0.
+        zcx_ajson_error=>raise(
+          iv_msg      = 'Unexpected timestamp format'
+          iv_location = is_path-path && is_path-name ).
+      endif.
+
+    endif.
+
+    concatenate ls_timestamp-year ls_timestamp-month ls_timestamp-day into lv_date.
+    concatenate ls_timestamp-hour ls_timestamp-minute ls_timestamp-second into lv_time.
+
+    convert date lv_date time lv_time into time stamp lv_timestamp time zone 'UTC'.
+
+    try.
+
+        case ls_timestamp-local_sign.
+          when '-'.
+            lv_timestamp = cl_abap_tstmp=>add( tstmp = lv_timestamp secs = lv_seconds_conv ).
+          when '+'.
+            lv_timestamp = cl_abap_tstmp=>subtractsecs( tstmp = lv_timestamp secs = lv_seconds_conv ).
+        endcase.
+
+      catch cx_parameter_invalid_range cx_parameter_invalid_type.
+        zcx_ajson_error=>raise(
+          iv_msg      = 'Unexpected error calculating timestamp'
+          iv_location = is_path-path && is_path-name ).
+    endtry.
+
+    rv_result = lv_timestamp.
 
   endmethod.
 

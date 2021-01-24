@@ -1106,6 +1106,9 @@ class ltcl_json_to_abap definition
         oref  type ref to object,
         date1 type d,
         date2 type d,
+        timestamp1 type timestamp,
+        timestamp2 type timestamp,
+        timestamp3 type timestamp,
       end of ty_complex.
 
     methods find_loc for testing raising zcx_ajson_error.
@@ -1323,6 +1326,7 @@ class ltcl_json_to_abap implementation.
     data lo_cut type ref to lcl_json_to_abap.
     data ls_mock type ty_complex.
     data lv_exp_date type d value '20200728'.
+    data lv_exp_timestamp type timestamp value '20200728000000'.
     lcl_json_to_abap=>bind(
       changing
         c_obj = ls_mock
@@ -1344,6 +1348,9 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/tab/2 |a     |str    | Two   | ' ).
     lo_nodes->add( '/      |date1 |str    |2020-07-28 | ' ).
     lo_nodes->add( '/      |date2 |str    |2020-07-28T00:00:00Z | ' ).
+    lo_nodes->add( '/      |timestamp1 |str    |2020-07-28T00:00:00 | ' ).
+    lo_nodes->add( '/      |timestamp2 |str    |2020-07-28T00:00:00Z | ' ).
+    lo_nodes->add( '/      |timestamp3 |str    |2020-07-28T01:00:00+01:00 | ' ).
 
     lo_cut->to_abap( lo_nodes->sorted( ) ).
 
@@ -1368,6 +1375,15 @@ class ltcl_json_to_abap implementation.
     cl_abap_unit_assert=>assert_equals(
       act = ls_mock-date2
       exp = lv_exp_date ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_mock-timestamp1
+      exp = lv_exp_timestamp ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_mock-timestamp2
+      exp = lv_exp_timestamp ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_mock-timestamp3
+      exp = lv_exp_timestamp ).
 
     data ls_elem like line of ls_mock-tab.
     cl_abap_unit_assert=>assert_equals(
