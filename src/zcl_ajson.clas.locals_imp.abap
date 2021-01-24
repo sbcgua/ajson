@@ -743,17 +743,17 @@ class lcl_json_to_abap implementation.
 
     try.
 
-        case ls_timestamp-local_sign.
-          when '-'.
-            lv_timestamp = cl_abap_tstmp=>add( tstmp = lv_timestamp secs = lv_seconds_conv ).
-          when '+'.
-            lv_timestamp = cl_abap_tstmp=>subtractsecs( tstmp = lv_timestamp secs = lv_seconds_conv ).
-        endcase.
+      case ls_timestamp-local_sign.
+        when '-'.
+          lv_timestamp = cl_abap_tstmp=>add( tstmp = lv_timestamp secs = lv_seconds_conv ).
+        when '+'.
+          lv_timestamp = cl_abap_tstmp=>subtractsecs( tstmp = lv_timestamp secs = lv_seconds_conv ).
+      endcase.
 
-      catch cx_parameter_invalid_range cx_parameter_invalid_type.
-        zcx_ajson_error=>raise(
-          iv_msg      = 'Unexpected error calculating timestamp'
-          iv_location = is_path-path && is_path-name ).
+    catch cx_parameter_invalid_range cx_parameter_invalid_type.
+      zcx_ajson_error=>raise(
+        iv_msg      = 'Unexpected error calculating timestamp'
+        iv_location = is_path-path && is_path-name ).
     endtry.
 
     rv_result = lv_timestamp.
