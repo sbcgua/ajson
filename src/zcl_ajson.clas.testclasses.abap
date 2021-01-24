@@ -1334,22 +1334,22 @@ class ltcl_json_to_abap implementation.
 
     data lo_nodes type ref to lcl_nodes_helper.
     create object lo_nodes.
-    lo_nodes->add( '/      |      |object |       | ' ).
-    lo_nodes->add( '/      |str   |str    |hello  | ' ).
-    lo_nodes->add( '/      |int   |num    |5      | ' ).
-    lo_nodes->add( '/      |float |num    |5.5    | ' ).
-    lo_nodes->add( '/      |bool  |bool   |true   | ' ).
-    lo_nodes->add( '/      |obj   |object |       | ' ).
-    lo_nodes->add( '/obj   |a     |str    |world  | ' ).
-    lo_nodes->add( '/      |tab   |array  |       | ' ).
-    lo_nodes->add( '/tab   |1     |object |       |1' ).
-    lo_nodes->add( '/tab/1 |a     |str    | One   | ' ).
-    lo_nodes->add( '/tab   |2     |object |       |2' ).
-    lo_nodes->add( '/tab/2 |a     |str    | Two   | ' ).
-    lo_nodes->add( '/      |date1 |str    |2020-07-28 | ' ).
-    lo_nodes->add( '/      |date2 |str    |2020-07-28T00:00:00Z | ' ).
-    lo_nodes->add( '/      |timestamp1 |str    |2020-07-28T00:00:00 | ' ).
-    lo_nodes->add( '/      |timestamp2 |str    |2020-07-28T00:00:00Z | ' ).
+    lo_nodes->add( '/      |           |object |                          | ' ).
+    lo_nodes->add( '/      |str        |str    |hello                     | ' ).
+    lo_nodes->add( '/      |int        |num    |5                         | ' ).
+    lo_nodes->add( '/      |float      |num    |5.5                       | ' ).
+    lo_nodes->add( '/      |bool       |bool   |true                      | ' ).
+    lo_nodes->add( '/      |obj        |object |                          | ' ).
+    lo_nodes->add( '/obj   |a          |str    |world                     | ' ).
+    lo_nodes->add( '/      |tab        |array  |                          | ' ).
+    lo_nodes->add( '/tab   |1          |object |                          |1' ).
+    lo_nodes->add( '/tab/1 |a          |str    | One                      | ' ).
+    lo_nodes->add( '/tab   |2          |object |                          |2' ).
+    lo_nodes->add( '/tab/2 |a          |str    | Two                      | ' ).
+    lo_nodes->add( '/      |date1      |str    |2020-07-28                | ' ).
+    lo_nodes->add( '/      |date2      |str    |2020-07-28T00:00:00Z      | ' ).
+    lo_nodes->add( '/      |timestamp1 |str    |2020-07-28T00:00:00       | ' ).
+    lo_nodes->add( '/      |timestamp2 |str    |2020-07-28T00:00:00Z      | ' ).
     lo_nodes->add( '/      |timestamp3 |str    |2020-07-28T01:00:00+01:00 | ' ).
 
     lo_cut->to_abap( lo_nodes->sorted( ) ).
