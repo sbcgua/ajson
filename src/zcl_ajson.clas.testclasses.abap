@@ -91,7 +91,7 @@ class ltcl_parser_test implementation.
     data lo_cut type ref to lcl_json_parser.
     data lt_act type zif_ajson=>ty_nodes_tt.
     create object lo_cut.
-    lt_act = lo_cut->parse( sample_json( ) ).
+    lt_act = lo_cut->parse( lv_json ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = lo_nodes->mt_nodes ).
@@ -107,7 +107,7 @@ class ltcl_parser_test implementation.
     data lo_cut type ref to lcl_json_parser.
     data lt_act type zif_ajson=>ty_nodes_tt.
     create object lo_cut.
-    lt_act = lo_cut->parse( sample_json( ) ).
+    lt_act = lo_cut->parse( lv_json ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = lo_nodes->mt_nodes ).
@@ -123,7 +123,7 @@ class ltcl_parser_test implementation.
     data lo_cut type ref to lcl_json_parser.
     data lt_act type zif_ajson=>ty_nodes_tt.
     create object lo_cut.
-    lt_act = lo_cut->parse( sample_json( ) ).
+    lt_act = lo_cut->parse( lv_json ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = lo_nodes->mt_nodes ).
@@ -139,7 +139,7 @@ class ltcl_parser_test implementation.
     data lo_cut type ref to lcl_json_parser.
     data lt_act type zif_ajson=>ty_nodes_tt.
     create object lo_cut.
-    lt_act = lo_cut->parse( sample_json( ) ).
+    lt_act = lo_cut->parse( lv_json ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = lo_nodes->mt_nodes ).
@@ -155,7 +155,7 @@ class ltcl_parser_test implementation.
     data lo_cut type ref to lcl_json_parser.
     data lt_act type zif_ajson=>ty_nodes_tt.
     create object lo_cut.
-    lt_act = lo_cut->parse( sample_json( ) ).
+    lt_act = lo_cut->parse( lv_json ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = lo_nodes->mt_nodes ).
@@ -171,7 +171,7 @@ class ltcl_parser_test implementation.
     data lo_cut type ref to lcl_json_parser.
     data lt_act type zif_ajson=>ty_nodes_tt.
     create object lo_cut.
-    lt_act = lo_cut->parse( sample_json( ) ).
+    lt_act = lo_cut->parse( lv_json ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = lo_nodes->mt_nodes ).
@@ -187,7 +187,7 @@ class ltcl_parser_test implementation.
     data lo_cut type ref to lcl_json_parser.
     data lt_act type zif_ajson=>ty_nodes_tt.
     create object lo_cut.
-    lt_act = lo_cut->parse( sample_json( ) ).
+    lt_act = lo_cut->parse( lv_json ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = lo_nodes->mt_nodes ).
