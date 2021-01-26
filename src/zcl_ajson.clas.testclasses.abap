@@ -67,7 +67,10 @@ class ltcl_parser_test definition final
         value(rv_json) type string.
 
   private section.
+    data mo_cut type ref to lcl_json_parser.
+    data mo_nodes type ref to lcl_nodes_helper.
 
+    methods setup.
     methods parse for testing raising zcx_ajson_error.
     methods parse_string for testing raising zcx_ajson_error.
     methods parse_number for testing raising zcx_ajson_error.
@@ -81,116 +84,87 @@ endclass.
 
 class ltcl_parser_test implementation.
 
+  method setup.
+    create object mo_cut.
+    create object mo_nodes.
+  endmethod.
+
   method parse_string.
-    data lv_json type string.
-    lv_json = '{"string": "abc"}'.
-    data lo_nodes type ref to lcl_nodes_helper.
-    create object lo_nodes.
-    lo_nodes->add( '                 |         |object |                        |  |1' ).
-    lo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
-    data lo_cut type ref to lcl_json_parser.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
+
     data lt_act type zif_ajson=>ty_nodes_tt.
-    create object lo_cut.
-    lt_act = lo_cut->parse( lv_json ).
+    lt_act = mo_cut->parse( '{"string": "abc"}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
-      exp = lo_nodes->mt_nodes ).
+      exp = mo_nodes->mt_nodes ).
   endmethod.
 
   method parse_number.
-    data lv_json type string.
-    lv_json = '{"number": 123}'.
-    data lo_nodes type ref to lcl_nodes_helper.
-    create object lo_nodes.
-    lo_nodes->add( '                 |         |object |                        |  |1' ).
-    lo_nodes->add( '/                |number   |num    |123                     |  |0' ).
-    data lo_cut type ref to lcl_json_parser.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |number   |num    |123                     |  |0' ).
+
     data lt_act type zif_ajson=>ty_nodes_tt.
-    create object lo_cut.
-    lt_act = lo_cut->parse( lv_json ).
+    lt_act = mo_cut->parse( '{"number": 123}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
-      exp = lo_nodes->mt_nodes ).
+      exp = mo_nodes->mt_nodes ).
   endmethod.
 
   method parse_float.
-    data lv_json type string.
-    lv_json = '{"float": 123.45}'.
-    data lo_nodes type ref to lcl_nodes_helper.
-    create object lo_nodes.
-    lo_nodes->add( '                 |         |object |                        |  |1' ).
-    lo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
-    data lo_cut type ref to lcl_json_parser.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
+
     data lt_act type zif_ajson=>ty_nodes_tt.
-    create object lo_cut.
-    lt_act = lo_cut->parse( lv_json ).
+    create object mo_cut.
+    lt_act = mo_cut->parse( '{"float": 123.45}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
-      exp = lo_nodes->mt_nodes ).
+      exp = mo_nodes->mt_nodes ).
   endmethod.
 
   method parse_boolean.
-    data lv_json type string.
-    lv_json = '{"boolean": true}'.
-    data lo_nodes type ref to lcl_nodes_helper.
-    create object lo_nodes.
-    lo_nodes->add( '                 |         |object |                        |  |1' ).
-    lo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
-    data lo_cut type ref to lcl_json_parser.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
+
     data lt_act type zif_ajson=>ty_nodes_tt.
-    create object lo_cut.
-    lt_act = lo_cut->parse( lv_json ).
+    lt_act = mo_cut->parse( '{"boolean": true}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
-      exp = lo_nodes->mt_nodes ).
+      exp = mo_nodes->mt_nodes ).
   endmethod.
 
   method parse_false.
-    data lv_json type string.
-    lv_json = '{"false": false}'.
-    data lo_nodes type ref to lcl_nodes_helper.
-    create object lo_nodes.
-    lo_nodes->add( '                 |         |object |                        |  |1' ).
-    lo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
-    data lo_cut type ref to lcl_json_parser.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
+
     data lt_act type zif_ajson=>ty_nodes_tt.
-    create object lo_cut.
-    lt_act = lo_cut->parse( lv_json ).
+    lt_act = mo_cut->parse( '{"false": false}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
-      exp = lo_nodes->mt_nodes ).
+      exp = mo_nodes->mt_nodes ).
   endmethod.
 
   method parse_null.
-    data lv_json type string.
-    lv_json = '{"null": null}'.
-    data lo_nodes type ref to lcl_nodes_helper.
-    create object lo_nodes.
-    lo_nodes->add( '                 |         |object |                        |  |1' ).
-    lo_nodes->add( '/                |null     |null   |                        |  |0' ).
-    data lo_cut type ref to lcl_json_parser.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |null     |null   |                        |  |0' ).
+
     data lt_act type zif_ajson=>ty_nodes_tt.
-    create object lo_cut.
-    lt_act = lo_cut->parse( lv_json ).
+    lt_act = mo_cut->parse( '{"null": null}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
-      exp = lo_nodes->mt_nodes ).
+      exp = mo_nodes->mt_nodes ).
   endmethod.
 
   method parse_date.
-    data lv_json type string.
-    lv_json = '{"date": "2020-03-15"}'.
-    data lo_nodes type ref to lcl_nodes_helper.
-    create object lo_nodes.
-    lo_nodes->add( '                 |         |object |                        |  |1' ).
-    lo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
-    data lo_cut type ref to lcl_json_parser.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
+
     data lt_act type zif_ajson=>ty_nodes_tt.
-    create object lo_cut.
-    lt_act = lo_cut->parse( lv_json ).
+    lt_act = mo_cut->parse( '{"date": "2020-03-15"}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
-      exp = lo_nodes->mt_nodes ).
+      exp = mo_nodes->mt_nodes ).
   endmethod.
 
   method sample_json.
