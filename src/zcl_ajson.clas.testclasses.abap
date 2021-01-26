@@ -69,10 +69,39 @@ class ltcl_parser_test definition final
   private section.
 
     methods parse for testing raising zcx_ajson_error.
+    methods parse_string for testing raising zcx_ajson_error.
+    methods parse_number for testing raising zcx_ajson_error.
+    methods parse_float for testing raising zcx_ajson_error.
+    methods parse_boolean for testing raising zcx_ajson_error.
+    methods parse_false for testing raising zcx_ajson_error.
+    methods parse_null for testing raising zcx_ajson_error.
+    methods parse_date for testing raising zcx_ajson_error.
 
 endclass.
 
 class ltcl_parser_test implementation.
+
+  method parse_string.
+  endmethod.
+
+  method parse_number.
+  endmethod.
+
+  method parse_float.
+  endmethod.
+
+  method parse_boolean.
+  endmethod.
+
+  method parse_false.
+  endmethod.
+
+  method parse_null.
+  endmethod.
+
+  method parse_date.
+  endmethod.
+
 
   method sample_json.
 
