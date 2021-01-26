@@ -67,12 +67,105 @@ class ltcl_parser_test definition final
         value(rv_json) type string.
 
   private section.
+    data mo_cut type ref to lcl_json_parser.
+    data mo_nodes type ref to lcl_nodes_helper.
 
+    methods setup.
     methods parse for testing raising zcx_ajson_error.
+    methods parse_string for testing raising zcx_ajson_error.
+    methods parse_number for testing raising zcx_ajson_error.
+    methods parse_float for testing raising zcx_ajson_error.
+    methods parse_boolean for testing raising zcx_ajson_error.
+    methods parse_false for testing raising zcx_ajson_error.
+    methods parse_null for testing raising zcx_ajson_error.
+    methods parse_date for testing raising zcx_ajson_error.
 
 endclass.
 
 class ltcl_parser_test implementation.
+
+  method setup.
+    create object mo_cut.
+    create object mo_nodes.
+  endmethod.
+
+  method parse_string.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
+
+    data lt_act type zif_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"string": "abc"}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  endmethod.
+
+  method parse_number.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |number   |num    |123                     |  |0' ).
+
+    data lt_act type zif_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"number": 123}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  endmethod.
+
+  method parse_float.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
+
+    data lt_act type zif_ajson=>ty_nodes_tt.
+    create object mo_cut.
+    lt_act = mo_cut->parse( '{"float": 123.45}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  endmethod.
+
+  method parse_boolean.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
+
+    data lt_act type zif_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"boolean": true}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  endmethod.
+
+  method parse_false.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
+
+    data lt_act type zif_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"false": false}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  endmethod.
+
+  method parse_null.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |null     |null   |                        |  |0' ).
+
+    data lt_act type zif_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"null": null}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  endmethod.
+
+  method parse_date.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
+
+    data lt_act type zif_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"date": "2020-03-15"}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  endmethod.
 
   method sample_json.
 
