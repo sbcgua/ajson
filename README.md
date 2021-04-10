@@ -351,6 +351,46 @@ Sometimes you may want to keep order of json items in the same order as it was i
   " otherwise - '{"alpha":"a","beta":"b","zulu":"z"}'
 ```
 
+## Timestamps
+
+Conversion from JSON to ABAP can determine automatically if the value is a timestamp if:
+- value has timestamp format YYYY-MM-DDThh:mm:ssTZD, where
+  - YYYY = four-digit year
+  - MM = two-digit month (01=January, etc.)
+  - DD = two-digit day of month (01 through 31)
+  - hh = two digits of hour (00 through 23) (am/pm NOT allowed)
+  - mm = two digits of minute (00 through 59)
+  - ss = two digits of second (00 through 59)
+  - TZD = time zone designator (Z or +hh:mm or -hh:mm)
+- abap base type of field is P (Packed)
+
+### Examples
+
+Using a json with possible formats:
+```json
+{
+  "date":"2020-07-28",
+  "datetime":"2020-07-28T00:00:00",
+  "datetime_utc":"2020-07-28T00:00:00Z",
+  "datetime_plus1":"2020-07-28T01:00:00+01:00"
+}
+```
+
+Can be mapped to following structure:
+```abap
+  DATA:
+    BEGIN OF json_timestamp,
+      date           TYPE d,
+      datetime       TYPE timestamp,
+      datetime_utc   TYPE timestamp,
+      datetime_plus1 TYPE timestamp,
+    END OF json_timestamp.
+
+  DATA(lo_ajson) = zcl_ajson=>parse( json_content ).
+
+  lo_ajson->to_abap( IMPORTING ev_container = json_timestamp ).
+```
+
 ## Mapping / Formatting JSON
 
 The interface `zif_ajson_mapping` allows to create custom mapping for ABAP and JSON fields.
