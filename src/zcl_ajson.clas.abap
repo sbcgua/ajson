@@ -363,6 +363,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     lr_item = get_item( iv_path ).
 
+    if lr_item is initial.
+      return.
+    endif.
+
     create object lo_to_abap.
 
     try.
