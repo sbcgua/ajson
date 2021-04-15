@@ -311,6 +311,24 @@ class zcl_ajson implementation.
   endmethod.
 
 
+  method zif_ajson_reader~get_timestamp.
+
+    data lo_to_abap type ref to lcl_json_to_abap.
+    data lr_item type ref to zif_ajson=>ty_node.
+
+    lr_item = get_item( iv_path ).
+
+    create object lo_to_abap.
+
+    try.
+      rv_value = lo_to_abap->to_timestamp( is_path = lr_item->* ).
+    catch zcx_ajson_error.
+      return.
+    endtry.
+
+  endmethod.
+
+
   method zif_ajson_reader~get_integer.
 
     data lv_item type ref to zif_ajson=>ty_node.
