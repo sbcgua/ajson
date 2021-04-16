@@ -764,6 +764,7 @@ class ltcl_reader_test definition final
     methods slice for testing raising zcx_ajson_error.
     methods array_to_string_table for testing raising zcx_ajson_error.
     methods get_date for testing raising zcx_ajson_error.
+    methods get_timestamp for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -953,6 +954,25 @@ class ltcl_reader_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->zif_ajson_reader~get_date( '/date1' )
       exp = '' ).
+
+  endmethod.
+
+  method get_timestamp.
+
+    data lo_cut type ref to zcl_ajson.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lv_exp type timestamp value `20200728000000`.
+
+    create object lo_cut.
+
+    create object lo_nodes.
+    lo_nodes->add( '  |         |object |                        | |1' ).
+    lo_nodes->add( '/ |timestamp|str    |2020-07-28T00:00:00Z    | |0' ).
+    lo_cut->mt_json_tree = lo_nodes->mt_nodes.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->zif_ajson_reader~get_timestamp( '/timestamp' )
+      exp = lv_exp ).
 
   endmethod.
 

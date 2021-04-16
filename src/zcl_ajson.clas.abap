@@ -16,6 +16,7 @@ class zcl_ajson definition
       get_integer for zif_ajson_reader~get_integer,
       get_number for zif_ajson_reader~get_number,
       get_date for zif_ajson_reader~get_date,
+      get_timestamp for zif_ajson_reader~get_timestamp,
       get_string for zif_ajson_reader~get_string,
       slice for zif_ajson_reader~slice,
       to_abap for zif_ajson_reader~to_abap,
@@ -85,11 +86,11 @@ class zcl_ajson definition
       returning
         value(rv_deleted) type abap_bool.
 
-endclass.
+ENDCLASS.
 
 
 
-class zcl_ajson implementation.
+CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method create_empty.
@@ -351,6 +352,28 @@ class zcl_ajson implementation.
     if lv_item is not initial and lv_item->type <> zif_ajson=>node_type-null.
       rv_value = lv_item->value.
     endif.
+
+  endmethod.
+
+
+  method zif_ajson_reader~get_timestamp.
+
+    data lo_to_abap type ref to lcl_json_to_abap.
+    data lr_item type ref to zif_ajson=>ty_node.
+
+    lr_item = get_item( iv_path ).
+
+    if lr_item is initial.
+      return.
+    endif.
+
+    create object lo_to_abap.
+
+    try.
+      rv_value = lo_to_abap->to_timestamp( is_path = lr_item->* ).
+    catch zcx_ajson_error.
+      return.
+    endtry.
 
   endmethod.
 
@@ -693,4 +716,4 @@ class zcl_ajson implementation.
   method zif_ajson~keep_item_order.
     mv_keep_item_order = abap_true.
   endmethod.
-endclass.
+ENDCLASS.
