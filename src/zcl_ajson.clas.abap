@@ -29,6 +29,7 @@ class zcl_ajson definition
       set_string for zif_ajson_writer~set_string,
       set_integer for zif_ajson_writer~set_integer,
       set_date for zif_ajson_writer~set_date,
+      set_timestamp for zif_ajson_writer~set_timestamp,
       set_null for zif_ajson_writer~set_null,
       delete for zif_ajson_writer~delete,
       touch_array for zif_ajson_writer~touch_array,
@@ -86,11 +87,11 @@ class zcl_ajson definition
       returning
         value(rv_deleted) type abap_bool.
 
-ENDCLASS.
+endclass.
 
 
 
-CLASS ZCL_AJSON IMPLEMENTATION.
+class zcl_ajson implementation.
 
 
   method create_empty.
@@ -616,6 +617,37 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson_writer~set_timestamp.
+
+    data:
+      lv_date          type d,
+      lv_time          type t,
+      lv_timestamp_iso type string.
+
+    if iv_val is initial.
+      " The zero value is January 1, year 1, 00:00:00.000000000 UTC.
+      lv_date = '00010101'.
+    else.
+
+      convert time stamp iv_val time zone 'UTC'
+        into date lv_date time lv_time.
+
+    endif.
+
+    lv_timestamp_iso =
+        lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
+        'T' &&
+        lv_time+0(2) && '-' && lv_time+2(2) && '-' && lv_time+4(2) &&
+        'Z'.
+
+    zif_ajson_writer~set(
+      iv_ignore_empty = abap_false
+      iv_path = iv_path
+      iv_val  = lv_timestamp_iso ).
+
+  endmethod.
+
+
   method zif_ajson_writer~set_integer.
 
     zif_ajson_writer~set(
@@ -716,4 +748,4 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method zif_ajson~keep_item_order.
     mv_keep_item_order = abap_true.
   endmethod.
-ENDCLASS.
+endclass.
