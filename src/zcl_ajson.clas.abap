@@ -4,8 +4,6 @@ class zcl_ajson definition
 
   public section.
 
-    interfaces zif_ajson_reader .
-    interfaces zif_ajson_writer .
     interfaces zif_ajson .
 
     aliases:
