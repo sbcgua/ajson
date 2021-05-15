@@ -207,6 +207,12 @@ w->set_date(
   iv_path = '/a'
   iv_val  = sy-datum ). " => e.g. "2020-07-05" (with dashes)
 
+" Timestamp - converts timestamp param to json formatted data as ISO (<YYYY>-<MM>-<DD>T<HH>:<MM>:<SS>Z)
+get time stamp field lv_timestamp.
+w->set_timestamp(
+  iv_path = '/a'
+  iv_val  = lv_timestamp ). " => e.g. "2021-05-05T12-00-00Z" (with dashes)
+
 " Null
 " same effect is for initial data ref
 w->set_null(

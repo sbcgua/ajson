@@ -1608,6 +1608,7 @@ class ltcl_writer_test definition final
     methods set_str for testing raising zcx_ajson_error.
     methods set_int for testing raising zcx_ajson_error.
     methods set_date for testing raising zcx_ajson_error.
+    methods set_timestamp for testing raising zcx_ajson_error.
     methods read_only for testing raising zcx_ajson_error.
     methods set_array_obj for testing raising zcx_ajson_error.
     methods set_with_type for testing raising zcx_ajson_error.
@@ -2322,6 +2323,30 @@ class ltcl_writer_test implementation.
     li_writer->set_date(
       iv_path = '/a'
       iv_val  = lv_date ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method set_timestamp.
+
+    data lo_cut type ref to zcl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson_writer.
+    data lv_timestamp type timestamp.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |                     ||1' ).
+    lo_nodes_exp->add( '/       |a     |str    |2021-05-05T12-00-00Z ||0' ).
+
+    lv_timestamp = '20210505120000'.
+    li_writer->set_timestamp(
+      iv_path = '/a'
+      iv_val  = lv_timestamp ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
