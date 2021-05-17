@@ -1155,6 +1155,7 @@ class lcl_abap_to_json implementation.
     data lo_table type ref to cl_abap_tabledescr.
     data lo_ltype type ref to cl_abap_typedescr.
     data ls_next_prefix like is_prefix.
+    data lv_tabix type sy-tabix.
 
     field-symbols <root> like line of ct_nodes.
     field-symbols <tab> type any table.
@@ -1181,8 +1182,9 @@ class lcl_abap_to_json implementation.
     ls_next_prefix-path = is_prefix-path && is_prefix-name && '/'.
     assign iv_data to <tab>.
 
+    lv_tabix = 1.
     loop at <tab> assigning <val>.
-      ls_next_prefix-name = to_lower( |{ sy-tabix }| ).
+      ls_next_prefix-name = to_lower( |{ lv_tabix }| ).
 
       convert_any(
         exporting
@@ -1194,6 +1196,7 @@ class lcl_abap_to_json implementation.
           ct_nodes = ct_nodes ).
 
       <root>-children = <root>-children + 1.
+      lv_tabix = lv_tabix + 1.
     endloop.
 
   endmethod.
