@@ -1942,8 +1942,8 @@ class ltcl_writer_test implementation.
     lo_cut = zcl_ajson=>create_empty( ).
     li_writer = lo_cut.
 
-    insert |hello| into table lt_tab.
-    insert |world| into table lt_tab.
+    insert `hello` into table lt_tab.
+    insert `world` into table lt_tab.
 
     " Prepare source
     create object lo_nodes.
