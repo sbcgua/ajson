@@ -8,10 +8,15 @@ Legend
 + : added
 - : removed
 
-v1.0.4, 2021-??
+v1.0.4, 2021-06-22
 ------------------
 ! BREAKING: Move types, constants to zif_ajson, also alias methods of reader/writer
 + keep_item_order feature: stringify object elements in the order it appears in abap structure
++ custom field name mappers (zif_ajson_mapping), thanks to @jrodriguez-rc
++ timestamps support (get and set), @jrodriguez-rc
+- removed direct reference to zif_ajson_reader/writer from the main class @mbtools
+* fixed hashed table item index @mbtools
+* better unit tests and cleanups @larshp
 
 v1.0.3, 2021-01-09
 ------------------
