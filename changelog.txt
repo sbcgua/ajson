@@ -8,7 +8,7 @@ Legend
 + : added
 - : removed
 
-v1.0.4, 2021-??
+v1.0.4, 2021-06-22
 ------------------
 ! BREAKING: Move types, constants to zif_ajson, also alias methods of reader/writer
 + keep_item_order feature: stringify object elements in the order it appears in abap structure
