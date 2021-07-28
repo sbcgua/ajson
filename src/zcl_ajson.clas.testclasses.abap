@@ -141,6 +141,9 @@ class ltcl_parser_test implementation.
       cl_abap_unit_assert=>assert_char_cp(
         act = lx_err->get_text( )
         exp = '*parsing error*' ).
+      cl_abap_unit_assert=>assert_char_cp(
+        act = lx_err->location
+        exp = '@PARSER' ).
     endtry.
 
   endmethod.
