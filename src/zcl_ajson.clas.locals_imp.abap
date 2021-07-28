@@ -135,7 +135,7 @@ class lcl_json_parser implementation.
     try.
       rt_json_tree = _parse( iv_json ).
     catch cx_sxml_error into lx_sxml.
-      zcx_ajson_error=>raise( `SXML: ` && lx_sxml->get_text( ) ).
+      zcx_ajson_error=>raise( |Json parsing error (SXML): { lx_sxml->get_text( ) }| ).
     endtry.
   endmethod.
 

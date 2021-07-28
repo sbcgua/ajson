@@ -10,6 +10,7 @@ class lcl_nodes_helper definition final.
     methods add
       importing
         iv_str type string.
+    methods clear.
     methods sorted
       returning
         value(rt_nodes) type zif_ajson=>ty_nodes_ts.
@@ -47,6 +48,10 @@ class lcl_nodes_helper implementation.
   method sorted.
     rt_nodes = mt_nodes.
   endmethod.
+
+  method clear.
+    clear mt_nodes.
+  endmethod.
 endclass.
 
 **********************************************************************
@@ -79,6 +84,7 @@ class ltcl_parser_test definition final
     methods parse_false for testing raising zcx_ajson_error.
     methods parse_null for testing raising zcx_ajson_error.
     methods parse_date for testing raising zcx_ajson_error.
+    methods parse_bare_values for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -87,6 +93,56 @@ class ltcl_parser_test implementation.
   method setup.
     create object mo_cut.
     create object mo_nodes.
+  endmethod.
+
+  method parse_bare_values.
+
+    data lt_act type zif_ajson=>ty_nodes_tt.
+
+    mo_nodes->add( ' | |str |abc | |0' ).
+    lt_act = mo_cut->parse( '"abc"' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+
+    mo_nodes->clear( ).
+    mo_nodes->add( ' | |num |-123 | |0' ).
+    lt_act = mo_cut->parse( '-123' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+
+    mo_nodes->clear( ).
+    mo_nodes->add( ' | |bool |true | |0' ).
+    lt_act = mo_cut->parse( 'true' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+
+    mo_nodes->clear( ).
+    mo_nodes->add( ' | |bool |false | |0' ).
+    lt_act = mo_cut->parse( 'false' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+
+    mo_nodes->clear( ).
+    mo_nodes->add( ' | |null | | |0' ).
+    lt_act = mo_cut->parse( 'null' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+
+    data lx_err type ref to zcx_ajson_error.
+    try.
+      lt_act = mo_cut->parse( 'abc' ).
+      cl_abap_unit_assert=>fail( 'Parsing of string w/o quotes must fail (spec)' ).
+    catch zcx_ajson_error into lx_err.
+      cl_abap_unit_assert=>assert_char_cp(
+        act = lx_err->get_text( )
+        exp = '*parsing error*' ).
+    endtry.
+
   endmethod.
 
   method parse_string.
