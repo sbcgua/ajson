@@ -650,8 +650,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson_writer~set_timestamp.
 
+    constants lc_utc type c length 6 value 'UTC'.
+
     data:
-      lv_tz            type tznzone,
       lv_date          type d,
       lv_time          type t,
       lv_timestamp_iso type string.
@@ -661,8 +662,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       lv_date = '00010101'.
     else.
 
-      lv_tz = 'UTC'.
-      convert time stamp iv_val time zone lv_tz
+      convert time stamp iv_val time zone lc_utc
         into date lv_date time lv_time.
 
     endif.

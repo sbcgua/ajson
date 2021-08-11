@@ -691,7 +691,7 @@ class lcl_json_to_abap implementation.
 
   method to_timestamp.
 
-    constants lc_tzone_utc type tznzone value `UTC`.
+    constants lc_utc type c length 6 value 'UTC'.
     constants lc_regex_ts_with_hour type string
         value `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(\+)(\d{2}):(\d{2})`.
     constants lc_regex_ts_utc type string
@@ -742,7 +742,7 @@ class lcl_json_to_abap implementation.
     concatenate ls_timestamp-year ls_timestamp-month ls_timestamp-day into lv_date.
     concatenate ls_timestamp-hour ls_timestamp-minute ls_timestamp-second into lv_time.
 
-    convert date lv_date time lv_time into time stamp lv_timestamp time zone lc_tzone_utc.
+    convert date lv_date time lv_time into time stamp lv_timestamp time zone lc_utc.
 
     try.
 
