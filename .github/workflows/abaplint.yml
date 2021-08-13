@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '14'
       - uses: actions/checkout@v2
-      - name: Run abaplint # @2.36.9 ?
+      - name: Run abaplint
         run: |
           npm -g install @abaplint/cli
           abaplint

@@ -33,11 +33,11 @@ class zcl_ajson_mapping definition
 
   private section.
 
-endclass.
+ENDCLASS.
 
 
 
-class zcl_ajson_mapping implementation.
+CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
 
 
   method create_camel_case.
@@ -50,9 +50,9 @@ class zcl_ajson_mapping implementation.
   endmethod.
 
 
-  method create_upper_case.
+  method create_field_mapping.
 
-    create object ri_mapping type lcl_mapping_to_upper
+    create object ri_mapping type lcl_mapping_fields
       exporting
         it_mapping_fields = it_mapping_fields.
 
@@ -68,13 +68,11 @@ class zcl_ajson_mapping implementation.
   endmethod.
 
 
-  method create_field_mapping.
+  method create_upper_case.
 
-    create object ri_mapping type lcl_mapping_fields
+    create object ri_mapping type lcl_mapping_to_upper
       exporting
         it_mapping_fields = it_mapping_fields.
 
   endmethod.
-
-
-endclass.
+ENDCLASS.

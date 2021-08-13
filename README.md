@@ -5,6 +5,9 @@
 
 Yet another json parser/serializer for ABAP. It works with release 7.02 or higher.
 
+** BREAKING CHANGES in v1.1**
+- `zif_ajson_reader` and `zif_ajson_writer` interface removed. Use `zif_ajson`. The last version with those interfaces is *v1.0.4*.
+
 Features:
 - parse into a flexible form, not fixed to any predefined data structure, allowing to modify the parsed data, selectively access its parts and slice subsections of it
   - slicing can be particularly useful for REST header separation e.g. `{ "success": 1, "error": "", "payload": {...} }` where 1st level attrs are processed in one layer of your application and payload in another (and can differ from request to request)
@@ -17,21 +20,16 @@ Installed using [abapGit](https://github.com/larshp/abapGit)
 
 ## Examples and documentation
 
-The class `zcl_ajson` implements 2 interfaces:
-- `zif_ajson_reader` - used to access items of the json data
-- `zif_ajson_writer` - used to set items of the json data
-
-Since v1.0.4 it also implements `zif_ajson` which unites all the types, constants in methods in one interface. This very probably will become the recommended approach to use ajson. Reader and writer may be potentially deprecated (not decided yet), follow the updates.
-
 ### Instantiating and basics
 
 - To parse existing json data - call `zcl_ajson=>parse( lv_json_string )`
 - To create a new empty json instance (to set values and serialize) - call `zcl_ajson=>create_empty( )`
+- All functional methods and types are defined via `zif_ajson` interface. Methods have alias in the `zcl_ajson` class, however please restrain from using them directly as they may be *deprecated* in future.
 - Json attributes are addressed by path in form `/obj1/obj2/value` of e.g. `/a/b/c` addresses `{ "a": { "b": { "c": "this value !" } } }`
 - Array items addressed with index starting from 1: `/tab/2/val` -> `{ "tab": [ {...}, { "val": "this value !" } ] }`
 - Mapping and formatting options are available with interface `zif_ajson_mapping`. Predefined types for field mapping (ABAP <=> JSON), Camel Case, UPPER/lower case from class `zcl_ajson_mapping`
 
-### JSON reader (zif_ajson_reader)
+### JSON reading
 
 The methods of interface allows accessing attributes and converting to abap structure.
 
@@ -59,7 +57,7 @@ Examples below assume original json was:
 #### Individual values
 
 ```abap
-data r type ref to zif_ajson_reader.
+data r type ref to zif_ajson.
 r = zcl_ajson=>parse( lv_json_string_from_above ).
 
 r->exists( '/success' ).              " returns abap_true
@@ -86,9 +84,9 @@ r->members( '/' ).                    " returns table of "success", "error", "pa
 #### Segment slicing
 
 ```abap
-" Slice returns zif_ajson_reader instance but "payload" becomes root
+" Slice returns zif_ajson instance but "payload" becomes root
 " Useful to process API responses with unified wrappers
-data payload type ref to zif_ajson_reader.
+data payload type ref to zif_ajson.
 payload = r->slice( '/payload' ). 
 ```
 
@@ -117,14 +115,14 @@ data:
 payload->to_abap( importing ev_container = ls_payload ).
 ```
 
-### JSON writer (zif_ajson_writer)
+### JSON writing
 
 The methods of interface allows setting attributes, objects, arrays.
 
 #### Individual values
 
 ```abap
-data w type ref to zif_ajson_writer.
+data w type ref to zif_ajson.
 w = zcl_ajson=>create_empty( ).
 
 " Set value
@@ -298,32 +296,32 @@ It is possible to set an instance of ajson immutable (read only). It is done on 
 
 ### Rendering to JSON string
 
-`zcl_ajson` instance content can be rendered to JSON string using `zif_ajson_writer~stringify` method (also has alias at class level). It also supports optional indentation.
+`zcl_ajson` instance content can be rendered to JSON string using `zif_ajson~stringify` method (also has alias at class level). It also supports optional indentation.
 
 ```abap
 
     data lo_json type ref to zcl_ajson.
-    data li_writer type ref to zif_ajson_writer.
+    data li_json type ref to zif_ajson.
 
     lo_json   = zcl_ajson=>create_empty( ).
-    li_writer = lo_json.
+    li_json = lo_json.
 
-    li_writer->set(
+    li_json->set(
       iv_path = '/a'
       iv_val  = 1 ).
-    li_writer->set(
+    li_json->set(
       iv_path = '/b'
       iv_val  = 'B' ).
-    li_writer->touch_array(
+    li_json->touch_array(
       iv_path = '/e' ).
-    li_writer->touch_array(
+    li_json->touch_array(
       iv_path = '/f' ).
-    li_writer->push(
+    li_json->push(
       iv_path = '/f'
       iv_val  = 5 ).
 
     data lv type string.
-    lv = lo_json->stringify( ). " or li_writer->stringify( ).
+    lv = lo_json->stringify( ). " or li_json->stringify( ).
     " {"a":1,"b":"B","e":[],"f":[5]}
 
     lv = lo_json->stringify( iv_indent = 2 ). " indent with 2 spaces
