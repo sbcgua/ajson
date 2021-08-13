@@ -44,7 +44,9 @@ interface zif_ajson
   " METHODS
 
   methods freeze.
-  methods keep_item_order.
+  methods keep_item_order
+    returning
+      value(ri_json) type ref to zif_ajson.
 
   " METHODS ex.reader
 
@@ -140,6 +142,8 @@ interface zif_ajson
       iv_val type any
       iv_ignore_empty type abap_bool default abap_true
       iv_node_type type string optional
+    returning
+      value(ri_json) type ref to zif_ajson
     raising
       zcx_ajson_error.
 
@@ -147,6 +151,8 @@ interface zif_ajson
     importing
       iv_path type string
       iv_val type any
+    returning
+      value(ri_json) type ref to zif_ajson
     raising
       zcx_ajson_error.
 
@@ -154,6 +160,8 @@ interface zif_ajson
     importing
       iv_path type string
       iv_val type clike
+    returning
+      value(ri_json) type ref to zif_ajson
     raising
       zcx_ajson_error.
 
@@ -161,6 +169,8 @@ interface zif_ajson
     importing
       iv_path type string
       iv_val type i
+    returning
+      value(ri_json) type ref to zif_ajson
     raising
       zcx_ajson_error.
 
@@ -168,6 +178,8 @@ interface zif_ajson
     importing
       iv_path type string
       iv_val type d
+    returning
+      value(ri_json) type ref to zif_ajson
     raising
       zcx_ajson_error.
 
@@ -175,18 +187,24 @@ interface zif_ajson
     importing
       iv_path type string
       iv_val type timestamp
+    returning
+      value(ri_json) type ref to zif_ajson
     raising
       zcx_ajson_error.
 
   methods set_null
     importing
       iv_path type string
+    returning
+      value(ri_json) type ref to zif_ajson
     raising
       zcx_ajson_error.
 
   methods delete
     importing
       iv_path type string
+    returning
+      value(ri_json) type ref to zif_ajson
     raising
       zcx_ajson_error.
 
@@ -194,6 +212,8 @@ interface zif_ajson
     importing
       iv_path type string
       iv_clear type abap_bool default abap_false
+    returning
+      value(ri_json) type ref to zif_ajson
     raising
       zcx_ajson_error.
 
@@ -201,6 +221,8 @@ interface zif_ajson
     importing
       iv_path type string
       iv_val type any
+    returning
+      value(ri_json) type ref to zif_ajson
     raising
       zcx_ajson_error.
 

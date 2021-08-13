@@ -2628,6 +2628,7 @@ class ltcl_integrated definition
     methods array_simple for testing raising zcx_ajson_error.
     methods stringify for testing raising zcx_ajson_error.
     methods item_order_integrated for testing raising zcx_ajson_error.
+    methods chaining for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -2856,6 +2857,35 @@ class ltcl_integrated implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lv_act
       exp = lv_exp ).
+
+  endmethod.
+
+  method chaining.
+
+    data li_cut type ref to zif_ajson.
+
+    li_cut = zcl_ajson=>create_empty( ).
+
+    cl_abap_unit_assert=>assert_bound(
+      li_cut->set(
+        iv_path = '/a'
+        iv_val  = 1 ) ).
+
+    cl_abap_unit_assert=>assert_bound(
+      li_cut->delete(
+        iv_path = '/a' ) ).
+
+    cl_abap_unit_assert=>assert_bound(
+      li_cut->touch_array(
+        iv_path = '/array' ) ).
+
+    cl_abap_unit_assert=>assert_bound(
+      li_cut->push(
+        iv_path = '/array'
+        iv_val  = '1' ) ).
+
+    cl_abap_unit_assert=>assert_bound(
+      li_cut->keep_item_order( ) ).
 
   endmethod.
 
