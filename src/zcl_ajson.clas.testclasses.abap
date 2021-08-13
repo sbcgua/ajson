@@ -2871,11 +2871,9 @@ class ltcl_integrated implementation.
         iv_path = '/a'
         iv_val  = 1 ) ).
 
-    cl_abap_unit_assert=>assert_bound(
-      li_cut->delete( iv_path = '/a' ) ).
+    cl_abap_unit_assert=>assert_bound( li_cut->delete( iv_path = '/a' ) ).
 
-    cl_abap_unit_assert=>assert_bound(
-      li_cut->touch_array( iv_path = '/array' ) ).
+    cl_abap_unit_assert=>assert_bound( li_cut->touch_array( iv_path = '/array' ) ).
 
     cl_abap_unit_assert=>assert_bound(
       li_cut->push(
