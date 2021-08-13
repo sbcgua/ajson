@@ -5,7 +5,7 @@
 
 Yet another json parser/serializer for ABAP. It works with release 7.02 or higher.
 
-** BREAKING CHANGES in v1.1**
+**BREAKING CHANGES in v1.1**
 - `zif_ajson_reader` and `zif_ajson_writer` interface removed. Use `zif_ajson`. The last version with those interfaces is *v1.0.4*.
 
 Features:
