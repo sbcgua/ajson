@@ -2,7 +2,8 @@ interface zif_ajson
   public.
 
   constants version type string value 'v1.0.4'.
-  constants origin type string value 'https://github.com/sbcgua/ajson'.
+  constants origin type string value 'https://github.com/sbcgua/ajson'. "#EC NOTEXT
+  constants license type string value 'MIT'. "#EC NOTEXT
 
   constants:
     begin of node_type,
