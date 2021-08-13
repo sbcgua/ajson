@@ -30,9 +30,9 @@ class zcl_ajson_utilities definition
 
     data mo_json_a type ref to zif_ajson .
     data mo_json_b type ref to zif_ajson .
-    data mo_insert type ref to zif_ajson_writer .
-    data mo_delete type ref to zif_ajson_writer .
-    data mo_change type ref to zif_ajson_writer .
+    data mo_insert type ref to zif_ajson .
+    data mo_delete type ref to zif_ajson .
+    data mo_change type ref to zif_ajson .
 
     methods diff_a_b
       importing

@@ -7,32 +7,32 @@ class zcl_ajson definition
     interfaces zif_ajson .
 
     aliases:
-      exists for zif_ajson_reader~exists,
-      members for zif_ajson_reader~members,
-      get for zif_ajson_reader~get,
-      get_boolean for zif_ajson_reader~get_boolean,
-      get_integer for zif_ajson_reader~get_integer,
-      get_number for zif_ajson_reader~get_number,
-      get_date for zif_ajson_reader~get_date,
-      get_timestamp for zif_ajson_reader~get_timestamp,
-      get_string for zif_ajson_reader~get_string,
-      slice for zif_ajson_reader~slice,
-      to_abap for zif_ajson_reader~to_abap,
-      array_to_string_table for zif_ajson_reader~array_to_string_table.
+      exists for zif_ajson~exists,
+      members for zif_ajson~members,
+      get for zif_ajson~get,
+      get_boolean for zif_ajson~get_boolean,
+      get_integer for zif_ajson~get_integer,
+      get_number for zif_ajson~get_number,
+      get_date for zif_ajson~get_date,
+      get_timestamp for zif_ajson~get_timestamp,
+      get_string for zif_ajson~get_string,
+      slice for zif_ajson~slice,
+      to_abap for zif_ajson~to_abap,
+      array_to_string_table for zif_ajson~array_to_string_table.
 
     aliases:
-      clear for zif_ajson_writer~clear,
-      set for zif_ajson_writer~set,
-      set_boolean for zif_ajson_writer~set_boolean,
-      set_string for zif_ajson_writer~set_string,
-      set_integer for zif_ajson_writer~set_integer,
-      set_date for zif_ajson_writer~set_date,
-      set_timestamp for zif_ajson_writer~set_timestamp,
-      set_null for zif_ajson_writer~set_null,
-      delete for zif_ajson_writer~delete,
-      touch_array for zif_ajson_writer~touch_array,
-      push for zif_ajson_writer~push,
-      stringify for zif_ajson_writer~stringify.
+      clear for zif_ajson~clear,
+      set for zif_ajson~set,
+      set_boolean for zif_ajson~set_boolean,
+      set_string for zif_ajson~set_string,
+      set_integer for zif_ajson~set_integer,
+      set_date for zif_ajson~set_date,
+      set_timestamp for zif_ajson~set_timestamp,
+      set_null for zif_ajson~set_null,
+      delete for zif_ajson~delete,
+      touch_array for zif_ajson~touch_array,
+      push for zif_ajson~push,
+      stringify for zif_ajson~stringify.
 
     aliases:
       mt_json_tree for zif_ajson~mt_json_tree,
@@ -216,7 +216,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~array_to_string_table.
+  method zif_ajson~array_to_string_table.
 
     data lv_normalized_path type string.
     data lr_node type ref to zif_ajson=>ty_node.
@@ -255,7 +255,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~exists.
+  method zif_ajson~exists.
 
     data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
@@ -266,7 +266,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~get.
+  method zif_ajson~get.
 
     data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
@@ -277,7 +277,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~get_boolean.
+  method zif_ajson~get_boolean.
 
     data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
@@ -292,7 +292,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~get_date.
+  method zif_ajson~get_date.
 
     data lv_item type ref to zif_ajson=>ty_node.
     data lv_y type c length 4.
@@ -311,7 +311,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~get_integer.
+  method zif_ajson~get_integer.
 
     data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
@@ -322,7 +322,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~get_node_type.
+  method zif_ajson~get_node_type.
 
     data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
@@ -333,7 +333,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~get_number.
+  method zif_ajson~get_number.
 
     data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
@@ -344,7 +344,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~get_string.
+  method zif_ajson~get_string.
 
     data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
@@ -355,7 +355,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~get_timestamp.
+  method zif_ajson~get_timestamp.
 
     data lo_to_abap type ref to lcl_json_to_abap.
     data lr_item type ref to zif_ajson=>ty_node.
@@ -377,7 +377,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~members.
+  method zif_ajson~members.
 
     data lv_normalized_path type string.
     field-symbols <item> like line of mt_json_tree.
@@ -391,7 +391,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~slice.
+  method zif_ajson~slice.
 
     data lo_section         type ref to zcl_ajson.
     data ls_item            like line of mt_json_tree.
@@ -421,7 +421,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_reader~to_abap.
+  method zif_ajson~to_abap.
 
     data lo_to_abap type ref to lcl_json_to_abap.
 
@@ -437,7 +437,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~clear.
+  method zif_ajson~clear.
 
     if mv_read_only = abap_true.
       zcx_ajson_error=>raise( 'This json instance is read only' ).
@@ -448,7 +448,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~delete.
+  method zif_ajson~delete.
 
     if mv_read_only = abap_true.
       zcx_ajson_error=>raise( 'This json instance is read only' ).
@@ -464,7 +464,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~push.
+  method zif_ajson~push.
 
     data lr_parent type ref to zif_ajson=>ty_node.
     data lr_new_node type ref to zif_ajson=>ty_node.
@@ -504,7 +504,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~set.
+  method zif_ajson~set.
 
     data ls_split_path type zif_ajson=>ty_path_name.
     data lr_parent type ref to zif_ajson=>ty_node.
@@ -587,11 +587,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~set_boolean.
+  method zif_ajson~set_boolean.
 
     data lv_bool type abap_bool.
     lv_bool = boolc( iv_val is not initial ).
-    zif_ajson_writer~set(
+    zif_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_bool ).
@@ -599,7 +599,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~set_date.
+  method zif_ajson~set_date.
 
     data lv_val type string.
 
@@ -607,7 +607,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       lv_val = iv_val+0(4) && '-' && iv_val+4(2) && '-' && iv_val+6(2).
     endif.
 
-    zif_ajson_writer~set(
+    zif_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_val ).
@@ -615,9 +615,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~set_integer.
+  method zif_ajson~set_integer.
 
-    zif_ajson_writer~set(
+    zif_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = iv_val ).
@@ -625,10 +625,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~set_null.
+  method zif_ajson~set_null.
 
     data lv_null_ref type ref to data.
-    zif_ajson_writer~set(
+    zif_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_null_ref ).
@@ -636,11 +636,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~set_string.
+  method zif_ajson~set_string.
 
     data lv_val type string.
     lv_val = iv_val.
-    zif_ajson_writer~set(
+    zif_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_val ).
@@ -648,7 +648,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~set_timestamp.
+  method zif_ajson~set_timestamp.
 
     constants lc_utc type c length 6 value 'UTC'.
 
@@ -673,7 +673,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         lv_time+0(2) && '-' && lv_time+2(2) && '-' && lv_time+4(2) &&
         'Z'.
 
-    zif_ajson_writer~set(
+    zif_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_timestamp_iso ).
@@ -681,7 +681,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~stringify.
+  method zif_ajson~stringify.
 
     rv_json = lcl_json_serializer=>stringify(
       it_json_tree       = mt_json_tree
@@ -691,7 +691,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
-  method zif_ajson_writer~touch_array.
+  method zif_ajson~touch_array.
 
     data lr_node type ref to zif_ajson=>ty_node.
     data ls_new_node like line of mt_json_tree.

@@ -1,11 +1,8 @@
 interface zif_ajson
-  public .
+  public.
 
   constants version type string value 'v1.0.4'.
   constants origin type string value 'https://github.com/sbcgua/ajson'.
-
-  interfaces zif_ajson_reader.
-  interfaces zif_ajson_writer.
 
   constants:
     begin of node_type,
@@ -49,32 +46,170 @@ interface zif_ajson
   methods freeze.
   methods keep_item_order.
 
-  " METHODS (merged from reader/writer), maybe will completely move to this IF in future !
+  " METHODS ex.reader
 
-  aliases:
-    exists for zif_ajson_reader~exists,
-    members for zif_ajson_reader~members,
-    get for zif_ajson_reader~get,
-    get_boolean for zif_ajson_reader~get_boolean,
-    get_integer for zif_ajson_reader~get_integer,
-    get_number for zif_ajson_reader~get_number,
-    get_date for zif_ajson_reader~get_date,
-    get_string for zif_ajson_reader~get_string,
-    slice for zif_ajson_reader~slice,
-    to_abap for zif_ajson_reader~to_abap,
-    array_to_string_table for zif_ajson_reader~array_to_string_table.
+  methods exists
+    importing
+      iv_path type string
+    returning
+      value(rv_exists) type abap_bool.
 
-  aliases:
-    clear for zif_ajson_writer~clear,
-    set for zif_ajson_writer~set,
-    set_boolean for zif_ajson_writer~set_boolean,
-    set_string for zif_ajson_writer~set_string,
-    set_integer for zif_ajson_writer~set_integer,
-    set_date for zif_ajson_writer~set_date,
-    set_null for zif_ajson_writer~set_null,
-    delete for zif_ajson_writer~delete,
-    touch_array for zif_ajson_writer~touch_array,
-    push for zif_ajson_writer~push,
-    stringify for zif_ajson_writer~stringify.
+  methods members
+    importing
+      iv_path type string
+    returning
+      value(rt_members) type string_table.
+
+  methods get
+    importing
+      iv_path type string
+    returning
+      value(rv_value) type string.
+
+  methods get_node_type
+    importing
+      iv_path type string
+    returning
+      value(rv_node_type) type string.
+
+  methods get_boolean
+    importing
+      iv_path type string
+    returning
+      value(rv_value) type abap_bool.
+
+  methods get_integer
+    importing
+      iv_path type string
+    returning
+      value(rv_value) type i.
+
+  methods get_number
+    importing
+      iv_path type string
+    returning
+      value(rv_value) type f.
+
+  methods get_date
+    importing
+      iv_path type string
+    returning
+      value(rv_value) type d.
+
+  methods get_timestamp
+    importing
+      iv_path type string
+    returning
+      value(rv_value) type timestamp.
+
+  methods get_string
+    importing
+      iv_path type string
+    returning
+      value(rv_value) type string.
+
+  methods slice
+    importing
+      iv_path type string
+    returning
+      value(ri_json) type ref to zif_ajson.
+
+  methods to_abap
+    exporting
+      ev_container type any
+    raising
+      zcx_ajson_error.
+
+  methods array_to_string_table
+    importing
+      iv_path type string
+    returning
+      value(rt_string_table) type string_table
+    raising
+      zcx_ajson_error.
+
+  " METHODS ex.writer
+
+  methods clear
+    raising
+      zcx_ajson_error.
+
+  methods set
+    importing
+      iv_path type string
+      iv_val type any
+      iv_ignore_empty type abap_bool default abap_true
+      iv_node_type type string optional
+    raising
+      zcx_ajson_error.
+
+  methods set_boolean
+    importing
+      iv_path type string
+      iv_val type any
+    raising
+      zcx_ajson_error.
+
+  methods set_string
+    importing
+      iv_path type string
+      iv_val type clike
+    raising
+      zcx_ajson_error.
+
+  methods set_integer
+    importing
+      iv_path type string
+      iv_val type i
+    raising
+      zcx_ajson_error.
+
+  methods set_date
+    importing
+      iv_path type string
+      iv_val type d
+    raising
+      zcx_ajson_error.
+
+  methods set_timestamp
+    importing
+      iv_path type string
+      iv_val type timestamp
+    raising
+      zcx_ajson_error.
+
+  methods set_null
+    importing
+      iv_path type string
+    raising
+      zcx_ajson_error.
+
+  methods delete
+    importing
+      iv_path type string
+    raising
+      zcx_ajson_error.
+
+  methods touch_array
+    importing
+      iv_path type string
+      iv_clear type abap_bool default abap_false
+    raising
+      zcx_ajson_error.
+
+  methods push
+    importing
+      iv_path type string
+      iv_val type any
+    raising
+      zcx_ajson_error.
+
+  methods stringify
+    importing
+      iv_indent type i default 0
+    returning
+      value(rv_json) type string
+    raising
+      zcx_ajson_error.
 
 endinterface.
