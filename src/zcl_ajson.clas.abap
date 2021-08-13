@@ -255,6 +255,35 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson~clear.
+
+    if mv_read_only = abap_true.
+      zcx_ajson_error=>raise( 'This json instance is read only' ).
+    endif.
+
+    clear mt_json_tree.
+
+  endmethod.
+
+
+  method zif_ajson~delete.
+
+    if mv_read_only = abap_true.
+      zcx_ajson_error=>raise( 'This json instance is read only' ).
+    endif.
+
+    data ls_split_path type zif_ajson=>ty_path_name.
+    ls_split_path = lcl_utils=>split_path( iv_path ).
+
+    delete_subtree(
+      iv_path = ls_split_path-path
+      iv_name = ls_split_path-name ).
+
+    ri_json = me.
+
+  endmethod.
+
+
   method zif_ajson~exists.
 
     data lv_item type ref to zif_ajson=>ty_node.
@@ -263,6 +292,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       rv_exists = abap_true.
     endif.
 
+  endmethod.
+
+
+  method zif_ajson~freeze.
+    mv_read_only = abap_true.
   endmethod.
 
 
@@ -377,6 +411,12 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson~keep_item_order.
+    mv_keep_item_order = abap_true.
+    ri_json = me.
+  endmethod.
+
+
   method zif_ajson~members.
 
     data lv_normalized_path type string.
@@ -387,79 +427,6 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     loop at mt_json_tree assigning <item> where path = lv_normalized_path.
       append <item>-name to rt_members.
     endloop.
-
-  endmethod.
-
-
-  method zif_ajson~slice.
-
-    data lo_section         type ref to zcl_ajson.
-    data ls_item            like line of mt_json_tree.
-    data lv_normalized_path type string.
-    data ls_path_parts      type zif_ajson=>ty_path_name.
-    data lv_path_len        type i.
-
-    create object lo_section.
-    lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
-    lv_path_len        = strlen( lv_normalized_path ).
-    ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
-
-    loop at mt_json_tree into ls_item.
-      " TODO potentially improve performance due to sorted tree (all path started from same prefix go in a row)
-      if strlen( ls_item-path ) >= lv_path_len
-          and substring( val = ls_item-path len = lv_path_len ) = lv_normalized_path.
-        ls_item-path = substring( val = ls_item-path off = lv_path_len - 1 ). " less closing '/'
-        insert ls_item into table lo_section->mt_json_tree.
-      elseif ls_item-path = ls_path_parts-path and ls_item-name = ls_path_parts-name.
-        clear: ls_item-path, ls_item-name. " this becomes a new root
-        insert ls_item into table lo_section->mt_json_tree.
-      endif.
-    endloop.
-
-    ri_json = lo_section.
-
-  endmethod.
-
-
-  method zif_ajson~to_abap.
-
-    data lo_to_abap type ref to lcl_json_to_abap.
-
-    clear ev_container.
-    lcl_json_to_abap=>bind(
-      exporting
-        ii_custom_mapping = mi_custom_mapping
-      changing
-        c_obj             = ev_container
-        co_instance       = lo_to_abap ).
-    lo_to_abap->to_abap( mt_json_tree ).
-
-  endmethod.
-
-
-  method zif_ajson~clear.
-
-    if mv_read_only = abap_true.
-      zcx_ajson_error=>raise( 'This json instance is read only' ).
-    endif.
-
-    clear mt_json_tree.
-
-  endmethod.
-
-
-  method zif_ajson~delete.
-
-    if mv_read_only = abap_true.
-      zcx_ajson_error=>raise( 'This json instance is read only' ).
-    endif.
-
-    data ls_split_path type zif_ajson=>ty_path_name.
-    ls_split_path = lcl_utils=>split_path( iv_path ).
-
-    delete_subtree(
-      iv_path = ls_split_path-path
-      iv_name = ls_split_path-name ).
 
   endmethod.
 
@@ -500,6 +467,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     " update data
     lr_parent->children = lr_parent->children + 1.
     insert lines of lt_new_nodes into table mt_json_tree.
+
+    ri_json = me.
 
   endmethod.
 
@@ -584,6 +553,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     lr_parent->children = lr_parent->children + 1.
     insert lines of lt_new_nodes into table mt_json_tree.
 
+    ri_json = me.
+
   endmethod.
 
 
@@ -595,6 +566,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_bool ).
+
+    ri_json = me.
 
   endmethod.
 
@@ -612,6 +585,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_path = iv_path
       iv_val  = lv_val ).
 
+    ri_json = me.
+
   endmethod.
 
 
@@ -621,6 +596,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = iv_val ).
+
+    ri_json = me.
 
   endmethod.
 
@@ -633,6 +610,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_path = iv_path
       iv_val  = lv_null_ref ).
 
+    ri_json = me.
+
   endmethod.
 
 
@@ -644,6 +623,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_val ).
+
+    ri_json = me.
 
   endmethod.
 
@@ -677,6 +658,38 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_timestamp_iso ).
+
+    ri_json = me.
+
+  endmethod.
+
+
+  method zif_ajson~slice.
+
+    data lo_section         type ref to zcl_ajson.
+    data ls_item            like line of mt_json_tree.
+    data lv_normalized_path type string.
+    data ls_path_parts      type zif_ajson=>ty_path_name.
+    data lv_path_len        type i.
+
+    create object lo_section.
+    lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
+    lv_path_len        = strlen( lv_normalized_path ).
+    ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
+
+    loop at mt_json_tree into ls_item.
+      " TODO potentially improve performance due to sorted tree (all path started from same prefix go in a row)
+      if strlen( ls_item-path ) >= lv_path_len
+          and substring( val = ls_item-path len = lv_path_len ) = lv_normalized_path.
+        ls_item-path = substring( val = ls_item-path off = lv_path_len - 1 ). " less closing '/'
+        insert ls_item into table lo_section->mt_json_tree.
+      elseif ls_item-path = ls_path_parts-path and ls_item-name = ls_path_parts-name.
+        clear: ls_item-path, ls_item-name. " this becomes a new root
+        insert ls_item into table lo_section->mt_json_tree.
+      endif.
+    endloop.
+
+    ri_json = lo_section.
 
   endmethod.
 
@@ -737,15 +750,23 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       zcx_ajson_error=>raise( |Path [{ iv_path }] already used and is not array| ).
     endif.
 
+    ri_json = me.
+
   endmethod.
 
 
-  method zif_ajson~freeze.
-    mv_read_only = abap_true.
-  endmethod.
+  method zif_ajson~to_abap.
 
+    data lo_to_abap type ref to lcl_json_to_abap.
 
-  method zif_ajson~keep_item_order.
-    mv_keep_item_order = abap_true.
+    clear ev_container.
+    lcl_json_to_abap=>bind(
+      exporting
+        ii_custom_mapping = mi_custom_mapping
+      changing
+        c_obj             = ev_container
+        co_instance       = lo_to_abap ).
+    lo_to_abap->to_abap( mt_json_tree ).
+
   endmethod.
 ENDCLASS.

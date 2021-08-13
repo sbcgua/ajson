@@ -290,6 +290,10 @@ w->touch_array( '/array2' ).
 
 Currently not supported, but maybe in future. Except initial data ref which is equivalent to `set_null`.
 
+#### Chaining
+
+Set (and some other) methods also return `me` to support chaining: `li_json->set(...)->set(...)->touch_array(...)->push(...)`.
+
 #### Freezing JSON (read only)
 
 It is possible to set an instance of ajson immutable (read only). It is done on object level with method `freeze` or at parse time with `iv_freeze = abap_true` param. This is one way only change. After this `set`, `delete`, `clear` and other modification methods will raise exceptions if used. Useful to freeze some kind of settings or service responses.
