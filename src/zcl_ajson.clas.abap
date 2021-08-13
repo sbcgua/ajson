@@ -336,7 +336,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     lv_item = get_item( iv_path ).
 
     if lv_item is not initial and lv_item->type = zif_ajson=>node_type-string.
-      find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)'
+      find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
         in lv_item->value
         submatches lv_y lv_m lv_d.
       concatenate lv_y lv_m lv_d into rv_value.

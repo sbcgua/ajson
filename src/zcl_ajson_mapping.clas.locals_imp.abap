@@ -132,7 +132,7 @@ class lcl_mapping_camel implementation.
 
     rv_result = iv_name.
 
-    replace all occurrences of regex `([a-z])([A-Z])` in rv_result with `$1_$2`.
+    replace all occurrences of regex `([a-z])([A-Z])` in rv_result with `$1_$2`. "#EC NOTEXT
 
   endmethod.
 
