@@ -483,6 +483,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       zcx_ajson_error=>raise( 'This json instance is read only' ).
     endif.
 
+    ri_json = me.
+
     if iv_val is initial and iv_ignore_empty = abap_true and iv_node_type is initial.
       return. " nothing to assign
     endif.
@@ -553,12 +555,12 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     lr_parent->children = lr_parent->children + 1.
     insert lines of lt_new_nodes into table mt_json_tree.
 
-    ri_json = me.
-
   endmethod.
 
 
   method zif_ajson~set_boolean.
+
+    ri_json = me.
 
     data lv_bool type abap_bool.
     lv_bool = boolc( iv_val is not initial ).
@@ -567,15 +569,14 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_path = iv_path
       iv_val  = lv_bool ).
 
-    ri_json = me.
-
   endmethod.
 
 
   method zif_ajson~set_date.
 
-    data lv_val type string.
+    ri_json = me.
 
+    data lv_val type string.
     if iv_val is not initial.
       lv_val = iv_val+0(4) && '-' && iv_val+4(2) && '-' && iv_val+6(2).
     endif.
@@ -585,24 +586,24 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_path = iv_path
       iv_val  = lv_val ).
 
-    ri_json = me.
-
   endmethod.
 
 
   method zif_ajson~set_integer.
+
+    ri_json = me.
 
     zif_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = iv_val ).
 
-    ri_json = me.
-
   endmethod.
 
 
   method zif_ajson~set_null.
+
+    ri_json = me.
 
     data lv_null_ref type ref to data.
     zif_ajson~set(
@@ -610,12 +611,12 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_path = iv_path
       iv_val  = lv_null_ref ).
 
-    ri_json = me.
-
   endmethod.
 
 
   method zif_ajson~set_string.
+
+    ri_json = me.
 
     data lv_val type string.
     lv_val = iv_val.
@@ -623,8 +624,6 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_val ).
-
-    ri_json = me.
 
   endmethod.
 
@@ -637,6 +636,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       lv_date          type d,
       lv_time          type t,
       lv_timestamp_iso type string.
+
+    ri_json = me.
 
     if iv_val is initial.
       " The zero value is January 1, year 1, 00:00:00.000000000 UTC.
@@ -658,8 +659,6 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_timestamp_iso ).
-
-    ri_json = me.
 
   endmethod.
 
