@@ -1038,7 +1038,7 @@ class lcl_abap_to_json implementation.
       <n>-type = zif_ajson=>node_type-number.
       <n>-value = |{ iv_data }|.
     else.
-      zcx_ajson_error=>raise( |Unexpected elemetary type [{
+      zcx_ajson_error=>raise( |Unexpected elementary type [{
         io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
     endif.
 
