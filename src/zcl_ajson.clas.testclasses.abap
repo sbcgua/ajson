@@ -83,6 +83,7 @@ class ltcl_parser_test definition final
     methods parse_null for testing raising zcx_ajson_error.
     methods parse_date for testing raising zcx_ajson_error.
     methods parse_bare_values for testing raising zcx_ajson_error.
+    methods parse_error for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -131,6 +132,11 @@ class ltcl_parser_test implementation.
       act = lt_act
       exp = mo_nodes->mt_nodes ).
 
+  endmethod.
+
+  method parse_error.
+
+    data lt_act type zif_ajson=>ty_nodes_tt.
     data lx_err type ref to zcx_ajson_error.
     try.
       lt_act = mo_cut->parse( 'abc' ).
