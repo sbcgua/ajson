@@ -55,6 +55,12 @@ class zcl_ajson definition
       returning
         value(ro_instance) type ref to zcl_ajson.
 
+    methods add_node_filter
+      importing
+        !ii_node_filter type ref to zif_ajson_filter
+      returning
+        value(ro_instance) type ref to zcl_ajson.
+
   protected section.
 
   private section.
@@ -65,6 +71,7 @@ class zcl_ajson definition
     data mv_read_only type abap_bool.
     data mi_custom_mapping type ref to zif_ajson_mapping.
     data mv_keep_item_order type abap_bool.
+    data mo_filter_queue type ref to lcl_filter_queue.
 
     methods get_item
       importing
@@ -90,6 +97,15 @@ ENDCLASS.
 
 
 CLASS ZCL_AJSON IMPLEMENTATION.
+
+
+  method add_node_filter.
+    if mo_filter_queue is not bound.
+      create object mo_filter_queue.
+    endif.
+    mo_filter_queue->add_node_filter( ii_node_filter ).
+    ro_instance = me.
+  endmethod.
 
 
   method create_empty.
@@ -458,6 +474,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     lt_new_nodes = lcl_abap_to_json=>convert(
       iv_keep_item_order = mv_keep_item_order
+      io_filter_queue = mo_filter_queue
       iv_data   = iv_val
       is_prefix = ls_new_path ).
     read table lt_new_nodes index 1 reference into lr_new_node. " assume first record is the array item - not ideal !
@@ -503,12 +520,14 @@ CLASS ZCL_AJSON IMPLEMENTATION.
           iv_data            = iv_val
           iv_type            = iv_node_type
           is_prefix          = ls_split_path
+          io_filter_queue    = mo_filter_queue
           ii_custom_mapping  = mi_custom_mapping ).
       else.
         mt_json_tree = lcl_abap_to_json=>convert(
           iv_keep_item_order = mv_keep_item_order
           iv_data            = iv_val
           is_prefix          = ls_split_path
+          io_filter_queue    = mo_filter_queue
           ii_custom_mapping  = mi_custom_mapping ).
       endif.
       return.
@@ -541,6 +560,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         iv_type            = iv_node_type
         iv_array_index     = lv_array_index
         is_prefix          = ls_split_path
+        io_filter_queue    = mo_filter_queue
         ii_custom_mapping  = mi_custom_mapping ).
     else.
       lt_new_nodes = lcl_abap_to_json=>convert(
@@ -548,12 +568,15 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         iv_data            = iv_val
         iv_array_index     = lv_array_index
         is_prefix          = ls_split_path
+        io_filter_queue    = mo_filter_queue
         ii_custom_mapping  = mi_custom_mapping ).
     endif.
 
     " update data
-    lr_parent->children = lr_parent->children + 1.
-    insert lines of lt_new_nodes into table mt_json_tree.
+    if lines( lt_new_nodes ) > 0.
+      lr_parent->children = lr_parent->children + 1.
+      insert lines of lt_new_nodes into table mt_json_tree.
+    endif.
 
   endmethod.
 

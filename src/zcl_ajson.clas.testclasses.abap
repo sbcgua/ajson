@@ -1669,6 +1669,9 @@ class ltcl_writer_test definition final
   risk level harmless
   duration short.
 
+  public section.
+    interfaces zif_ajson_filter.
+
   private section.
 
     methods set_ajson for testing raising zcx_ajson_error.
@@ -1691,6 +1694,10 @@ class ltcl_writer_test definition final
     methods read_only for testing raising zcx_ajson_error.
     methods set_array_obj for testing raising zcx_ajson_error.
     methods set_with_type for testing raising zcx_ajson_error.
+    methods set_with_filter for testing raising zcx_ajson_error.
+    methods push_with_filter for testing raising zcx_ajson_error.
+    methods set_with_filter_and_type for testing raising zcx_ajson_error.
+
     methods set_with_type_slice
       importing
         io_json_in type ref to zcl_ajson
@@ -1916,24 +1923,22 @@ class ltcl_writer_test implementation.
   method ignore_empty.
 
     data lo_nodes type ref to lcl_nodes_helper.
-    data lo_cut type ref to zcl_ajson.
-    data li_writer type ref to zif_ajson.
+    data li_cut type ref to zif_ajson.
 
-    lo_cut = zcl_ajson=>create_empty( ).
-    li_writer = lo_cut.
+    li_cut = zcl_ajson=>create_empty( ).
 
     create object lo_nodes.
     lo_nodes->add( '        |      |object |     ||1' ).
     lo_nodes->add( '/       |a     |num    |1    ||0' ).
 
-    li_writer->set(
+    li_cut->set(
       iv_path = '/a'
       iv_val  = 1 ).
-    li_writer->set( " ignore empty
+    li_cut->set( " ignore empty
       iv_path = '/b'
       iv_val  = 0 ).
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->mt_json_tree
+      act = li_cut->mt_json_tree
       exp = lo_nodes->sorted( ) ).
 
     create object lo_nodes.
@@ -1941,12 +1946,12 @@ class ltcl_writer_test implementation.
     lo_nodes->add( '/       |a     |num    |1    ||0' ).
     lo_nodes->add( '/       |b     |num    |0    ||0' ).
 
-    li_writer->set(
+    li_cut->set(
       iv_ignore_empty = abap_false
       iv_path = '/b'
       iv_val  = 0 ).
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->mt_json_tree
+      act = li_cut->mt_json_tree
       exp = lo_nodes->sorted( ) ).
 
   endmethod.
@@ -2606,6 +2611,73 @@ class ltcl_writer_test implementation.
     endloop.
 
   endmethod.
+
+  method zif_ajson_filter~keep_node.
+    rv_keep = boolc( not is_node-name ca 'xX' ).
+  endmethod.
+
+  method set_with_filter.
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    data li_cut type ref to zif_ajson.
+
+    data:
+      begin of ls_dummy,
+        a type string value 'A',
+        bx type string value 'B',
+        begin of deep1,
+          c type string value 'C',
+          dx type string value 'D',
+        end of deep1,
+      end of ls_dummy.
+
+    li_cut = zcl_ajson=>create_empty( )->add_node_filter( me ).
+
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |     ||2' ).
+    lo_nodes->add( '/       |a     |str    |A    ||0' ).
+    lo_nodes->add( '/       |deep1 |object |     ||1' ).
+    lo_nodes->add( '/deep1/ |c     |str    |C    ||0' ).
+
+    li_cut->set(
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->mt_json_tree
+      exp = lo_nodes->sorted( ) ).
+
+  endmethod.
+
+  method push_with_filter.
+  endmethod.
+
+  method set_with_filter_and_type.
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    data li_cut type ref to zif_ajson.
+
+    li_cut = zcl_ajson=>create_empty( )->add_node_filter( me ).
+
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |     ||1' ).
+    lo_nodes->add( '/       |a     |str    |A    ||0' ).
+
+    li_cut->set(
+      iv_path      = '/a'
+      iv_node_type = zif_ajson=>node_type-string
+      iv_val       = 'A' ).
+    li_cut->set(
+      iv_path      = '/ax'
+      iv_node_type = zif_ajson=>node_type-string
+      iv_val       = 'A' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->mt_json_tree
+      exp = lo_nodes->sorted( ) ).
+
+  endmethod.
+
 endclass.
 
 
@@ -3238,4 +3310,33 @@ class ltcl_abap_to_json implementation.
 
   endmethod.
 
+endclass.
+
+**********************************************************************
+* FILTER QUEUE
+**********************************************************************
+
+class lcl_filter_queue implementation.
+  method add_node_filter.
+    if ii_node_filter is bound.
+      append ii_node_filter to mt_node_filters.
+    endif.
+  endmethod.
+
+  method keep_node.
+
+    data lo_filter like line of mt_node_filters.
+
+    rv_keep = abap_true. " Default = keep (hmm?)
+
+    loop at mt_node_filters into lo_filter.
+      rv_keep = lo_filter->keep_node(
+        is_node = is_node
+        io_type = io_type ).
+      if rv_keep = abap_false.
+        exit.
+      endif.
+    endloop.
+
+  endmethod.
 endclass.
