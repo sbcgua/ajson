@@ -2921,7 +2921,11 @@ class ltcl_abap_to_json definition
       end of ty_struc_complex.
 
     methods set_ajson for testing raising zcx_ajson_error.
-    methods set_value for testing raising zcx_ajson_error.
+    methods set_value_number for testing raising zcx_ajson_error.
+    methods set_value_string for testing raising zcx_ajson_error.
+    methods set_value_true for testing raising zcx_ajson_error.
+    methods set_value_false for testing raising zcx_ajson_error.
+    methods set_value_xfeld for testing raising zcx_ajson_error.
     methods set_null for testing raising zcx_ajson_error.
     methods set_obj for testing raising zcx_ajson_error.
     methods set_array for testing raising zcx_ajson_error.
@@ -2956,7 +2960,7 @@ class ltcl_abap_to_json implementation.
 
   endmethod.
 
-  method set_value.
+  method set_value_number.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
     data lt_nodes type zif_ajson=>ty_nodes_tt.
@@ -2971,6 +2975,13 @@ class ltcl_abap_to_json implementation.
       act = lt_nodes
       exp = lo_nodes_exp->mt_nodes ).
 
+  endmethod.
+
+  method set_value_string.
+
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
+
     " string
     create object lo_nodes_exp.
     lo_nodes_exp->add( '        |      |str |abc     ||' ).
@@ -2980,6 +2991,13 @@ class ltcl_abap_to_json implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
       exp = lo_nodes_exp->mt_nodes ).
+
+  endmethod.
+
+  method set_value_true.
+
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
 
     " true
     create object lo_nodes_exp.
@@ -2991,6 +3009,13 @@ class ltcl_abap_to_json implementation.
       act = lt_nodes
       exp = lo_nodes_exp->mt_nodes ).
 
+  endmethod.
+
+  method set_value_false.
+
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
+
     " false
     create object lo_nodes_exp.
     lo_nodes_exp->add( '        |      |bool |false    ||' ).
@@ -3000,6 +3025,13 @@ class ltcl_abap_to_json implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
       exp = lo_nodes_exp->mt_nodes ).
+
+  endmethod.
+
+  method set_value_xfeld.
+
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
 
     " xfeld
     data lv_xfeld type xfeld.
