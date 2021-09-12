@@ -3033,7 +3033,6 @@ class ltcl_abap_to_json implementation.
     data lo_nodes_exp type ref to lcl_nodes_helper.
     data lt_nodes type zif_ajson=>ty_nodes_tt.
 
-    " xfeld
     data lv_xsdboolean type xsdboolean.
     create object lo_nodes_exp.
     lo_nodes_exp->add( '        |      |bool |true     ||' ).
