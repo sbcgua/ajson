@@ -126,19 +126,67 @@ class lcl_json_parser definition final.
       raising
         zcx_ajson_error cx_sxml_error.
 
+    methods _get_location
+      importing
+        iv_json            type string
+        iv_offset          type i
+      returning
+        value(rv_location) type string.
+
 endclass.
 
 class lcl_json_parser implementation.
 
   method parse.
-    data lx_sxml type ref to cx_sxml_error.
+    data lx_sxml type ref to cx_sxml_parse_error.
+    data lv_location type string.
     try.
       rt_json_tree = _parse( iv_json ).
-    catch cx_sxml_error into lx_sxml.
-      zcx_ajson_error=>raise(
-        iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
-        iv_location = '@PARSER' ).
+    catch cx_sxml_parse_error into lx_sxml.
+        lv_location = _get_location(
+          iv_json   = iv_json
+          iv_offset = lx_sxml->xml_offset ).
+        zcx_ajson_error=>raise(
+          iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
+          iv_location = lv_location ).
     endtry.
+  endmethod.
+
+  method _get_location.
+
+    data lv_json type string.
+    data lv_offset type i.
+    data lt_text type table of string.
+    data lv_text type string.
+    data lv_line type i.
+    data lv_pos type i.
+
+    lv_offset = iv_offset.
+    if lv_offset < 0.
+      lv_offset = 0.
+    endif.
+    if lv_offset > strlen( iv_json ).
+      lv_offset = strlen( iv_json ).
+    endif.
+
+    lv_json = iv_json(lv_offset).
+
+    replace all occurrences of cl_abap_char_utilities=>cr_lf
+      in lv_json with cl_abap_char_utilities=>newline.
+
+    split lv_json at cl_abap_char_utilities=>newline into table lt_text.
+
+    lv_line = lines( lt_text ).
+    if lv_line = 0.
+      lv_line = 1.
+      lv_pos = 1.
+    else.
+      read table lt_text index lv_line into lv_text.
+      lv_pos = strlen( lv_text ) + 1.
+    endif.
+
+    rv_location = |Line { lv_line }, Offset { lv_pos }|.
+
   endmethod.
 
   method _parse.
