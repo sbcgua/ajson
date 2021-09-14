@@ -143,12 +143,12 @@ class lcl_json_parser implementation.
     try.
       rt_json_tree = _parse( iv_json ).
     catch cx_sxml_parse_error into lx_sxml.
-        lv_location = _get_location(
-          iv_json   = iv_json
-          iv_offset = lx_sxml->xml_offset ).
-        zcx_ajson_error=>raise(
-          iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
-          iv_location = lv_location ).
+      lv_location = _get_location(
+        iv_json   = iv_json
+        iv_offset = lx_sxml->xml_offset ).
+      zcx_ajson_error=>raise(
+        iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
+        iv_location = lv_location ).
     endtry.
   endmethod.
 
