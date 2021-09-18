@@ -147,7 +147,22 @@ class ltcl_parser_test implementation.
         exp = '*parsing error*' ).
       cl_abap_unit_assert=>assert_char_cp(
         act = lx_err->location
-        exp = '@PARSER' ).
+        exp = 'Line 1, Offset 1' ).
+    endtry.
+
+    try.
+      lt_act = mo_cut->parse( '{' && cl_abap_char_utilities=>newline
+        && '"ok": "abc",' && cl_abap_char_utilities=>newline
+        && '"error"' && cl_abap_char_utilities=>newline
+        && '}' ).
+      cl_abap_unit_assert=>fail( 'Parsing of invalid JSON must fail (spec)' ).
+    catch zcx_ajson_error into lx_err.
+      cl_abap_unit_assert=>assert_char_cp(
+        act = lx_err->get_text( )
+        exp = '*parsing error*' ).
+      cl_abap_unit_assert=>assert_char_cp(
+        act = lx_err->location
+        exp = 'Line 3, Offset 8' ).
     endtry.
 
   endmethod.
