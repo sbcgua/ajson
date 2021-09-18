@@ -1059,11 +1059,11 @@ class lcl_abap_to_json implementation.
 
     loop at io_json->mt_json_tree assigning <src>.
 
-      if mo_filter_queue is bound and mo_filter_queue->keep_node(
-        is_node = <src>
-        io_type = lo_null_type ) = abap_false.
-        continue.
-      endif.
+*      if mo_filter_queue is bound and mo_filter_queue->keep_node(
+*        is_node = <src>
+*        io_type = lo_null_type ) = abap_false.
+*        continue.
+*      endif.
 
       " Needs re-design. This may filer a branch node and leave leafs
 
@@ -1121,11 +1121,11 @@ class lcl_abap_to_json implementation.
         io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
     endif.
 
-    if mo_filter_queue is not bound or mo_filter_queue->keep_node(
-      is_node = ls_node
-      io_type = io_type ) = abap_true.
+*    if mo_filter_queue is not bound or mo_filter_queue->keep_node(
+*      is_node = ls_node
+*      io_type = io_type ) = abap_true.
       append ls_node to ct_nodes.
-    endif.
+*    endif.
 
   endmethod.
 
@@ -1157,11 +1157,11 @@ class lcl_abap_to_json implementation.
       zcx_ajson_error=>raise( |Unexpected reference @{ is_prefix-path && is_prefix-name }| ).
     endif.
 
-    if mo_filter_queue is not bound or mo_filter_queue->keep_node(
-      is_node = ls_node
-      io_type = lo_null_type ) = abap_true.
+*    if mo_filter_queue is not bound or mo_filter_queue->keep_node(
+*      is_node = ls_node
+*      io_type = lo_null_type ) = abap_true.
       append ls_node to ct_nodes.
-    endif.
+*    endif.
 
   endmethod.
 
@@ -1199,11 +1199,11 @@ class lcl_abap_to_json implementation.
 
       ls_root-order = iv_item_order.
 
-      if mo_filter_queue is bound and mo_filter_queue->keep_node(
-        is_node = ls_root
-        io_type = io_type ) = abap_false.
-        return.
-      endif.
+*      if mo_filter_queue is bound and mo_filter_queue->keep_node(
+*        is_node = ls_root
+*        io_type = io_type ) = abap_false.
+*        return.
+*      endif.
 
       append ls_root to ct_nodes assigning <root>.
 
@@ -1289,11 +1289,11 @@ class lcl_abap_to_json implementation.
       ls_root-name  = is_prefix-name.
     endif.
 
-    if mo_filter_queue is bound and mo_filter_queue->keep_node(
-      is_node = ls_root
-      io_type = io_type ) = abap_false.
-      return.
-    endif.
+*    if mo_filter_queue is bound and mo_filter_queue->keep_node(
+*      is_node = ls_root
+*      io_type = io_type ) = abap_false.
+*      return.
+*    endif.
 
     append ls_root to ct_nodes assigning <root>.
 
@@ -1390,11 +1390,11 @@ class lcl_abap_to_json implementation.
       ls_node-name  = is_prefix-name.
     endif.
 
-    if mo_filter_queue is not bound or mo_filter_queue->keep_node(
-      is_node = ls_node
-      io_type = io_type ) = abap_true.
+*    if mo_filter_queue is not bound or mo_filter_queue->keep_node(
+*      is_node = ls_node
+*      io_type = io_type ) = abap_true.
       append ls_node to ct_nodes.
-    endif.
+*    endif.
 
   endmethod.
 

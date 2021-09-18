@@ -3330,9 +3330,7 @@ class lcl_filter_queue implementation.
     rv_keep = abap_true. " Default = keep (hmm?)
 
     loop at mt_node_filters into lo_filter.
-      rv_keep = lo_filter->keep_node(
-        is_node = is_node
-        io_type = io_type ).
+      rv_keep = lo_filter->keep_node( is_node ).
       if rv_keep = abap_false.
         exit.
       endif.
