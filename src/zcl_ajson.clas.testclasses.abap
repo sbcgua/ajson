@@ -2908,7 +2908,7 @@ class ltcl_abap_to_json definition
         a type string,
         b type i,
         c type abap_bool,
-        d type xfeld,
+        d type xsdboolean,
       end of ty_struc,
       tt_struc type standard table of ty_struc with default key,
       begin of ty_struc_complex.
@@ -2925,7 +2925,7 @@ class ltcl_abap_to_json definition
     methods set_value_string for testing raising zcx_ajson_error.
     methods set_value_true for testing raising zcx_ajson_error.
     methods set_value_false for testing raising zcx_ajson_error.
-    methods set_value_xfeld for testing raising zcx_ajson_error.
+    methods set_value_xsdboolean for testing raising zcx_ajson_error.
     methods set_null for testing raising zcx_ajson_error.
     methods set_obj for testing raising zcx_ajson_error.
     methods set_array for testing raising zcx_ajson_error.
@@ -3028,18 +3028,17 @@ class ltcl_abap_to_json implementation.
 
   endmethod.
 
-  method set_value_xfeld.
+  method set_value_xsdboolean.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
     data lt_nodes type zif_ajson=>ty_nodes_tt.
 
-    " xfeld
-    data lv_xfeld type xfeld.
+    data lv_xsdboolean type xsdboolean.
     create object lo_nodes_exp.
     lo_nodes_exp->add( '        |      |bool |true     ||' ).
 
-    lv_xfeld = 'X'.
-    lt_nodes = lcl_abap_to_json=>convert( iv_data = lv_xfeld ).
+    lv_xsdboolean = 'X'.
+    lt_nodes = lcl_abap_to_json=>convert( iv_data = lv_xsdboolean ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
