@@ -3311,30 +3311,3 @@ class ltcl_abap_to_json implementation.
   endmethod.
 
 endclass.
-
-**********************************************************************
-* FILTER QUEUE
-**********************************************************************
-
-class lcl_filter_queue implementation.
-  method add_node_filter.
-    if ii_node_filter is bound.
-      append ii_node_filter to mt_node_filters.
-    endif.
-  endmethod.
-
-  method keep_node.
-
-    data lo_filter like line of mt_node_filters.
-
-    rv_keep = abap_true. " Default = keep (hmm?)
-
-    loop at mt_node_filters into lo_filter.
-      rv_keep = lo_filter->keep_node( is_node ).
-      if rv_keep = abap_false.
-        exit.
-      endif.
-    endloop.
-
-  endmethod.
-endclass.
