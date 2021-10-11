@@ -1047,7 +1047,6 @@ class lcl_abap_to_json implementation.
 
     field-symbols <src> like line of ct_nodes.
     field-symbols <dst> like line of ct_nodes.
-    data lo_null_type type ref to cl_abap_typedescr. " ???
 
     if io_json is not bound.
       return.
@@ -1115,7 +1114,6 @@ class lcl_abap_to_json implementation.
   method convert_ref.
 
     data ls_node like line of ct_nodes.
-    data lo_null_type type ref to cl_abap_typedescr. " ???
 
     ls_node-path  = is_prefix-path.
     ls_node-name  = is_prefix-name.
