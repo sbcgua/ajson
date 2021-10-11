@@ -18,7 +18,7 @@ class ZCL_AJSON_FILTER_LIB definition
         value(ri_filter) type ref to zif_ajson_filter
       raising
         zcx_ajson_error .
-    class-methods create_multi_filter
+    class-methods create_and_filter
       importing
         !it_filters type zif_ajson_filter=>ty_filter_tab
       returning
@@ -35,15 +35,15 @@ ENDCLASS.
 CLASS ZCL_AJSON_FILTER_LIB IMPLEMENTATION.
 
 
-  method create_empty_filter.
-    create object ri_filter type lcl_empty_filter.
+  method create_and_filter.
+    create object ri_filter type lcl_and_filter
+      exporting
+        it_filters = it_filters.
   endmethod.
 
 
-  method create_multi_filter.
-    create object ri_filter type lcl_multi_filter
-      exporting
-        it_filters = it_filters.
+  method create_empty_filter.
+    create object ri_filter type lcl_empty_filter.
   endmethod.
 
 

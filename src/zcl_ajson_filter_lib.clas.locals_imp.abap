@@ -10,8 +10,10 @@ endclass.
 class lcl_empty_filter implementation.
   method zif_ajson_filter~keep_node.
 
-    rv_keep = boolc( is_node-value is initial ).
-    " TODO deep !
+    rv_keep = boolc(
+      ( iv_visit = zif_ajson_filter=>visit_type-value and is_node-value is not initial ) or
+      ( iv_visit <> zif_ajson_filter=>visit_type-value and is_node-children > 0 ) ).
+    " children = 0 on open for initially empty nodes and on close for filtered ones
 
   endmethod.
 endclass.
@@ -49,7 +51,7 @@ class lcl_paths_filter implementation.
 
     data lv_s type string.
     data lt_tab type string_table.
-    field-symbols <lv_s> type string.
+    field-symbols <s> type string.
 
     if boolc( iv_skip_paths is initial ) = boolc( it_skip_paths is initial ). " XOR
       zcx_ajson_error=>raise( 'no filter path specified' ).
@@ -62,12 +64,12 @@ class lcl_paths_filter implementation.
 
     if iv_skip_paths is not initial.
       split iv_skip_paths at ',' into table lt_tab.
-      loop at lt_tab assigning <lv_s>.
-        if <lv_s> is initial.
+      loop at lt_tab assigning <s>.
+        if <s> is initial.
           delete lt_tab index sy-tabix.
           continue.
         endif.
-        <lv_s> = condense( to_lower( <lv_s> ) ).
+        <s> = condense( to_lower( <s> ) ).
       endloop.
     endif.
 
@@ -84,7 +86,7 @@ endclass.
 * MULTI FILTER
 **********************************************************************
 
-class lcl_multi_filter definition final.
+class lcl_and_filter definition final.
   public section.
     interfaces zif_ajson_filter.
     methods constructor
@@ -96,14 +98,17 @@ class lcl_multi_filter definition final.
     data mt_filters type zif_ajson_filter=>ty_filter_tab.
 endclass.
 
-class lcl_multi_filter implementation.
+class lcl_and_filter implementation.
 
   method zif_ajson_filter~keep_node.
 
     data li_filter like line of mt_filters.
 
+    rv_keep = abap_true.
     loop at mt_filters into li_filter.
-      rv_keep = li_filter->keep_node( is_node ).
+      rv_keep = li_filter->keep_node(
+        is_node  = is_node
+        iv_visit = iv_visit ).
       if rv_keep = abap_false.
         return.
       endif.

@@ -3364,7 +3364,7 @@ class ltcl_filter_test implementation.
     data lo_json_filtered type ref to zcl_ajson.
 
     data lt_visits_exp like mt_visit_history.
-    field-symbols <ls_v> like line of lt_visits_exp.
+    field-symbols <v> like line of lt_visits_exp.
 
     data:
       begin of ls_dummy,
@@ -3390,18 +3390,18 @@ class ltcl_filter_test implementation.
       ii_source_json = lo_json
       ii_filter      = me ).
 
-    append initial line to lt_visits_exp assigning <ls_v>.
-    <ls_v>-path = '/'.
-    <ls_v>-type = zif_ajson_filter=>visit_type-open.
-    append initial line to lt_visits_exp assigning <ls_v>.
-    <ls_v>-path = '/3/'.
-    <ls_v>-type = zif_ajson_filter=>visit_type-open.
-    append initial line to lt_visits_exp assigning <ls_v>.
-    <ls_v>-path = '/3/'.
-    <ls_v>-type = zif_ajson_filter=>visit_type-close.
-    append initial line to lt_visits_exp assigning <ls_v>.
-    <ls_v>-path = '/'.
-    <ls_v>-type = zif_ajson_filter=>visit_type-close.
+    append initial line to lt_visits_exp assigning <v>.
+    <v>-path = '/'.
+    <v>-type = zif_ajson_filter=>visit_type-open.
+    append initial line to lt_visits_exp assigning <v>.
+    <v>-path = '/3/'.
+    <v>-type = zif_ajson_filter=>visit_type-open.
+    append initial line to lt_visits_exp assigning <v>.
+    <v>-path = '/3/'.
+    <v>-type = zif_ajson_filter=>visit_type-close.
+    append initial line to lt_visits_exp assigning <v>.
+    <v>-path = '/'.
+    <v>-type = zif_ajson_filter=>visit_type-close.
 
     cl_abap_unit_assert=>assert_equals(
       act = mt_visit_history
