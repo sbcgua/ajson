@@ -767,7 +767,7 @@ class lcl_json_to_abap implementation.
     data lv_date type d.
     data lv_time type t.
     data lv_seconds_conv type i.
-    data lv_timestamp type timestamp.
+    data lv_timestamp type timestampl.
 
     find first occurrence of regex lc_regex_ts_with_hour
       in is_path-value submatches ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
@@ -812,7 +812,8 @@ class lcl_json_to_abap implementation.
         iv_location = is_path-path && is_path-name ).
     endtry.
 
-    rv_result = lv_timestamp.
+    cl_abap_tstmp=>move( exporting tstmp_src = lv_timestamp
+                         importing tstmp_tgt = rv_result ).
 
   endmethod.
 
