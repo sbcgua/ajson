@@ -118,11 +118,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     create object ro_instance.
 
     if ii_filter is bound.
-      create object lo_filter_runner
+      create object lo_filter_runner.
+      lo_filter_runner->run(
         exporting
           ii_filter = ii_filter
-          it_source_tree = ii_source_json->mt_json_tree.
-      lo_filter_runner->run( changing ct_dest_tree = ro_instance->mt_json_tree ).
+          it_source_tree = ii_source_json->mt_json_tree
+        changing
+          ct_dest_tree = ro_instance->mt_json_tree ).
     else.
       ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
       " Copy keep order and custom mapping ???

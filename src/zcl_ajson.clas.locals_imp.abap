@@ -1368,29 +1368,96 @@ endclass.
 
 class lcl_filter_runner definition final.
   public section.
-    methods constructor
+    methods run
       importing
         ii_filter type ref to zif_ajson_filter
-        it_source_tree type zif_ajson=>ty_nodes_ts.
-
-    methods run
+        it_source_tree type zif_ajson=>ty_nodes_ts
       changing
-        ct_dest_tree type zif_ajson=>ty_nodes_ts.
+        ct_dest_tree type zif_ajson=>ty_nodes_ts
+      raising
+        zcx_ajson_error.
 
   private section.
     data mi_filter type ref to zif_ajson_filter.
-    data mt_source_tree type zif_ajson=>ty_nodes_ts. " Copy ?
+    data mr_source_tree type ref to zif_ajson=>ty_nodes_ts.
+    data mr_dest_tree type ref to zif_ajson=>ty_nodes_ts.
+
+    methods walk
+      importing
+        iv_path type string
+      changing
+        cs_parent type zif_ajson=>ty_node optional
+      raising
+        zcx_ajson_error.
 
 endclass.
 
 class lcl_filter_runner implementation.
 
-  method constructor.
-    mi_filter      = ii_filter.
-    mt_source_tree = it_source_tree.
+  method run.
+
+    assert ii_filter is bound.
+    mi_filter = ii_filter.
+    clear ct_dest_tree.
+
+    get reference of it_source_tree into mr_source_tree.
+    get reference of ct_dest_tree into mr_dest_tree.
+
+    walk( iv_path = '' ).
+
   endmethod.
 
-  method run.
+  method walk.
+
+    data ls_node type zif_ajson=>ty_node.
+
+    loop at mr_source_tree->* into ls_node where path = iv_path.
+      case ls_node-type.
+        when zif_ajson=>node_type-boolean or zif_ajson=>node_type-null
+          or zif_ajson=>node_type-number or zif_ajson=>node_type-string.
+
+          if mi_filter->keep_node( ls_node ) = abap_false.
+            continue.
+          endif.
+
+        when zif_ajson=>node_type-array or zif_ajson=>node_type-object.
+
+          if mi_filter->keep_node(
+              is_node  = ls_node
+              iv_visit = zif_ajson_filter=>visit_type-open ) = abap_false.
+            continue.
+          endif.
+
+          " Intentionally clear AFTER "open"
+          clear ls_node-children.
+
+          walk(
+            exporting
+              iv_path = iv_path && ls_node-name && `/`
+            changing
+              cs_parent    = ls_node ).
+
+          if mi_filter->keep_node(
+              is_node  = ls_node
+              iv_visit = zif_ajson_filter=>visit_type-close ) = abap_false.
+            continue.
+          endif.
+
+        when others.
+          zcx_ajson_error=>raise( |Unexpected node type { ls_node-type }| ).
+      endcase.
+
+      if cs_parent is supplied.
+        cs_parent-children = cs_parent-children + 1.
+        if cs_parent-type = zif_ajson=>node_type-array.
+          ls_node-name  = |{ cs_parent-children }|.
+          ls_node-index = cs_parent-children.
+        endif.
+      endif.
+      insert ls_node into table mr_dest_tree->*.
+
+    endloop.
+
   endmethod.
 
 endclass.
