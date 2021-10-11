@@ -813,7 +813,7 @@ class lcl_json_to_abap implementation.
     endtry.
 
     cl_abap_tstmp=>move( exporting tstmp_src = lv_timestamp
-                         importing tstmp_tgt = rv_result  ).
+                         importing tstmp_tgt = rv_result ).
 
   endmethod.
 
