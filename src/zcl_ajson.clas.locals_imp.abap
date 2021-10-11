@@ -832,7 +832,6 @@ class lcl_abap_to_json definition final.
         is_prefix          type zif_ajson=>ty_path_name optional
         iv_array_index     type i default 0
         ii_custom_mapping  type ref to zif_ajson_mapping optional
-        io_filter_queue    type ref to lcl_filter_queue optional
         iv_keep_item_order type abap_bool default abap_false
       returning
         value(rt_nodes)   type zif_ajson=>ty_nodes_tt
@@ -846,7 +845,6 @@ class lcl_abap_to_json definition final.
         is_prefix          type zif_ajson=>ty_path_name optional
         iv_array_index     type i default 0
         ii_custom_mapping  type ref to zif_ajson_mapping optional
-        io_filter_queue    type ref to lcl_filter_queue optional
         iv_keep_item_order type abap_bool default abap_false
       returning
         value(rt_nodes)   type zif_ajson=>ty_nodes_tt
@@ -859,7 +857,6 @@ class lcl_abap_to_json definition final.
 
     class-data gv_ajson_absolute_type_name type string.
     data mi_custom_mapping type ref to zif_ajson_mapping.
-    data mo_filter_queue type ref to lcl_filter_queue.
     data mv_keep_item_order type abap_bool.
 
     methods convert_any
@@ -968,7 +965,6 @@ class lcl_abap_to_json implementation.
     create object lo_converter.
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
-    lo_converter->mo_filter_queue    = io_filter_queue.
 
     lo_converter->convert_any(
       exporting
@@ -1334,7 +1330,6 @@ class lcl_abap_to_json implementation.
     create object lo_converter.
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
-    lo_converter->mo_filter_queue    = io_filter_queue.
 
     lo_converter->insert_value_with_type(
       exporting
@@ -1398,31 +1393,4 @@ class lcl_abap_to_json implementation.
 
   endmethod.
 
-endclass.
-
-**********************************************************************
-* FILTER QUEUE
-**********************************************************************
-
-class lcl_filter_queue implementation.
-  method add_node_filter.
-    if ii_node_filter is bound.
-      append ii_node_filter to mt_node_filters.
-    endif.
-  endmethod.
-
-  method keep_node.
-
-    data lo_filter like line of mt_node_filters.
-
-    rv_keep = abap_true. " Default = keep (hmm?)
-
-    loop at mt_node_filters into lo_filter.
-      rv_keep = lo_filter->keep_node( is_node ).
-      if rv_keep = abap_false.
-        exit.
-      endif.
-    endloop.
-
-  endmethod.
 endclass.
