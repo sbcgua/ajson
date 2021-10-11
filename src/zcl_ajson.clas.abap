@@ -451,9 +451,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     data lt_new_nodes type zif_ajson=>ty_nodes_tt.
     data ls_new_path type zif_ajson=>ty_path_name.
+    data lv_new_index type i.
 
+    lv_new_index     = lr_parent->children + 1.
     ls_new_path-path = lcl_utils=>normalize_path( iv_path ).
-    ls_new_path-name = |{ lr_parent->children + 1 }|.
+    ls_new_path-name = |{ lv_new_index }|.
 
     lt_new_nodes = lcl_abap_to_json=>convert(
       iv_keep_item_order = mv_keep_item_order
@@ -461,10 +463,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       is_prefix = ls_new_path ).
     read table lt_new_nodes index 1 reference into lr_new_node. " assume first record is the array item - not ideal !
     assert sy-subrc = 0.
-    lr_new_node->index = lr_parent->children + 1.
+    lr_new_node->index = lv_new_index.
 
     " update data
-    lr_parent->children = lr_parent->children + 1.
+    lr_parent->children = lv_new_index.
     insert lines of lt_new_nodes into table mt_json_tree.
 
     ri_json = me.
