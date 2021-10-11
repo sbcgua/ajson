@@ -12,11 +12,20 @@ class ZCL_AJSON_FILTER_LIB definition
         zcx_ajson_error .
     class-methods create_path_filter
       importing
-        !it_skip_paths type string_table
+        !it_skip_paths type string_table optional
+        !iv_skip_paths type string optional
       returning
         value(ri_filter) type ref to zif_ajson_filter
       raising
         zcx_ajson_error .
+    class-methods create_multi_filter
+      importing
+        !it_filters type zif_ajson_filter=>ty_filter_tab
+      returning
+        value(ri_filter) type ref to zif_ajson_filter
+      raising
+        zcx_ajson_error .
+
   protected section.
   private section.
 ENDCLASS.
@@ -31,9 +40,17 @@ CLASS ZCL_AJSON_FILTER_LIB IMPLEMENTATION.
   endmethod.
 
 
+  method create_multi_filter.
+    create object ri_filter type lcl_multi_filter
+      exporting
+        it_filters = it_filters.
+  endmethod.
+
+
   method create_path_filter.
     create object ri_filter type lcl_paths_filter
       exporting
-        it_skip_paths = it_skip_paths.
+        it_skip_paths = it_skip_paths
+        iv_skip_paths = iv_skip_paths.
   endmethod.
 ENDCLASS.
