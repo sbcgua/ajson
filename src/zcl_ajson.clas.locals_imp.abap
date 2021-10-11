@@ -1361,3 +1361,36 @@ class lcl_abap_to_json implementation.
   endmethod.
 
 endclass.
+
+**********************************************************************
+* FILTER RUNNER
+**********************************************************************
+
+class lcl_filter_runner definition final.
+  public section.
+    methods constructor
+      importing
+        ii_filter type ref to zif_ajson_filter
+        it_source_tree type zif_ajson=>ty_nodes_ts.
+
+    methods run
+      changing
+        ct_dest_tree type zif_ajson=>ty_nodes_ts.
+
+  private section.
+    data mi_filter type ref to zif_ajson_filter.
+    data mt_source_tree type zif_ajson=>ty_nodes_ts. " Copy ?
+
+endclass.
+
+class lcl_filter_runner implementation.
+
+  method constructor.
+    mi_filter      = ii_filter.
+    mt_source_tree = it_source_tree.
+  endmethod.
+
+  method run.
+  endmethod.
+
+endclass.

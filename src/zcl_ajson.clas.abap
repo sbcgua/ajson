@@ -55,6 +55,16 @@ class zcl_ajson definition
       returning
         value(ro_instance) type ref to zcl_ajson.
 
+    " Experimental ! May change
+    class-methods create_from
+      importing
+        !ii_source_json type ref to zif_ajson
+        !ii_filter type ref to zif_ajson_filter optional
+      returning
+        value(ro_instance) type ref to zcl_ajson
+      raising
+        zcx_ajson_error .
+
   protected section.
 
   private section.
@@ -94,6 +104,30 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method create_empty.
     create object ro_instance.
     ro_instance->mi_custom_mapping = ii_custom_mapping.
+  endmethod.
+
+
+  method create_from.
+
+    data lo_filter_runner type ref to lcl_filter_runner.
+
+    if ii_source_json is not bound.
+      zcx_ajson_error=>raise( 'Source not bound' ).
+    endif.
+
+    create object ro_instance.
+
+    if ii_filter is bound.
+      create object lo_filter_runner
+        exporting
+          ii_filter = ii_filter
+          it_source_tree = ii_source_json->mt_json_tree.
+      lo_filter_runner->run( changing ct_dest_tree = ro_instance->mt_json_tree ).
+    else.
+      ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
+      " Copy keep order and custom mapping ???
+    endif.
+
   endmethod.
 
 
