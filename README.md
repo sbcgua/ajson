@@ -15,6 +15,8 @@ Features:
 - convenient interface to manipulate the data - `set( value )`, `set( structure )`, `set( table )`, `set( another_instance_of_ajson )`, also typed e.g. `set_date`
 - seralization to string
 - freezing (read only) instance content
+- filtering. Create a json skipping empty values, predefined paths, or your custom filter. *EXPERIMENTAL, interface may change*
+- utility to calculate difference between 2 jsons
 
 Installed using [abapGit](https://github.com/larshp/abapGit)
 
@@ -603,6 +605,52 @@ JSON Output
 ```json
 {"FIELD_DATA":"field_value"}
 ```
+
+## Filtering
+
+*This is an experimental feature, the interface may change*
+
+This feature allows creating a json from existing one skipping some nodes. E.g. empty values, predefined paths or using your custom filter.
+
+### Predefined filters
+
+Remove empty values
+```abap
+  " li_json_source: { "a":1, "b":0, "c":{ "d":"" } }
+  li_json_filtered = zcl_ajson=>create_from(
+    ii_source_json = li_json_source
+    ii_filter = zcl_ajson_filter_lib=>create_empty_filter( ) ).
+  " li_json_filtered: { "a":1 }
+```
+
+Remove predefined paths
+```abap
+  " li_json_source: { "a":1, "b":0, "c":{ "d":"" } }
+  li_json_filtered = zcl_ajson=>create_from(
+    ii_source_json = li_json_source
+    ii_filter = zcl_ajson_filter_lib=>create_path_filter( 
+      it_skip_paths = value #( ( '/b' ) ( '/c' ) ) ) ).
+  " li_json_filtered: { "a":1 }
+  
+  " OR
+  ...
+  zcl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/b,/c' ).
+  ...
+```
+
+"AND" filter
+```abap
+  ...
+  zcl_ajson_filter_lib=>create_and_filter( value #(
+    ( zcl_ajson_filter_lib=>create_empty_filter( ) )
+    ( zcl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/xyz' ) )
+  ) ).
+  ...
+```
+
+### Custom filters
+
+In order to apply a custom filter you have to implement a class with `zif_ajson_filter` interface. The interface has one method `keep_node` which receives `is_node` - json tree node of `zif_ajson=>ty_node` type and also the `iv_visit` param. `iv_visit` will be `zif_ajson_filter=>visit_type-value` for all final leafs (str,num,bool,null) and will get `visit_type-open` or `visit_type-close` values for objects and arrays. So the objects and arrays will be called twice - before and after filtering - this allows examining their children number before and after the current filtering. For example of implementation see local implementations of `zcl_ajson_filter_lib` class.
 
 ## Utilities
 

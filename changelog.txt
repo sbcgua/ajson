@@ -8,6 +8,13 @@ Legend
 + : added
 - : removed
 
+v1.1.1, 2021-??-??
+------------------
++ json filtering #71, #72 - empty values, predefined paths, generic filtering possibility
++ more boolean types autodetection @larshp
++ better parser error location reporting @mbtools
+
+
 v1.1.0, 2021-09-08
 ------------------
 ! BREAKING: Remove separate interfaces for reader/writer.

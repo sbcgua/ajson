@@ -1691,6 +1691,7 @@ class ltcl_writer_test definition final
     methods read_only for testing raising zcx_ajson_error.
     methods set_array_obj for testing raising zcx_ajson_error.
     methods set_with_type for testing raising zcx_ajson_error.
+
     methods set_with_type_slice
       importing
         io_json_in type ref to zcl_ajson
@@ -1916,24 +1917,22 @@ class ltcl_writer_test implementation.
   method ignore_empty.
 
     data lo_nodes type ref to lcl_nodes_helper.
-    data lo_cut type ref to zcl_ajson.
-    data li_writer type ref to zif_ajson.
+    data li_cut type ref to zif_ajson.
 
-    lo_cut = zcl_ajson=>create_empty( ).
-    li_writer = lo_cut.
+    li_cut = zcl_ajson=>create_empty( ).
 
     create object lo_nodes.
     lo_nodes->add( '        |      |object |     ||1' ).
     lo_nodes->add( '/       |a     |num    |1    ||0' ).
 
-    li_writer->set(
+    li_cut->set(
       iv_path = '/a'
       iv_val  = 1 ).
-    li_writer->set( " ignore empty
+    li_cut->set( " ignore empty
       iv_path = '/b'
       iv_val  = 0 ).
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->mt_json_tree
+      act = li_cut->mt_json_tree
       exp = lo_nodes->sorted( ) ).
 
     create object lo_nodes.
@@ -1941,12 +1940,12 @@ class ltcl_writer_test implementation.
     lo_nodes->add( '/       |a     |num    |1    ||0' ).
     lo_nodes->add( '/       |b     |num    |0    ||0' ).
 
-    li_writer->set(
+    li_cut->set(
       iv_ignore_empty = abap_false
       iv_path = '/b'
       iv_val  = 0 ).
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->mt_json_tree
+      act = li_cut->mt_json_tree
       exp = lo_nodes->sorted( ) ).
 
   endmethod.
@@ -2606,6 +2605,7 @@ class ltcl_writer_test implementation.
     endloop.
 
   endmethod.
+
 endclass.
 
 
@@ -3235,6 +3235,177 @@ class ltcl_abap_to_json implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
       exp = lo_nodes_exp->mt_nodes ).
+
+  endmethod.
+
+endclass.
+
+**********************************************************************
+* FILTER TEST
+**********************************************************************
+
+class ltcl_filter_test definition final
+  for testing
+  duration short
+  risk level harmless.
+
+  public section.
+    interfaces zif_ajson_filter.
+
+  private section.
+
+    types:
+      begin of ty_visit_history,
+        path type string,
+        type type zif_ajson_filter=>ty_visit_type,
+      end of ty_visit_history.
+
+    data mt_visit_history type table of ty_visit_history.
+
+    methods simple_test for testing raising zcx_ajson_error.
+    methods array_test for testing raising zcx_ajson_error.
+    methods visit_types for testing raising zcx_ajson_error.
+
+
+endclass.
+
+class ltcl_filter_test implementation.
+
+  method zif_ajson_filter~keep_node.
+
+    data ls_visit_history like line of mt_visit_history.
+
+    if iv_visit > 0.
+      ls_visit_history-type = iv_visit.
+      ls_visit_history-path = is_node-path && is_node-name && '/'.
+      append ls_visit_history to mt_visit_history.
+    endif.
+
+    rv_keep = boolc( not is_node-name ca 'xX' and not is_node-value ca 'xX' ).
+
+  endmethod.
+
+  method simple_test.
+
+    data lo_json type ref to zcl_ajson.
+    data lo_json_filtered type ref to zcl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    lo_json = zcl_ajson=>create_empty( ).
+    lo_json->set(
+      iv_path = '/a'
+      iv_val  = 1 ).
+    lo_json->set(
+      iv_path = '/b'
+      iv_val  = 1 ).
+    lo_json->set(
+      iv_path = '/x'
+      iv_val  = 1 ).
+    lo_json->set(
+      iv_path = '/c/x'
+      iv_val  = 1 ).
+    lo_json->set(
+      iv_path = '/c/y'
+      iv_val  = 1 ).
+
+    lo_json_filtered = zcl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_filter      = me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |3' ).
+    lo_nodes_exp->add( '/      |a     |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |b     |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |c     |object |     | |1' ).
+    lo_nodes_exp->add( '/c/    |y     |num    |1    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_json_filtered->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method array_test.
+
+    data lo_json type ref to zcl_ajson.
+    data lo_json_filtered type ref to zcl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    lo_json = zcl_ajson=>create_empty( ).
+    lo_json->touch_array( '/' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'a' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'x' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'b' ).
+
+    lo_json_filtered = zcl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_filter      = me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |array  |     | |2' ).
+    lo_nodes_exp->add( '/      |1     |str    |a    |1|0' ).
+    lo_nodes_exp->add( '/      |2     |str    |b    |2|0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_json_filtered->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method visit_types.
+
+    data lo_json type ref to zcl_ajson.
+    data lo_json_filtered type ref to zcl_ajson.
+
+    data lt_visits_exp like mt_visit_history.
+    field-symbols <v> like line of lt_visits_exp.
+
+    data:
+      begin of ls_dummy,
+        d type i value 10,
+        e type i value 20,
+      end of ls_dummy.
+
+    clear mt_visit_history.
+
+    lo_json = zcl_ajson=>create_empty( ).
+    lo_json->touch_array( '/' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'a' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'b' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    lo_json_filtered = zcl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_filter      = me ).
+
+    append initial line to lt_visits_exp assigning <v>.
+    <v>-path = '/'.
+    <v>-type = zif_ajson_filter=>visit_type-open.
+    append initial line to lt_visits_exp assigning <v>.
+    <v>-path = '/3/'.
+    <v>-type = zif_ajson_filter=>visit_type-open.
+    append initial line to lt_visits_exp assigning <v>.
+    <v>-path = '/3/'.
+    <v>-type = zif_ajson_filter=>visit_type-close.
+    append initial line to lt_visits_exp assigning <v>.
+    <v>-path = '/'.
+    <v>-type = zif_ajson_filter=>visit_type-close.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = mt_visit_history
+      exp = lt_visits_exp ).
 
   endmethod.
 
