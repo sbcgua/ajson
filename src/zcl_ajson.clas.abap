@@ -41,7 +41,7 @@ class zcl_ajson definition
 
     class-methods parse
       importing
-        !iv_json           type string
+        !iv_json           type clike
         !iv_freeze         type abap_bool default abap_false
         !ii_custom_mapping type ref to zif_ajson_mapping optional
       returning
@@ -94,11 +94,11 @@ class zcl_ajson definition
         iv_name           type string
       returning
         value(rv_deleted) type abap_bool.
-ENDCLASS.
+endclass.
 
 
 
-CLASS ZCL_AJSON IMPLEMENTATION.
+class zcl_ajson implementation.
 
 
   method create_empty.
@@ -807,4 +807,4 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     lo_to_abap->to_abap( mt_json_tree ).
 
   endmethod.
-ENDCLASS.
+endclass.
