@@ -98,7 +98,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_ajson IMPLEMENTATION.
+CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method create_empty.
