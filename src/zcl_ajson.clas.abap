@@ -94,11 +94,11 @@ class zcl_ajson definition
         iv_name           type string
       returning
         value(rv_deleted) type abap_bool.
-endclass.
+ENDCLASS.
 
 
 
-class zcl_ajson implementation.
+CLASS zcl_ajson implementation.
 
 
   method create_empty.
@@ -807,4 +807,4 @@ class zcl_ajson implementation.
     lo_to_abap->to_abap( mt_json_tree ).
 
   endmethod.
-endclass.
+ENDCLASS.
