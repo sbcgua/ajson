@@ -1287,6 +1287,7 @@ class ltcl_json_to_abap definition
         b type i,
       end of ty_struc,
       tty_struc type standard table of ty_struc with default key,
+      tty_struc_hashed type hashed table of ty_struc with unique key a,
       begin of ty_complex,
         str   type string,
         int   type i,
@@ -1294,6 +1295,7 @@ class ltcl_json_to_abap definition
         bool  type abap_bool,
         obj   type ty_struc,
         tab   type tty_struc,
+        tab_hashed type tty_struc_hashed,
         oref  type ref to object,
         date1 type d,
         date2 type d,
@@ -1329,6 +1331,12 @@ class ltcl_json_to_abap implementation.
     e_elem-a = 'two'.
     e_elem-b = 2.
     append e_elem to e_mock-tab.
+    e_elem-a = 'One'.
+    e_elem-b = 1.
+    insert e_elem into table e_mock-tab_hashed.
+    e_elem-a = 'two'.
+    e_elem-b = 2.
+    insert e_elem into table e_mock-tab_hashed.
 
     lcl_json_to_abap=>bind(
       changing
@@ -1401,6 +1409,18 @@ class ltcl_json_to_abap implementation.
       exp = last_elem ).
 
     lr_ref = lo_cut->find_loc( '/tab/1/a' ).
+    assign lr_ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = 'One' ).
+
+    lr_ref = lo_cut->find_loc( '/tab_hashed/2' ).
+    assign lr_ref->* to <val>.
+    cl_abap_unit_assert=>assert_equals(
+      act = <val>
+      exp = last_elem ).
+
+    lr_ref = lo_cut->find_loc( '/tab_hashed/1/a' ).
     assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
