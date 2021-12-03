@@ -116,7 +116,7 @@
     "implement_methods": true,
     "in_statement_indentation": false,
     "indentation": {
-      "exclude": [],
+      "exclude": ["perf_test\\.prog\\.abap"],
       "ignoreExceptions": true,
       "alignTryCatch": true,
       "globalClassSkipFirst": false,
@@ -199,7 +199,7 @@
       "logic": "less"
     },
     "no_public_attributes": {
-      "exclude": ["testclasses.abap$"],
+      "exclude": ["testclasses.abap$", "perf_test\\.prog\\.abap"],
       "allowReadOnly": true
     },
     "object_naming": {
