@@ -1305,6 +1305,9 @@ class ltcl_json_to_abap definition
       end of ty_complex.
 
     methods find_loc for testing raising zcx_ajson_error.
+    methods find_loc_hashed
+*      for testing
+      raising zcx_ajson_error.
     methods find_loc_negative for testing.
     methods find_loc_append for testing raising zcx_ajson_error.
     methods to_abap for testing raising zcx_ajson_error.
@@ -1413,6 +1416,24 @@ class ltcl_json_to_abap implementation.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
       exp = 'One' ).
+
+  endmethod.
+
+
+  method find_loc_hashed.
+
+    data last_elem type ty_struc.
+    data ls_mock type ty_complex.
+    data lo_cut type ref to lcl_json_to_abap.
+
+    prepare_cut(
+      importing
+        eo_cut = lo_cut
+        e_mock = ls_mock
+        e_elem = last_elem ).
+
+    data lr_ref type ref to data.
+    field-symbols <val> type any.
 
     lr_ref = lo_cut->find_loc( '/tab_hashed/2' ).
     assign lr_ref->* to <val>.
