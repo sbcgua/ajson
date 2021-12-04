@@ -438,7 +438,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     create object lo_to_abap.
 
     try.
-      rv_value = lo_to_abap->to_timestamp( is_path = lr_item->* ).
+      rv_value = lo_to_abap->to_timestamp( lr_item->value ).
     catch zcx_ajson_error.
       return.
     endtry.

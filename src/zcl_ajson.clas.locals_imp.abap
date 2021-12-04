@@ -565,9 +565,17 @@ class lcl_json_to_abap definition final.
 
     methods to_timestamp
       importing
-        is_path          type zif_ajson=>ty_node
+        iv_value         type zif_ajson=>ty_node-value
       returning
         value(rv_result) type timestamp
+      raising
+        zcx_ajson_error.
+
+    methods to_date
+      importing
+        iv_value         type zif_ajson=>ty_node-value
+      returning
+        value(rv_result) type d
       raising
         zcx_ajson_error.
 
@@ -589,6 +597,7 @@ class lcl_json_to_abap implementation.
 
     data lr_ref type ref to data.
     data lv_type type c.
+    data lx_ajson type ref to zcx_ajson_error.
     data lx type ref to cx_root.
     field-symbols <n> like line of it_nodes.
     field-symbols <value> type any.
@@ -612,21 +621,9 @@ class lcl_json_to_abap implementation.
             <value> = <n>-value.
           when zif_ajson=>node_type-string.
             if lv_type = 'D' and <n>-value is not initial.
-              data lv_y type c length 4.
-              data lv_m type c length 2.
-              data lv_d type c length 2.
-
-              find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
-                in <n>-value
-                submatches lv_y lv_m lv_d.
-              if sy-subrc <> 0.
-                zcx_ajson_error=>raise(
-                  iv_msg      = 'Unexpected date format'
-                  iv_location = <n>-path && <n>-name ).
-              endif.
-              concatenate lv_y lv_m lv_d into <value>.
+              <value> = to_date( <n>-value ).
             elseif lv_type = 'P' and <n>-value is not initial.
-              <value> = to_timestamp( is_path = <n> ).
+              <value> = to_timestamp( <n>-value ).
             else.
               <value> = <n>-value.
             endif.
@@ -649,6 +646,11 @@ class lcl_json_to_abap implementation.
         endcase.
 
       endloop.
+    catch zcx_ajson_error into lx_ajson.
+      if lx_ajson->location is initial.
+        lx_ajson->set_location( <n>-path && <n>-name ).
+      endif.
+      raise exception lx_ajson.
     catch cx_sy_conversion_no_number into lx.
       zcx_ajson_error=>raise(
         iv_msg      = |Source is not a number|
@@ -742,6 +744,22 @@ class lcl_json_to_abap implementation.
 
   endmethod.
 
+  method to_date.
+
+    data lv_y type c length 4.
+    data lv_m type c length 2.
+    data lv_d type c length 2.
+
+    find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
+      in iv_value
+      submatches lv_y lv_m lv_d.
+    if sy-subrc <> 0.
+      zcx_ajson_error=>raise( 'Unexpected date format' ).
+    endif.
+    concatenate lv_y lv_m lv_d into rv_result.
+
+  endmethod.
+
   method to_timestamp.
 
     constants lc_utc type c length 6 value 'UTC'.
@@ -770,9 +788,10 @@ class lcl_json_to_abap implementation.
     data lv_timestamp type timestampl.
 
     find first occurrence of regex lc_regex_ts_with_hour
-      in is_path-value submatches ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
-                                  ls_timestamp-hour ls_timestamp-minute ls_timestamp-second
-                                  ls_timestamp-local_sign ls_timestamp-local_hour ls_timestamp-local_minute.
+      in iv_value submatches
+        ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
+        ls_timestamp-hour ls_timestamp-minute ls_timestamp-second
+        ls_timestamp-local_sign ls_timestamp-local_hour ls_timestamp-local_minute.
 
     if sy-subrc = 0.
 
@@ -781,13 +800,12 @@ class lcl_json_to_abap implementation.
     else.
 
       find first occurrence of regex lc_regex_ts_utc
-        in is_path-value submatches ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
-                                    ls_timestamp-hour ls_timestamp-minute ls_timestamp-second.
+        in iv_value submatches
+          ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
+          ls_timestamp-hour ls_timestamp-minute ls_timestamp-second.
 
       if sy-subrc <> 0.
-        zcx_ajson_error=>raise(
-          iv_msg      = 'Unexpected timestamp format'
-          iv_location = is_path-path && is_path-name ).
+        zcx_ajson_error=>raise( 'Unexpected timestamp format' ).
       endif.
 
     endif.
@@ -801,19 +819,24 @@ class lcl_json_to_abap implementation.
 
       case ls_timestamp-local_sign.
         when '-'.
-          lv_timestamp = cl_abap_tstmp=>add( tstmp = lv_timestamp secs = lv_seconds_conv ).
+          lv_timestamp = cl_abap_tstmp=>add(
+            tstmp = lv_timestamp
+            secs  = lv_seconds_conv ).
         when '+'.
-          lv_timestamp = cl_abap_tstmp=>subtractsecs( tstmp = lv_timestamp secs = lv_seconds_conv ).
+          lv_timestamp = cl_abap_tstmp=>subtractsecs(
+            tstmp = lv_timestamp
+            secs  = lv_seconds_conv ).
       endcase.
 
     catch cx_parameter_invalid_range cx_parameter_invalid_type.
-      zcx_ajson_error=>raise(
-        iv_msg      = 'Unexpected error calculating timestamp'
-        iv_location = is_path-path && is_path-name ).
+      zcx_ajson_error=>raise( 'Unexpected error calculating timestamp' ).
     endtry.
 
-    cl_abap_tstmp=>move( exporting tstmp_src = lv_timestamp
-                         importing tstmp_tgt = rv_result ).
+    cl_abap_tstmp=>move(
+      exporting
+        tstmp_src = lv_timestamp
+      importing
+        tstmp_tgt = rv_result ).
 
   endmethod.
 
