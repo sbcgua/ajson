@@ -1295,6 +1295,7 @@ class ltcl_json_to_abap definition
         bool  type abap_bool,
         obj   type ty_struc,
         tab   type tty_struc,
+        tab_plain  type string_table,
         tab_hashed type tty_struc_hashed,
         oref  type ref to object,
         date1 type d,
@@ -1311,6 +1312,8 @@ class ltcl_json_to_abap definition
     methods find_loc_negative for testing.
     methods find_loc_append for testing raising zcx_ajson_error.
     methods to_abap for testing raising zcx_ajson_error.
+    methods to_abap_w_tab_of_struc for testing raising zcx_ajson_error.
+    methods to_abap_w_plain_tab for testing raising zcx_ajson_error.
     methods to_abap_w_hashed_tab
 *      for testing
       raising zcx_ajson_error.
@@ -1570,7 +1573,7 @@ class ltcl_json_to_abap implementation.
 
     data lo_nodes type ref to lcl_nodes_helper.
     create object lo_nodes.
-    lo_nodes->add( '/      |           |object |                          | ' ).
+    lo_nodes->add( '       |           |object |                          | ' ).
     lo_nodes->add( '/      |str        |str    |hello                     | ' ).
     lo_nodes->add( '/      |int        |num    |5                         | ' ).
     lo_nodes->add( '/      |float      |num    |5.5                       | ' ).
@@ -1578,10 +1581,6 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/      |obj        |object |                          | ' ).
     lo_nodes->add( '/obj   |a          |str    |world                     | ' ).
     lo_nodes->add( '/      |tab        |array  |                          | ' ).
-    lo_nodes->add( '/tab   |1          |object |                          |1' ).
-    lo_nodes->add( '/tab/1 |a          |str    |One                       | ' ).
-    lo_nodes->add( '/tab   |2          |object |                          |2' ).
-    lo_nodes->add( '/tab/2 |a          |str    |Two                       | ' ).
     lo_nodes->add( '/      |date1      |str    |2020-07-28                | ' ).
     lo_nodes->add( '/      |date2      |str    |2020-07-28T00:00:00Z      | ' ).
     lo_nodes->add( '/      |timestamp1 |str    |2020-07-28T00:00:00       | ' ).
@@ -1601,11 +1600,68 @@ class ltcl_json_to_abap implementation.
     ls_exp-timestamp2 = lv_exp_timestamp.
     ls_exp-timestamp3 = lv_exp_timestamp.
 
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_mock
+      exp = ls_exp ).
+
+  endmethod.
+
+  method to_abap_w_tab_of_struc.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data ls_mock type ty_complex.
+    data ls_exp  type ty_complex.
+
+    lcl_json_to_abap=>bind(
+      changing
+        c_obj       = ls_mock
+        co_instance = lo_cut ).
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    create object lo_nodes.
+    lo_nodes->add( '       |           |object |                          | ' ).
+    lo_nodes->add( '/      |tab        |array  |                          | ' ).
+    lo_nodes->add( '/tab   |1          |object |                          |1' ).
+    lo_nodes->add( '/tab/1 |a          |str    |One                       | ' ).
+    lo_nodes->add( '/tab   |2          |object |                          |2' ).
+    lo_nodes->add( '/tab/2 |a          |str    |Two                       | ' ).
+
+    lo_cut->to_abap( lo_nodes->sorted( ) ).
+
     data ls_elem like line of ls_exp-tab.
     ls_elem-a = 'One'.
     append ls_elem to ls_exp-tab.
     ls_elem-a = 'Two'.
     append ls_elem to ls_exp-tab.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_mock
+      exp = ls_exp ).
+
+  endmethod.
+
+  method to_abap_w_plain_tab.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data ls_mock type ty_complex.
+    data ls_exp  type ty_complex.
+
+    lcl_json_to_abap=>bind(
+      changing
+        c_obj       = ls_mock
+        co_instance = lo_cut ).
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    create object lo_nodes.
+    lo_nodes->add( '             |           |object |                          | ' ).
+    lo_nodes->add( '/            |tab_plain  |array  |                          | ' ).
+    lo_nodes->add( '/tab_plain   |1          |str    |One                       |1' ).
+    lo_nodes->add( '/tab_plain   |2          |str    |Two                       |2' ).
+
+    lo_cut->to_abap( lo_nodes->sorted( ) ).
+
+    append 'One' to ls_exp-tab_plain.
+    append 'Two' to ls_exp-tab_plain.
 
     cl_abap_unit_assert=>assert_equals(
       act = ls_mock
