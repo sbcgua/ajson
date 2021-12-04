@@ -1311,6 +1311,9 @@ class ltcl_json_to_abap definition
     methods find_loc_negative for testing.
     methods find_loc_append for testing raising zcx_ajson_error.
     methods to_abap for testing raising zcx_ajson_error.
+    methods to_abap_w_hashed_tab
+*      for testing
+      raising zcx_ajson_error.
     methods to_abap_negative for testing.
 
     methods prepare_cut
@@ -1418,7 +1421,6 @@ class ltcl_json_to_abap implementation.
       exp = 'One' ).
 
   endmethod.
-
 
   method find_loc_hashed.
 
@@ -1557,11 +1559,13 @@ class ltcl_json_to_abap implementation.
 
     data lo_cut type ref to lcl_json_to_abap.
     data ls_mock type ty_complex.
+    data ls_exp  type ty_complex.
     data lv_exp_date type d value '20200728'.
     data lv_exp_timestamp type timestamp value '20200728000000'.
+
     lcl_json_to_abap=>bind(
       changing
-        c_obj = ls_mock
+        c_obj       = ls_mock
         co_instance = lo_cut ).
 
     data lo_nodes type ref to lcl_nodes_helper.
@@ -1575,9 +1579,9 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/obj   |a          |str    |world                     | ' ).
     lo_nodes->add( '/      |tab        |array  |                          | ' ).
     lo_nodes->add( '/tab   |1          |object |                          |1' ).
-    lo_nodes->add( '/tab/1 |a          |str    | One                      | ' ).
+    lo_nodes->add( '/tab/1 |a          |str    |One                       | ' ).
     lo_nodes->add( '/tab   |2          |object |                          |2' ).
-    lo_nodes->add( '/tab/2 |a          |str    | Two                      | ' ).
+    lo_nodes->add( '/tab/2 |a          |str    |Two                       | ' ).
     lo_nodes->add( '/      |date1      |str    |2020-07-28                | ' ).
     lo_nodes->add( '/      |date2      |str    |2020-07-28T00:00:00Z      | ' ).
     lo_nodes->add( '/      |timestamp1 |str    |2020-07-28T00:00:00       | ' ).
@@ -1586,50 +1590,59 @@ class ltcl_json_to_abap implementation.
 
     lo_cut->to_abap( lo_nodes->sorted( ) ).
 
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-str
-      exp = 'hello' ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-int
-      exp = 5 ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-float
-      exp = '5.5' ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-bool
-      exp = abap_true ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-obj-a
-      exp = 'world' ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-date1
-      exp = lv_exp_date ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-date2
-      exp = lv_exp_date ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-timestamp1
-      exp = lv_exp_timestamp ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-timestamp2
-      exp = lv_exp_timestamp ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-timestamp3
-      exp = lv_exp_timestamp ).
+    ls_exp-str        = 'hello'.
+    ls_exp-int        = 5.
+    ls_exp-float      = '5.5'.
+    ls_exp-bool       = abap_true.
+    ls_exp-obj-a      = 'world'.
+    ls_exp-date1      = lv_exp_date.
+    ls_exp-date2      = lv_exp_date.
+    ls_exp-timestamp1 = lv_exp_timestamp.
+    ls_exp-timestamp2 = lv_exp_timestamp.
+    ls_exp-timestamp3 = lv_exp_timestamp.
 
-    data ls_elem like line of ls_mock-tab.
-    cl_abap_unit_assert=>assert_equals(
-      act = lines( ls_mock-tab )
-      exp = 2 ).
+    data ls_elem like line of ls_exp-tab.
+    ls_elem-a = 'One'.
+    append ls_elem to ls_exp-tab.
+    ls_elem-a = 'Two'.
+    append ls_elem to ls_exp-tab.
 
-    read table ls_mock-tab into ls_elem index 1.
     cl_abap_unit_assert=>assert_equals(
-      act = ls_elem-a
-      exp = 'One' ).
-    read table ls_mock-tab into ls_elem index 2.
+      act = ls_mock
+      exp = ls_exp ).
+
+  endmethod.
+
+  method to_abap_w_hashed_tab.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data ls_mock type ty_complex.
+    data ls_exp  type ty_complex.
+
+    lcl_json_to_abap=>bind(
+      changing
+        c_obj       = ls_mock
+        co_instance = lo_cut ).
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    create object lo_nodes.
+    lo_nodes->add( '/             |           |object |                          | ' ).
+    lo_nodes->add( '/tab_hashed   |1          |object |                          |1' ).
+    lo_nodes->add( '/tab_hashed/1 |a          |str    |One                       | ' ).
+    lo_nodes->add( '/tab_hashed   |2          |object |                          |2' ).
+    lo_nodes->add( '/tab_hashed/2 |a          |str    |Two                       | ' ).
+
+    lo_cut->to_abap( lo_nodes->sorted( ) ).
+
+    data ls_elem like line of ls_exp-tab.
+    ls_elem-a = 'One'.
+    insert ls_elem into table ls_exp-tab_hashed.
+    ls_elem-a = 'Two'.
+    insert ls_elem into table ls_exp-tab_hashed.
+
     cl_abap_unit_assert=>assert_equals(
-      act = ls_elem-a
-      exp = 'Two' ).
+      act = ls_mock
+      exp = ls_exp ).
 
   endmethod.
 
