@@ -798,13 +798,15 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lo_to_abap type ref to lcl_json_to_abap.
 
     clear ev_container.
-    lcl_json_to_abap=>bind(
+    create object lo_to_abap
       exporting
-        ii_custom_mapping = mi_custom_mapping
+        ii_custom_mapping = mi_custom_mapping.
+
+    lo_to_abap->to_abap(
+      exporting
+        it_nodes    = zif_ajson~mt_json_tree
       changing
-        c_obj             = ev_container
-        co_instance       = lo_to_abap ).
-    lo_to_abap->to_abap( mt_json_tree ).
+        c_container = ev_container ).
 
   endmethod.
 ENDCLASS.

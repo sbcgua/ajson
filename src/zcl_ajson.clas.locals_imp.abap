@@ -557,7 +557,7 @@ class lcl_json_to_abap definition final.
         c_obj              type any
         co_instance        type ref to lcl_json_to_abap.
 
-    methods to_abap
+    methods to_abap_old
       importing
         it_nodes type zif_ajson=>ty_nodes_ts
       raising
@@ -567,7 +567,7 @@ class lcl_json_to_abap definition final.
       importing
         !ii_custom_mapping type ref to zif_ajson_mapping optional.
 
-    methods to_abap2
+    methods to_abap
       importing
         it_nodes     type zif_ajson=>ty_nodes_ts
       changing
@@ -648,7 +648,7 @@ class lcl_json_to_abap implementation.
     get reference of c_obj into co_instance->mr_obj.
   endmethod.
 
-  method to_abap2.
+  method to_abap.
 
     data ls_root_type like line of mt_node_type_cache.
 
@@ -720,6 +720,7 @@ class lcl_json_to_abap implementation.
 
     data ls_node_type like line of mt_node_type_cache.
     data lv_node_name_upper type string.
+    data lv_mapped_name type string.
     data lx_ajson type ref to zcx_ajson_error.
 
     field-symbols <n> like line of it_nodes.
@@ -730,7 +731,20 @@ class lcl_json_to_abap implementation.
 
       " array_index because stringified index goes in wrong order [1, 10, 2 ...]
       loop at it_nodes assigning <n> using key array_index where path = iv_path.
-        lv_node_name_upper = to_upper( <n>-name ).
+
+        " Target field name
+        if mi_custom_mapping is bound.
+          lv_mapped_name = mi_custom_mapping->to_abap(
+            iv_path = iv_path
+            iv_name = <n>-name ).
+          if lv_mapped_name is not initial.
+            lv_node_name_upper = to_upper( lv_mapped_name ).
+          else.
+            lv_node_name_upper = to_upper( <n>-name ).
+          endif.
+        else.
+          lv_node_name_upper = to_upper( <n>-name ).
+        endif.
 
         " Get or create type cache record
         ls_node_type = get_node_type(
@@ -837,7 +851,7 @@ class lcl_json_to_abap implementation.
 
   endmethod.
 
-  method to_abap.
+  method to_abap_old.
 
     data lr_ref type ref to data.
     data lv_type type c.

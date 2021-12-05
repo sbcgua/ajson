@@ -1287,6 +1287,7 @@ class ltcl_json_to_abap definition
         b type i,
       end of ty_struc,
       tty_struc type standard table of ty_struc with default key,
+      tty_struc_sorted type sorted table of ty_struc with unique key a,
       tty_struc_hashed type hashed table of ty_struc with unique key a,
       begin of ty_complex,
         str   type string,
@@ -1317,8 +1318,11 @@ class ltcl_json_to_abap definition
     methods to_abap_array_of_arrays for testing raising zcx_ajson_error.
     methods to_abap_w_tab_of_struc for testing raising zcx_ajson_error.
     methods to_abap_w_plain_tab for testing raising zcx_ajson_error.
-    methods to_abap_w_hashed_tab
-*      for testing
+    methods to_abap_hashed_tab
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_sorted_tab
+      for testing
       raising zcx_ajson_error.
     methods to_abap_negative for testing.
 
@@ -1586,7 +1590,7 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/      |timestamp3 |str    |2020-07-28T01:00:00+01:00 | ' ).
 
     create object lo_cut.
-    lo_cut->to_abap2(
+    lo_cut->to_abap(
       exporting
         it_nodes    = lo_nodes->sorted( )
       changing
@@ -1619,7 +1623,7 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '       |           |str    |hello                     | ' ).
 
     create object lo_cut.
-    lo_cut->to_abap2(
+    lo_cut->to_abap(
       exporting
         it_nodes    = lo_nodes->sorted( )
       changing
@@ -1644,7 +1648,7 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/      |2          |str      |Two                  |2' ).
 
     create object lo_cut.
-    lo_cut->to_abap2(
+    lo_cut->to_abap(
       exporting
         it_nodes    = lo_nodes->sorted( )
       changing
@@ -1677,7 +1681,7 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/2/    |2          |str      |Four                |2' ).
 
     create object lo_cut.
-    lo_cut->to_abap2(
+    lo_cut->to_abap(
       exporting
         it_nodes    = lo_nodes->sorted( )
       changing
@@ -1713,7 +1717,7 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/tab/2/|a          |str    |Two                       | ' ).
 
     create object lo_cut.
-    lo_cut->to_abap2(
+    lo_cut->to_abap(
       exporting
         it_nodes    = lo_nodes->sorted( )
       changing
@@ -1745,7 +1749,7 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/tab_plain/  |2          |str    |Two                       |2' ).
 
     create object lo_cut.
-    lo_cut->to_abap2(
+    lo_cut->to_abap(
       exporting
         it_nodes    = lo_nodes->sorted( )
       changing
@@ -1760,36 +1764,69 @@ class ltcl_json_to_abap implementation.
 
   endmethod.
 
-  method to_abap_w_hashed_tab.
+  method to_abap_hashed_tab.
 
     data lo_cut type ref to lcl_json_to_abap.
-    data ls_mock type ty_complex.
-    data ls_exp  type ty_complex.
-
-    lcl_json_to_abap=>bind(
-      changing
-        c_obj       = ls_mock
-        co_instance = lo_cut ).
+    data lt_mock type tty_struc_hashed.
+    data lt_exp  type tty_struc_hashed.
 
     data lo_nodes type ref to lcl_nodes_helper.
     create object lo_nodes.
-    lo_nodes->add( '/             |           |object |                          | ' ).
-    lo_nodes->add( '/tab_hashed/  |1          |object |                          |1' ).
-    lo_nodes->add( '/tab_hashed/1/|a          |str    |One                       | ' ).
-    lo_nodes->add( '/tab_hashed/  |2          |object |                          |2' ).
-    lo_nodes->add( '/tab_hashed/2/|a          |str    |Two                       | ' ).
+    lo_nodes->add( '              |           |array  |                          | ' ).
+    lo_nodes->add( '/             |1          |object |                          |1' ).
+    lo_nodes->add( '/             |2          |object |                          |2' ).
+    lo_nodes->add( '/1/           |a          |str    |One                       | ' ).
+    lo_nodes->add( '/2/           |a          |str    |Two                       | ' ).
 
-    lo_cut->to_abap( lo_nodes->sorted( ) ).
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lt_mock ).
 
-    data ls_elem like line of ls_exp-tab.
+    data ls_elem like line of lt_exp.
     ls_elem-a = 'One'.
-    insert ls_elem into table ls_exp-tab_hashed.
+    insert ls_elem into table lt_exp.
     ls_elem-a = 'Two'.
-    insert ls_elem into table ls_exp-tab_hashed.
+    insert ls_elem into table lt_exp.
 
     cl_abap_unit_assert=>assert_equals(
-      act = ls_mock
-      exp = ls_exp ).
+      act = lt_mock
+      exp = lt_exp ).
+
+  endmethod.
+
+  method to_abap_sorted_tab.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lt_mock type tty_struc_sorted.
+    data lt_exp  type tty_struc_sorted.
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    create object lo_nodes.
+    lo_nodes->add( '              |           |array  |                          | ' ).
+    lo_nodes->add( '/             |1          |object |                          |1' ).
+    lo_nodes->add( '/             |2          |object |                          |2' ).
+    lo_nodes->add( '/1/           |a          |str    |One                       | ' ).
+    lo_nodes->add( '/2/           |a          |str    |Two                       | ' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lt_mock ).
+
+    data ls_elem like line of lt_exp.
+    ls_elem-a = 'One'.
+    insert ls_elem into table lt_exp.
+    ls_elem-a = 'Two'.
+    insert ls_elem into table lt_exp.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_mock
+      exp = lt_exp ).
 
   endmethod.
 
@@ -1808,7 +1845,7 @@ class ltcl_json_to_abap implementation.
       lo_nodes->add( '     |      |object | ' ).
       lo_nodes->add( '/    |str   |object | ' ).
 
-      lo_cut->to_abap2(
+      lo_cut->to_abap(
         exporting
           it_nodes    = lo_nodes->sorted( )
         changing
@@ -1825,7 +1862,7 @@ class ltcl_json_to_abap implementation.
       lo_nodes->add( '     |      |object | ' ).
       lo_nodes->add( '/    |str   |array  | ' ).
 
-      lo_cut->to_abap2(
+      lo_cut->to_abap(
         exporting
           it_nodes    = lo_nodes->sorted( )
         changing
@@ -1842,7 +1879,7 @@ class ltcl_json_to_abap implementation.
       lo_nodes->add( '     |      |object |      ' ).
       lo_nodes->add( '/    |int   |str    |hello ' ).
 
-      lo_cut->to_abap2(
+      lo_cut->to_abap(
         exporting
           it_nodes    = lo_nodes->sorted( )
         changing
@@ -1859,7 +1896,7 @@ class ltcl_json_to_abap implementation.
       lo_nodes->add( '     |      |object |        ' ).
       lo_nodes->add( '/    |date1 |str    |baddate ' ).
 
-      lo_cut->to_abap2(
+      lo_cut->to_abap(
         exporting
           it_nodes    = lo_nodes->sorted( )
         changing
@@ -1876,7 +1913,7 @@ class ltcl_json_to_abap implementation.
       lo_nodes->add( '    |        |object |        ' ).
       lo_nodes->add( '/   |missing |str    |123     ' ).
 
-      lo_cut->to_abap2(
+      lo_cut->to_abap(
         exporting
           it_nodes    = lo_nodes->sorted( )
         changing
@@ -1894,7 +1931,7 @@ class ltcl_json_to_abap implementation.
       lo_nodes->add( '      |     |array  |      | ' ).
       lo_nodes->add( '/     |a    |str    |hello |1' ).
 
-      lo_cut->to_abap2(
+      lo_cut->to_abap(
         exporting
           it_nodes    = lo_nodes->sorted( )
         changing
@@ -1911,7 +1948,7 @@ class ltcl_json_to_abap implementation.
       create object lo_nodes.
       lo_nodes->add( '      |     |str  |hello      | ' ).
 
-      lo_cut->to_abap2(
+      lo_cut->to_abap(
         exporting
           it_nodes    = lo_nodes->sorted( )
         changing
@@ -1928,7 +1965,7 @@ class ltcl_json_to_abap implementation.
       create object lo_nodes.
       lo_nodes->add( '      |     |str  |hello      | ' ).
 
-      lo_cut->to_abap2(
+      lo_cut->to_abap(
         exporting
           it_nodes    = lo_nodes->sorted( )
         changing
