@@ -1885,7 +1885,59 @@ class ltcl_json_to_abap implementation.
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(
         act = lx->message
-        exp = 'Path not found: /missing' ).
+        exp = 'Path not found' ).
+    endtry.
+
+    try.
+      data lt_str type string_table.
+      create object lo_nodes.
+      lo_nodes->add( '      |     |array  |      | ' ).
+      lo_nodes->add( '/     |a    |str    |hello |1' ).
+
+      lo_cut->to_abap2(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = lt_str ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Need index to access tables' ).
+    endtry.
+
+    try.
+      data lr_obj type ref to object.
+      create object lo_nodes.
+      lo_nodes->add( '      |     |str  |hello      | ' ).
+
+      lo_cut->to_abap2(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = lr_obj ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot assign to ref' ).
+    endtry.
+
+    try.
+      data lr_data type ref to data.
+      create object lo_nodes.
+      lo_nodes->add( '      |     |str  |hello      | ' ).
+
+      lo_cut->to_abap2(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = lr_data ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot assign to ref' ).
     endtry.
 
   endmethod.
