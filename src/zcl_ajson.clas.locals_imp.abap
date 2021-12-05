@@ -563,6 +563,18 @@ class lcl_json_to_abap definition final.
       raising
         zcx_ajson_error.
 
+    methods constructor
+      importing
+        !ii_custom_mapping type ref to zif_ajson_mapping optional.
+
+    methods to_abap2
+      importing
+        it_nodes     type zif_ajson=>ty_nodes_ts
+      changing
+        c_container type any
+      raising
+        zcx_ajson_error.
+
     methods to_timestamp
       importing
         iv_value         type zif_ajson=>ty_node-value
@@ -580,17 +592,229 @@ class lcl_json_to_abap definition final.
         zcx_ajson_error.
 
   private section.
+
+    types:
+      begin of ty_type_cache,
+        type_path type string,
+        dd        type ref to cl_abap_datadescr,
+        type_kind like cl_abap_typedescr=>typekind_any,
+        buf       type ref to data,
+      end of ty_type_cache.
+    data mt_node_type_cache type sorted table of ty_type_cache with unique key type_path.
+
     data mr_obj type ref to data.
     data mi_custom_mapping type ref to zif_ajson_mapping.
+
+    methods any_to_abap
+      importing
+        it_nodes       type zif_ajson=>ty_nodes_ts
+        iv_path        type string
+        is_parent_type type ty_type_cache optional
+      changing
+        c_container type any
+      raising
+        zcx_ajson_error.
+
+    methods value_to_abap
+      importing
+        is_node      type zif_ajson=>ty_node
+        is_node_type type ty_type_cache
+      changing
+        c_container type any
+      raising
+        zcx_ajson_error.
+
+    methods get_node_type
+      importing
+        iv_node_type_path  type string
+        iv_node_name_upper type string
+        is_parent_type     type ty_type_cache
+      returning
+        value(rs_node_type) type ty_type_cache
+      raising
+        zcx_ajson_error.
 
 endclass.
 
 class lcl_json_to_abap implementation.
 
+  method constructor.
+    mi_custom_mapping = ii_custom_mapping.
+  endmethod.
+
   method bind.
-    create object co_instance.
+    create object co_instance
+      exporting
+        ii_custom_mapping = ii_custom_mapping.
     get reference of c_obj into co_instance->mr_obj.
-    co_instance->mi_custom_mapping = ii_custom_mapping.
+  endmethod.
+
+  method to_abap2.
+
+    data ls_root_type like line of mt_node_type_cache.
+
+    clear mt_node_type_cache.
+    ls_root_type-type_path = ''.
+    ls_root_type-dd       ?= cl_abap_typedescr=>describe_by_data( c_container ).
+    ls_root_type-type_kind = ls_root_type-dd->type_kind.
+    insert ls_root_type into table mt_node_type_cache.
+
+    any_to_abap(
+      exporting
+        it_nodes     = it_nodes
+        iv_path      = ''
+      changing
+        c_container = c_container ).
+
+  endmethod.
+
+  method get_node_type.
+
+    read table mt_node_type_cache into rs_node_type with key type_path = iv_node_type_path.
+    if sy-subrc <> 0.
+      assert is_parent_type-type_kind is not initial.
+      " This should not happen by design,
+      " parent is initial only for the root node
+      " and the '/' type node was created beforehand
+
+      rs_node_type-type_path = iv_node_type_path.
+      case is_parent_type-type_kind. " check perf ?
+        when cl_abap_typedescr=>typekind_table.
+          data lo_tdescr type ref to cl_abap_tabledescr.
+          lo_tdescr ?= is_parent_type-dd.
+          rs_node_type-dd = lo_tdescr->get_table_line_type( ).
+          " TODO create buffer if hashed or sorted
+        when cl_abap_typedescr=>typekind_struct1 or cl_abap_typedescr=>typekind_struct2.
+          data lo_sdescr type ref to cl_abap_structdescr.
+          lo_sdescr ?= is_parent_type-dd.
+          lo_sdescr->get_component_type(
+            exporting
+              p_name = iv_node_name_upper
+            receiving
+              p_descr_ref = rs_node_type-dd
+            exceptions
+              component_not_found = 4 ).
+          if sy-subrc <> 0.
+            zcx_ajson_error=>raise( |Path not found: { iv_node_type_path }| ).
+          endif.
+        when others.
+          zcx_ajson_error=>raise( |Unexpected type at { iv_node_type_path }| ).
+      endcase.
+      rs_node_type-type_kind = rs_node_type-dd->type_kind. " for caching, check perf
+      insert rs_node_type into table mt_node_type_cache.
+    endif.
+
+  endmethod.
+
+  method any_to_abap.
+
+    data ls_node_type like line of mt_node_type_cache.
+    data lv_node_type_path like iv_path.
+    data lv_node_name_upper type string.
+
+    field-symbols <n> like line of it_nodes.
+    field-symbols <target_field> type any.
+    field-symbols <stdtab> type standard table.
+
+    " array_index because stringified index goes in wrong order [1, 10, 2 ...]
+    loop at it_nodes assigning <n> using key array_index where path = iv_path.
+      lv_node_name_upper = to_upper( <n>-name ).
+
+      " Calculate type path
+      if is_parent_type-type_kind = cl_abap_typedescr=>typekind_table.
+        lv_node_type_path = is_parent_type-type_path && '/-'. " table item type
+      elseif is_parent_type-type_kind is not initial.
+        lv_node_type_path = is_parent_type-type_path && '/' && <n>-name.
+      endif. " For root node lv_node_type_path remains ''
+
+      " Get or create type cache record
+      ls_node_type = get_node_type(
+        iv_node_name_upper = lv_node_name_upper
+        iv_node_type_path  = lv_node_type_path
+        is_parent_type     = is_parent_type ).
+
+      " Find target field reference
+      case is_parent_type-type_kind. " check perf ?
+        when cl_abap_typedescr=>typekind_table.
+          assign c_container to <stdtab>.
+          assert sy-subrc = 0.
+          append initial line to <stdtab> assigning <target_field>.
+        when cl_abap_typedescr=>typekind_struct1 or cl_abap_typedescr=>typekind_struct2.
+          assign component lv_node_name_upper of structure c_container to <target_field>.
+          assert sy-subrc = 0.
+        when ''. " Root node
+          assign c_container to <target_field>.
+          assert sy-subrc = 0.
+        when others.
+          zcx_ajson_error=>raise( |Unexpected type at { lv_node_type_path }| ).
+      endcase.
+
+      " Process value assignment
+      if <n>-type = zif_ajson=>node_type-object or <n>-type = zif_ajson=>node_type-array.
+        if <n>-type = zif_ajson=>node_type-object and not ls_node_type-type_kind co 'uv'.
+          zcx_ajson_error=>raise(
+            iv_msg      = 'Expected structure'
+            iv_location = <n>-path && <n>-name ).
+        elseif <n>-type = zif_ajson=>node_type-array and not ls_node_type-type_kind = 'h'.
+          zcx_ajson_error=>raise(
+            iv_msg      = 'Expected table'
+            iv_location = <n>-path && <n>-name ).
+        endif.
+
+        any_to_abap(
+          exporting
+            it_nodes       = it_nodes
+            iv_path        = <n>-path && <n>-name && '/'
+            is_parent_type = ls_node_type
+          changing
+            c_container = <target_field> ).
+
+      else.
+        value_to_abap(
+          exporting
+            is_node      = <n>
+            is_node_type = ls_node_type
+          changing
+            c_container  = <target_field> ).
+      endif.
+
+    endloop.
+
+  endmethod.
+
+  method value_to_abap.
+
+    try.
+      case is_node-type.
+        when zif_ajson=>node_type-null.
+          " Do nothing
+        when zif_ajson=>node_type-boolean.
+          " TODO: check type ?
+          c_container = boolc( is_node-value = 'true' ).
+        when zif_ajson=>node_type-number.
+          " TODO: check type ?
+          c_container = is_node-value.
+
+        when zif_ajson=>node_type-string.
+          " TODO: check type ?
+          if is_node_type-type_kind = 'D' and is_node-value is not initial.
+            c_container = to_date( is_node-value ).
+          elseif is_node_type-type_kind = 'P' and is_node-value is not initial.
+            c_container = to_timestamp( is_node-value ).
+          else.
+            c_container = is_node-value.
+          endif.
+        when others.
+          zcx_ajson_error=>raise(
+            iv_msg      = |Unexpected JSON type [{ is_node-type }]|
+            iv_location = is_node-path && is_node-name ).
+      endcase.
+    catch cx_sy_conversion_no_number.
+      zcx_ajson_error=>raise(
+        iv_msg      = |Source is not a number|
+        iv_location = is_node-path && is_node-name ).
+    endtry.
+
   endmethod.
 
   method to_abap.
