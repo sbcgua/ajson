@@ -1776,7 +1776,9 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/             |1          |object |                          |1' ).
     lo_nodes->add( '/             |2          |object |                          |2' ).
     lo_nodes->add( '/1/           |a          |str    |One                       | ' ).
+    lo_nodes->add( '/1/           |b          |num    |1                         | ' ).
     lo_nodes->add( '/2/           |a          |str    |Two                       | ' ).
+    lo_nodes->add( '/2/           |b          |num    |2                         | ' ).
 
     create object lo_cut.
     lo_cut->to_abap(
@@ -1787,8 +1789,10 @@ class ltcl_json_to_abap implementation.
 
     data ls_elem like line of lt_exp.
     ls_elem-a = 'One'.
+    ls_elem-b = 1.
     insert ls_elem into table lt_exp.
     ls_elem-a = 'Two'.
+    ls_elem-b = 2.
     insert ls_elem into table lt_exp.
 
     cl_abap_unit_assert=>assert_equals(
@@ -1809,7 +1813,9 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/             |1          |object |                          |1' ).
     lo_nodes->add( '/             |2          |object |                          |2' ).
     lo_nodes->add( '/1/           |a          |str    |One                       | ' ).
+    lo_nodes->add( '/1/           |b          |num    |1                         | ' ).
     lo_nodes->add( '/2/           |a          |str    |Two                       | ' ).
+    lo_nodes->add( '/2/           |b          |num    |2                         | ' ).
 
     create object lo_cut.
     lo_cut->to_abap(
@@ -1820,8 +1826,10 @@ class ltcl_json_to_abap implementation.
 
     data ls_elem like line of lt_exp.
     ls_elem-a = 'One'.
+    ls_elem-b = 1.
     insert ls_elem into table lt_exp.
     ls_elem-a = 'Two'.
+    ls_elem-b = 2.
     insert ls_elem into table lt_exp.
 
     cl_abap_unit_assert=>assert_equals(
