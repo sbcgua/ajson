@@ -623,8 +623,6 @@ class lcl_json_to_abap definition final.
         is_node      type zif_ajson=>ty_node
         is_node_type type ty_type_cache
         i_container_ref type ref to data
-*      changing
-*        c_container type any
       raising
         zcx_ajson_error.
 
@@ -634,16 +632,6 @@ class lcl_json_to_abap definition final.
         is_parent_type     type ty_type_cache
       returning
         value(rs_node_type) type ty_type_cache
-      raising
-        zcx_ajson_error.
-
-    methods populate_tab_item_key
-      importing
-        it_nodes     type zif_ajson=>ty_nodes_ts
-        iv_path      type string
-        is_node_type type ty_type_cache
-      changing
-        c_container type any
       raising
         zcx_ajson_error.
 
@@ -677,12 +665,9 @@ class lcl_json_to_abap implementation.
     get reference of c_container into lr_ref.
 
     any_to_abap(
-*      exporting
-        it_nodes        = it_nodes
-        iv_path         = ''
-        i_container_ref = lr_ref ).
-*      changing
-*        c_container = c_container ).
+      it_nodes        = it_nodes
+      iv_path         = ''
+      i_container_ref = lr_ref ).
 
   endmethod.
 
@@ -748,7 +733,6 @@ class lcl_json_to_abap implementation.
     data lr_target_field type ref to data.
 
     field-symbols <n> like line of it_nodes.
-*    field-symbols <target_field> type any.
     field-symbols <stdtab> type standard table.
     field-symbols <anytab> type any table.
 
@@ -802,36 +786,22 @@ class lcl_json_to_abap implementation.
             if ls_node_type-buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type
 
               field-symbols <buf> type any.
-*              assign c_container to <anytab>.
               assign i_container_ref->* to <anytab>.
               assert sy-subrc = 0.
+              any_to_abap(
+                it_nodes       = it_nodes
+                iv_path        = <n>-path && <n>-name && '/'
+                is_parent_type = ls_node_type
+                iv_key_only    = abap_true
+                i_container_ref = ls_node_type-buf ).
               assign ls_node_type-buf->* to <buf>.
               assert sy-subrc = 0.
-*              populate_tab_item_key(
-*                exporting
-*                  it_nodes     = it_nodes
-*                  is_node_type = ls_node_type
-*                  iv_path      = <n>-path && <n>-name && '/'
-*                changing
-*                  c_container  = <buf> ).
-              any_to_abap(
-                exporting
-                  it_nodes       = it_nodes
-                  iv_path        = <n>-path && <n>-name && '/'
-                  is_parent_type = ls_node_type
-                  iv_key_only    = abap_true
-                  i_container_ref = ls_node_type-buf ).
-*                changing
-*                  c_container = <buf> ).
-*              insert <buf> into table <anytab> assigning <target_field>.
               insert <buf> into table <anytab> reference into lr_target_field.
 
             else.
 
-*              assign c_container to <stdtab>.
               assign i_container_ref->* to <stdtab>.
               assert sy-subrc = 0.
-*              append initial line to <stdtab> assigning <target_field>.
               append initial line to <stdtab> reference into lr_target_field.
 
             endif.
@@ -840,13 +810,12 @@ class lcl_json_to_abap implementation.
             field-symbols <container> type any.
             field-symbols <field> type any.
             assign i_container_ref->* to <container>.
-*            assign component lv_target_field_name of structure c_container to <target_field>.
+            assert sy-subrc = 0.
             assign component lv_target_field_name of structure <container> to <field>.
             assert sy-subrc = 0.
             get reference of <field> into lr_target_field.
 
           when ''. " Root node
-*            assign c_container to <target_field>.
             lr_target_field = i_container_ref.
             assert sy-subrc = 0.
 
@@ -864,22 +833,16 @@ class lcl_json_to_abap implementation.
           endif.
 
           any_to_abap(
-            exporting
-              it_nodes       = it_nodes
-              iv_path        = <n>-path && <n>-name && '/'
-              is_parent_type = ls_node_type
-              i_container_ref = lr_target_field ).
-*            changing
-*              c_container = <target_field> ).
+            it_nodes       = it_nodes
+            iv_path        = <n>-path && <n>-name && '/'
+            is_parent_type = ls_node_type
+            i_container_ref = lr_target_field ).
 
         else.
           value_to_abap(
-            exporting
-              is_node      = <n>
-              is_node_type = ls_node_type
-              i_container_ref = lr_target_field ).
-*            changing
-*              c_container  = <target_field> ).
+            is_node      = <n>
+            is_node_type = ls_node_type
+            i_container_ref = lr_target_field ).
         endif.
 
       endloop.
@@ -890,26 +853,6 @@ class lcl_json_to_abap implementation.
       endif.
       raise exception lx_ajson.
     endtry.
-
-  endmethod.
-
-  method populate_tab_item_key.
-
-    field-symbols <key_comp> like line of is_node_type-tab_key.
-    field-symbols <n> like line of it_nodes.
-    data lv_name_upper type string.
-
-*    loop at is_node_type-tab_key assigning <key_comp>.
-**      read table it_nodes assigning <n> with key path = iv_path name = <key_comp>.
-*    endloop.
-
-    loop at it_nodes assigning <n> where path = iv_path. " Need loop due to different letter case
-      lv_name_upper = to_upper( <n>-name ). " mapped field name !!
-      read table is_node_type-tab_key assigning <key_comp> with key table_line = lv_name_upper.
-      if sy-subrc = 0.
-        " mapped field name !!
-      endif.
-    endloop.
 
   endmethod.
 
