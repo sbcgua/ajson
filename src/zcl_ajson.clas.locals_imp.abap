@@ -874,23 +874,18 @@ class lcl_json_to_abap implementation.
           " Do nothing
         when zif_ajson=>node_type-boolean.
           " TODO: check type ?
-*          c_container = boolc( is_node-value = 'true' ).
           <container> = boolc( is_node-value = 'true' ).
         when zif_ajson=>node_type-number.
           " TODO: check type ?
-*          c_container = is_node-value.
           <container> = is_node-value.
 
         when zif_ajson=>node_type-string.
           " TODO: check type ?
           if is_node_type-type_kind = 'D' and is_node-value is not initial.
-*            c_container = to_date( is_node-value ).
             <container> = to_date( is_node-value ).
           elseif is_node_type-type_kind = 'P' and is_node-value is not initial.
-*            c_container = to_timestamp( is_node-value ).
             <container> = to_timestamp( is_node-value ).
           else.
-*            c_container = is_node-value.
             <container> = is_node-value.
           endif.
         when others.
