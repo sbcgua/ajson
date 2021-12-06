@@ -599,6 +599,7 @@ class lcl_json_to_abap definition final.
         dd        type ref to cl_abap_datadescr,
         type_kind like cl_abap_typedescr=>typekind_any,
         buf       type ref to data,
+        tab_key   type sorted table of abap_keydescr with unique key name,
       end of ty_type_cache.
     data mt_node_type_cache type sorted table of ty_type_cache with unique key type_path.
 
@@ -630,6 +631,16 @@ class lcl_json_to_abap definition final.
         is_parent_type     type ty_type_cache
       returning
         value(rs_node_type) type ty_type_cache
+      raising
+        zcx_ajson_error.
+
+    methods populate_tab_item_key
+      importing
+        it_nodes     type zif_ajson=>ty_nodes_ts
+        iv_path      type string
+        is_node_type type ty_type_cache
+      changing
+        c_container type any
       raising
         zcx_ajson_error.
 
@@ -688,12 +699,16 @@ class lcl_json_to_abap implementation.
       " and the '/' type node was created beforehand
 
       rs_node_type-type_path = lv_node_type_path.
-      case is_parent_type-type_kind. " check perf ?
+      case is_parent_type-type_kind.
         when cl_abap_typedescr=>typekind_table.
           data lo_tdescr type ref to cl_abap_tabledescr.
           lo_tdescr ?= is_parent_type-dd.
           rs_node_type-dd = lo_tdescr->get_table_line_type( ).
-          " TODO create buffer if hashed or sorted
+
+          if lo_tdescr->table_kind <> cl_abap_tabledescr=>tablekind_std.
+            create data rs_node_type-buf type handle rs_node_type-dd.
+            rs_node_type-tab_key = lo_tdescr->key.
+          endif.
         when cl_abap_typedescr=>typekind_struct1 or cl_abap_typedescr=>typekind_struct2.
           data lo_sdescr type ref to cl_abap_structdescr.
           lo_sdescr ?= is_parent_type-dd.
@@ -710,7 +725,7 @@ class lcl_json_to_abap implementation.
         when others.
           zcx_ajson_error=>raise( |Unexpected parent type| ).
       endcase.
-      rs_node_type-type_kind = rs_node_type-dd->type_kind. " for caching, check perf
+      rs_node_type-type_kind = rs_node_type-dd->type_kind. " for caching and cleaner unintialized access
       insert rs_node_type into table mt_node_type_cache.
     endif.
 
@@ -726,6 +741,7 @@ class lcl_json_to_abap implementation.
     field-symbols <n> like line of it_nodes.
     field-symbols <target_field> type any.
     field-symbols <stdtab> type standard table.
+    field-symbols <anytab> type any table.
 
     try.
 
@@ -735,7 +751,7 @@ class lcl_json_to_abap implementation.
         " Target field name
         if mi_custom_mapping is bound.
           lv_mapped_name = mi_custom_mapping->to_abap(
-            iv_path = iv_path
+            iv_path = <n>-path
             iv_name = <n>-name ).
           if lv_mapped_name is not initial.
             lv_node_name_upper = to_upper( lv_mapped_name ).
@@ -758,14 +774,30 @@ class lcl_json_to_abap implementation.
         endif.
 
         " Find target field reference
-        case is_parent_type-type_kind. " check perf ?
+        case is_parent_type-type_kind.
           when cl_abap_typedescr=>typekind_table.
-            if not <n>-name co '0123456789'. " Does not affect anything actually but for integrity
+            if not lv_node_name_upper co '0123456789'. " Does not affect anything actually but for integrity
               zcx_ajson_error=>raise( 'Need index to access tables' ).
             endif.
-            assign c_container to <stdtab>.
-            assert sy-subrc = 0.
-            append initial line to <stdtab> assigning <target_field>.
+            if ls_node_type-buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type
+              field-symbols <buf> type any.
+              assign c_container to <anytab>.
+              assert sy-subrc = 0.
+              assign ls_node_type-buf->* to <buf>.
+              assert sy-subrc = 0.
+              populate_tab_item_key(
+                exporting
+                  it_nodes     = it_nodes
+                  is_node_type = ls_node_type
+                  iv_path      = <n>-path && <n>-name && '/'
+                changing
+                  c_container  = <buf> ).
+              insert <buf> into table <anytab> assigning <target_field>.
+            else.
+              assign c_container to <stdtab>.
+              assert sy-subrc = 0.
+              append initial line to <stdtab> assigning <target_field>.
+            endif.
           when cl_abap_typedescr=>typekind_struct1 or cl_abap_typedescr=>typekind_struct2.
             assign component lv_node_name_upper of structure c_container to <target_field>.
             assert sy-subrc = 0.
@@ -809,6 +841,26 @@ class lcl_json_to_abap implementation.
       endif.
       raise exception lx_ajson.
     endtry.
+
+  endmethod.
+
+  method populate_tab_item_key.
+
+    field-symbols <key_comp> like line of is_node_type-tab_key.
+    field-symbols <n> like line of it_nodes.
+    data lv_name_upper type string.
+
+*    loop at is_node_type-tab_key assigning <key_comp>.
+**      read table it_nodes assigning <n> with key path = iv_path name = <key_comp>.
+*    endloop.
+
+    loop at it_nodes assigning <n> where path = iv_path. " Need loop due to different letter case
+      lv_name_upper = to_upper( <n>-name ). " mapped field name !!
+      read table is_node_type-tab_key assigning <key_comp> with key table_line = lv_name_upper.
+      if sy-subrc = 0.
+        " mapped field name !!
+      endif.
+    endloop.
 
   endmethod.
 
