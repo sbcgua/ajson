@@ -1324,6 +1324,9 @@ class ltcl_json_to_abap definition
     methods to_abap_sorted_tab
       for testing
       raising zcx_ajson_error.
+    methods to_abap_hashed_plain_tab
+      for testing
+      raising zcx_ajson_error.
     methods to_abap_negative for testing.
 
     methods prepare_cut
@@ -1764,6 +1767,34 @@ class ltcl_json_to_abap implementation.
 
   endmethod.
 
+  method to_abap_hashed_plain_tab.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lt_mock type hashed table of string with unique key table_line.
+    data lt_exp  type hashed table of string with unique key table_line.
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    create object lo_nodes.
+    lo_nodes->add( '            |           |array  |                          | ' ).
+    lo_nodes->add( '/           |1          |str    |One                       |1' ).
+    lo_nodes->add( '/           |2          |str    |Two                       |2' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lt_mock ).
+
+    insert `One` into table lt_exp.
+    insert `Two` into table lt_exp.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_mock
+      exp = lt_exp ).
+
+  endmethod.
+
   method to_abap_hashed_tab.
 
     data lo_cut type ref to lcl_json_to_abap.
@@ -1983,6 +2014,25 @@ class ltcl_json_to_abap implementation.
       cl_abap_unit_assert=>assert_equals(
         act = lx->message
         exp = 'Cannot assign to ref' ).
+    endtry.
+
+    try.
+      data lt_hashed type hashed table of string with unique key table_line.
+      create object lo_nodes.
+      lo_nodes->add( '            |           |array  |                          | ' ).
+      lo_nodes->add( '/           |1          |str    |One                       |1' ).
+      lo_nodes->add( '/           |2          |str    |One                       |2' ).
+
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = lt_hashed ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Duplicate insertion' ).
     endtry.
 
   endmethod.

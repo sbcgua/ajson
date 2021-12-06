@@ -600,6 +600,7 @@ class lcl_json_to_abap definition final.
         type_kind like cl_abap_typedescr=>typekind_any,
         buf       type ref to data,
         tab_key   type sorted table of abap_keydescr with unique key name,
+        tab_key_kind like cl_abap_tabledescr=>keydefkind_default,
       end of ty_type_cache.
     data mt_node_type_cache type sorted table of ty_type_cache with unique key type_path.
 
@@ -699,7 +700,8 @@ class lcl_json_to_abap implementation.
 
           if lo_tdescr->table_kind <> cl_abap_tabledescr=>tablekind_std.
             create data rs_node_type-buf type handle rs_node_type-dd.
-            rs_node_type-tab_key = lo_tdescr->key.
+            rs_node_type-tab_key      = lo_tdescr->key.
+            rs_node_type-tab_key_kind = lo_tdescr->key_defkind.
           endif.
         when cl_abap_typedescr=>typekind_struct1 or cl_abap_typedescr=>typekind_struct2.
           data lo_sdescr type ref to cl_abap_structdescr.
@@ -783,20 +785,44 @@ class lcl_json_to_abap implementation.
             if not lv_target_field_name co '0123456789'. " Does not affect anything actually but for integrity
               zcx_ajson_error=>raise( 'Need index to access tables' ).
             endif.
-            if ls_node_type-buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type
+            if ls_node_type-tab_key_kind is not initial. " Indirect hint that table was sorted/hashed, see get_node_type
 
               field-symbols <buf> type any.
               assign i_container_ref->* to <anytab>.
               assert sy-subrc = 0.
-              any_to_abap(
-                it_nodes       = it_nodes
-                iv_path        = <n>-path && <n>-name && '/'
-                is_parent_type = ls_node_type
-                iv_key_only    = abap_true
-                i_container_ref = ls_node_type-buf ).
               assign ls_node_type-buf->* to <buf>.
               assert sy-subrc = 0.
-              insert <buf> into table <anytab> reference into lr_target_field.
+
+              if ls_node_type-tab_key_kind = cl_abap_tabledescr=>keydefkind_user.
+                any_to_abap(
+                  it_nodes        = it_nodes
+                  iv_path         = <n>-path && <n>-name && '/'
+                  is_parent_type  = ls_node_type
+                  iv_key_only     = abap_true
+                  i_container_ref = ls_node_type-buf ).
+                insert <buf> into table <anytab> reference into lr_target_field.
+                if sy-subrc <> 0.
+                  zcx_ajson_error=>raise( 'Duplicate insertion' ).
+                  " TODO add handling for secondary keys CX_SY_ITAB_DUPLICATE_KEY
+                endif.
+              elseif ls_node_type-tab_key_kind = cl_abap_tabledescr=>keydefkind_tableline.
+                value_to_abap(
+                  is_node         = <n>
+                  is_node_type    = ls_node_type
+                  i_container_ref = ls_node_type-buf ).
+                insert <buf> into table <anytab>.
+                if sy-subrc <> 0.
+                  zcx_ajson_error=>raise( 'Duplicate insertion' ).
+                  " TODO add handling for secondary keys CX_SY_ITAB_DUPLICATE_KEY
+                endif.
+                continue.
+              else.
+                zcx_ajson_error=>raise( |Tab key kind { ls_node_type-tab_key_kind } currently not supported| ).
+                " this may need more elaboration
+                " maybe better pass to any_to_abap
+                " it should be more specifically analysed if line type is elementary or not
+                " in addition structure tables may be with table line (then key DOES NOT contain components)
+              endif.
 
             else.
 
@@ -833,15 +859,15 @@ class lcl_json_to_abap implementation.
           endif.
 
           any_to_abap(
-            it_nodes       = it_nodes
-            iv_path        = <n>-path && <n>-name && '/'
-            is_parent_type = ls_node_type
+            it_nodes        = it_nodes
+            iv_path         = <n>-path && <n>-name && '/'
+            is_parent_type  = ls_node_type
             i_container_ref = lr_target_field ).
 
         else.
           value_to_abap(
-            is_node      = <n>
-            is_node_type = ls_node_type
+            is_node         = <n>
+            is_node_type    = ls_node_type
             i_container_ref = lr_target_field ).
         endif.
 
