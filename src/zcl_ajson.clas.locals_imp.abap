@@ -540,29 +540,6 @@ endclass.
 class lcl_json_to_abap definition final.
   public section.
 
-    methods find_loc
-      importing
-        iv_path type string
-        iv_name type string optional " not mandatory
-        iv_append_tables type abap_bool default abap_false
-      returning
-        value(r_ref) type ref to data
-      raising
-        zcx_ajson_error.
-
-    class-methods bind
-      importing
-        !ii_custom_mapping type ref to zif_ajson_mapping optional
-      changing
-        c_obj              type any
-        co_instance        type ref to lcl_json_to_abap.
-
-    methods to_abap_old
-      importing
-        it_nodes type zif_ajson=>ty_nodes_ts
-      raising
-        zcx_ajson_error.
-
     methods constructor
       importing
         !ii_custom_mapping type ref to zif_ajson_mapping optional.
@@ -614,8 +591,6 @@ class lcl_json_to_abap definition final.
         is_parent_type type ty_type_cache optional
         iv_key_only    type abap_bool default abap_false
         i_container_ref type ref to data
-*      changing
-*        c_container type any
       raising
         zcx_ajson_error.
 
@@ -642,13 +617,6 @@ class lcl_json_to_abap implementation.
 
   method constructor.
     mi_custom_mapping = ii_custom_mapping.
-  endmethod.
-
-  method bind.
-    create object co_instance
-      exporting
-        ii_custom_mapping = ii_custom_mapping.
-    get reference of c_obj into co_instance->mr_obj.
   endmethod.
 
   method to_abap.
@@ -922,157 +890,6 @@ class lcl_json_to_abap implementation.
     catch cx_root into lx.
       zcx_ajson_error=>raise( lx->get_text( ) ).
     endtry.
-
-  endmethod.
-
-  method to_abap_old.
-
-    data lr_ref type ref to data.
-    data lv_type type c.
-    data lx_ajson type ref to zcx_ajson_error.
-    data lx type ref to cx_root.
-    field-symbols <n> like line of it_nodes.
-    field-symbols <value> type any.
-
-    try.
-      loop at it_nodes assigning <n> using key array_index.
-        lr_ref = find_loc(
-          iv_append_tables = abap_true
-          iv_path = <n>-path
-          iv_name = <n>-name ).
-        assign lr_ref->* to <value>.
-        assert sy-subrc = 0.
-        describe field <value> type lv_type.
-
-        case <n>-type.
-          when zif_ajson=>node_type-null.
-            " Do nothing
-          when zif_ajson=>node_type-boolean.
-            <value> = boolc( <n>-value = 'true' ).
-          when zif_ajson=>node_type-number.
-            <value> = <n>-value.
-          when zif_ajson=>node_type-string.
-            if lv_type = 'D' and <n>-value is not initial.
-              <value> = to_date( <n>-value ).
-            elseif lv_type = 'P' and <n>-value is not initial.
-              <value> = to_timestamp( <n>-value ).
-            else.
-              <value> = <n>-value.
-            endif.
-          when zif_ajson=>node_type-object.
-            if not lv_type co 'uv'.
-              zcx_ajson_error=>raise(
-                iv_msg      = 'Expected structure'
-                iv_location = <n>-path && <n>-name ).
-            endif.
-          when zif_ajson=>node_type-array.
-            if not lv_type co 'h'.
-              zcx_ajson_error=>raise(
-                iv_msg      = 'Expected table'
-                iv_location = <n>-path && <n>-name ).
-            endif.
-          when others.
-            zcx_ajson_error=>raise(
-              iv_msg      = |Unexpected JSON type [{ <n>-type }]|
-              iv_location = <n>-path && <n>-name ).
-        endcase.
-
-      endloop.
-    catch zcx_ajson_error into lx_ajson.
-      if lx_ajson->location is initial.
-        lx_ajson->set_location( <n>-path && <n>-name ).
-      endif.
-      raise exception lx_ajson.
-    catch cx_sy_conversion_no_number into lx.
-      zcx_ajson_error=>raise(
-        iv_msg      = |Source is not a number|
-        iv_location = <n>-path && <n>-name ).
-    endtry.
-
-  endmethod.
-
-  method find_loc.
-
-    data lt_path type string_table.
-    data lv_trace type string.
-    data lv_seg like line of lt_path.
-    data lv_type type c.
-    data lv_size type i.
-    data lv_index type i.
-    field-symbols <struc> type any.
-    field-symbols <table> type standard table.
-    field-symbols <value> type any.
-    field-symbols <seg> like line of lt_path.
-
-    split iv_path at '/' into table lt_path.
-    delete lt_path where table_line is initial.
-    if iv_name is not initial.
-      append iv_name to lt_path.
-    endif.
-
-    r_ref = mr_obj.
-
-    loop at lt_path assigning <seg>.
-      lv_trace = lv_trace && '/' && <seg>.
-
-      if mi_custom_mapping is bound.
-        lv_seg = mi_custom_mapping->to_abap( iv_path = iv_path iv_name = <seg> ).
-      else.
-        clear lv_seg.
-      endif.
-
-      if lv_seg is initial.
-        lv_seg = to_upper( <seg> ).
-      else.
-        lv_seg = to_upper( lv_seg ).
-      endif.
-
-      assign r_ref->* to <struc>.
-      assert sy-subrc = 0.
-      describe field <struc> type lv_type.
-
-      if lv_type ca 'lr'. " data/obj ref
-        " TODO maybe in future
-        zcx_ajson_error=>raise(
-          iv_msg      = 'Cannot assign to ref'
-          iv_location = lv_trace ).
-
-      elseif lv_type = 'h'. " table
-        if not lv_seg co '0123456789'.
-          zcx_ajson_error=>raise(
-            iv_msg      = 'Need index to access tables'
-            iv_location = lv_trace ).
-        endif.
-        lv_index = lv_seg.
-        assign r_ref->* to <table>.
-        assert sy-subrc = 0.
-
-        lv_size = lines( <table> ).
-        if iv_append_tables = abap_true and lv_index = lv_size + 1.
-          append initial line to <table>.
-        endif.
-
-        read table <table> index lv_index assigning <value>.
-        if sy-subrc <> 0.
-          zcx_ajson_error=>raise(
-            iv_msg      = 'Index not found in table'
-            iv_location = lv_trace ).
-        endif.
-
-      elseif lv_type ca 'uv'. " structure
-        assign component lv_seg of structure <struc> to <value>.
-        if sy-subrc <> 0.
-          zcx_ajson_error=>raise(
-            iv_msg      = 'Path not found'
-            iv_location = lv_trace ).
-        endif.
-      else.
-        zcx_ajson_error=>raise(
-          iv_msg = 'Target is not deep'
-          iv_location = lv_trace ).
-      endif.
-      get reference of <value> into r_ref.
-    endloop.
 
   endmethod.
 
