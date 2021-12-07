@@ -1306,12 +1306,24 @@ class ltcl_json_to_abap definition
         timestamp3 type timestamp,
       end of ty_complex.
 
-    methods to_abap_struc for testing raising zcx_ajson_error.
-    methods to_abap_value for testing raising zcx_ajson_error.
-    methods to_abap_array for testing raising zcx_ajson_error.
-    methods to_abap_array_of_arrays for testing raising zcx_ajson_error.
-    methods to_abap_w_tab_of_struc for testing raising zcx_ajson_error.
-    methods to_abap_w_plain_tab for testing raising zcx_ajson_error.
+    methods to_abap_struc
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_value
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_array
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_array_of_arrays
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_w_tab_of_struc
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_w_plain_tab
+      for testing
+      raising zcx_ajson_error.
     methods to_abap_hashed_tab
       for testing
       raising zcx_ajson_error.
@@ -1321,7 +1333,9 @@ class ltcl_json_to_abap definition
     methods to_abap_hashed_plain_tab
       for testing
       raising zcx_ajson_error.
-    methods to_abap_negative for testing.
+    methods to_abap_negative
+      for testing
+      raising zcx_ajson_error.
 
  endclass.
 

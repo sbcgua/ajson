@@ -572,19 +572,18 @@ class lcl_json_to_abap definition final.
 
     types:
       begin of ty_type_cache,
-        type_path  type string,
-        dd         type ref to cl_abap_datadescr,
-        type_kind  like cl_abap_typedescr=>typekind_any,
-        buf        type ref to data,
+        type_path    type string,
+        dd           type ref to cl_abap_datadescr,
+        type_kind    like cl_abap_typedescr=>typekind_any,
+        tab_item_buf type ref to data,
       end of ty_type_cache.
     data mt_node_type_cache type sorted table of ty_type_cache with unique key type_path.
 
-    data mr_obj type ref to data.
+    data mr_nodes type ref to zif_ajson=>ty_nodes_ts.
     data mi_custom_mapping type ref to zif_ajson_mapping.
 
     methods any_to_abap
       importing
-        it_nodes       type zif_ajson=>ty_nodes_ts
         iv_path        type string
         is_parent_type type ty_type_cache optional
         i_container_ref type ref to data
@@ -602,7 +601,8 @@ class lcl_json_to_abap definition final.
     methods get_node_type
       importing
         iv_node_name_upper type string
-        is_parent_type     type ty_type_cache
+        is_parent_type     type ty_type_cache optional
+        i_container_ref    type ref to data optional
       returning
         value(rs_node_type) type ty_type_cache
       raising
@@ -623,15 +623,15 @@ class lcl_json_to_abap implementation.
 
     clear c_container. " what about data/obj refs ?
     clear mt_node_type_cache.
-    ls_root_type-type_path = ''.
-    ls_root_type-dd       ?= cl_abap_typedescr=>describe_by_data( c_container ).
-    ls_root_type-type_kind = ls_root_type-dd->type_kind.
-    insert ls_root_type into table mt_node_type_cache.
 
     get reference of c_container into lr_ref.
+    get reference of it_nodes into mr_nodes.
+
+    get_node_type( " Pre-cache root node type
+      iv_node_name_upper = ''
+      i_container_ref    = lr_ref ).
 
     any_to_abap(
-      it_nodes        = it_nodes
       iv_path         = ''
       i_container_ref = lr_ref ).
 
@@ -640,6 +640,9 @@ class lcl_json_to_abap implementation.
   method get_node_type.
 
     data lv_node_type_path type string.
+    data lo_sdescr type ref to cl_abap_structdescr.
+    data lo_tdescr type ref to cl_abap_tabledescr.
+    data lo_ddescr type ref to cl_abap_datadescr.
 
     " Calculate type path
     if is_parent_type-type_kind = cl_abap_typedescr=>typekind_table.
@@ -651,23 +654,12 @@ class lcl_json_to_abap implementation.
     " Get or create cached
     read table mt_node_type_cache into rs_node_type with key type_path = lv_node_type_path.
     if sy-subrc <> 0.
-      assert is_parent_type-type_kind is not initial.
-      " This should not happen by design,
-      " parent is initial only for the root node
-      " and the '/' type node was created beforehand
-
-      rs_node_type-type_path = lv_node_type_path.
       case is_parent_type-type_kind.
-        when cl_abap_typedescr=>typekind_table.
-          data lo_tdescr type ref to cl_abap_tabledescr.
+        when 'h'. " Table
           lo_tdescr ?= is_parent_type-dd.
           rs_node_type-dd = lo_tdescr->get_table_line_type( ).
-          if lo_tdescr->table_kind <> cl_abap_tabledescr=>tablekind_std.
-            create data rs_node_type-buf type handle rs_node_type-dd.
-          endif.
 
-        when cl_abap_typedescr=>typekind_struct1 or cl_abap_typedescr=>typekind_struct2.
-          data lo_sdescr type ref to cl_abap_structdescr.
+        when 'u' or 'v'. " Structure
           lo_sdescr ?= is_parent_type-dd.
           lo_sdescr->get_component_type(
             exporting
@@ -680,10 +672,23 @@ class lcl_json_to_abap implementation.
             zcx_ajson_error=>raise( |Path not found| ).
           endif.
 
+        when ''. " Root node
+          rs_node_type-dd ?= cl_abap_typedescr=>describe_by_data_ref( i_container_ref ).
+
         when others.
           zcx_ajson_error=>raise( |Unexpected parent type| ).
       endcase.
+
+      rs_node_type-type_path = lv_node_type_path.
       rs_node_type-type_kind = rs_node_type-dd->type_kind. " for caching and cleaner unintialized access
+      if rs_node_type-type_kind = 'h'. " Table
+        lo_tdescr ?= rs_node_type-dd.
+        if lo_tdescr->table_kind <> 'S'. " standard
+          lo_ddescr = lo_tdescr->get_table_line_type( ).
+          create data rs_node_type-tab_item_buf type handle lo_ddescr.
+        endif.
+      endif.
+
       insert rs_node_type into table mt_node_type_cache.
     endif.
 
@@ -697,14 +702,37 @@ class lcl_json_to_abap implementation.
     data lx_ajson type ref to zcx_ajson_error.
     data lr_target_field type ref to data.
 
-    field-symbols <n> like line of it_nodes.
-    field-symbols <stdtab> type standard table.
-    field-symbols <anytab> type any table.
+    field-symbols <n> type zif_ajson=>ty_node.
+    field-symbols <parent_stdtab> type standard table.
+    field-symbols <parent_anytab> type any table.
+    field-symbols <parent_struc> type any.
+    field-symbols <tab_item> type any.
+
+    " Assign container
+    case is_parent_type-type_kind.
+      when 'h'. " Table
+        if is_parent_type-tab_item_buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type.
+          assign i_container_ref->* to <parent_anytab>.
+          assert sy-subrc = 0.
+
+          lr_target_field = is_parent_type-tab_item_buf. " For hashed/sorted table - same buffer for all children
+          assign is_parent_type-tab_item_buf->* to <tab_item>.
+          assert sy-subrc = 0.
+
+        else.
+          assign i_container_ref->* to <parent_stdtab>.
+          assert sy-subrc = 0.
+        endif.
+
+      when 'u' or 'v'. " Structure
+        assign i_container_ref->* to <parent_struc>.
+        assert sy-subrc = 0.
+    endcase.
 
     try.
 
       " array_index because stringified index goes in wrong order [1, 10, 2 ...]
-      loop at it_nodes assigning <n> using key array_index where path = iv_path.
+      loop at mr_nodes->* assigning <n> using key array_index where path = iv_path.
 
         " Target field name
         if mi_custom_mapping is bound.
@@ -733,25 +761,19 @@ class lcl_json_to_abap implementation.
 
         " Find target field reference
         case is_parent_type-type_kind.
-          when cl_abap_typedescr=>typekind_table.
+          when 'h'. " Table
             if not lv_target_field_name co '0123456789'. " Does not affect anything actually but for integrity
               zcx_ajson_error=>raise( 'Need index to access tables' ).
             endif.
 
-            if ls_node_type-buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type.
-              lr_target_field = ls_node_type-buf.
-            else.
-              assign i_container_ref->* to <stdtab>.
+            if is_parent_type-tab_item_buf is not bound. " Indirect hint that table was sorted/hashed, see get_node_type.
+              append initial line to <parent_stdtab> reference into lr_target_field.
               assert sy-subrc = 0.
-              append initial line to <stdtab> reference into lr_target_field.
             endif.
 
-          when cl_abap_typedescr=>typekind_struct1 or cl_abap_typedescr=>typekind_struct2.
-            field-symbols <container> type any.
+          when 'u' or 'v'.
             field-symbols <field> type any.
-            assign i_container_ref->* to <container>.
-            assert sy-subrc = 0.
-            assign component lv_target_field_name of structure <container> to <field>.
+            assign component lv_target_field_name of structure <parent_struc> to <field>.
             assert sy-subrc = 0.
             get reference of <field> into lr_target_field.
 
@@ -763,45 +785,41 @@ class lcl_json_to_abap implementation.
         endcase.
 
         " Process value assignment
-        if <n>-type = zif_ajson=>node_type-object or <n>-type = zif_ajson=>node_type-array.
+        case <n>-type.
+          when zif_ajson=>node_type-object.
+            if not ls_node_type-type_kind co 'uv'.
+              zcx_ajson_error=>raise( 'Expected structure' ).
+            endif.
+            any_to_abap(
+              iv_path         = <n>-path && <n>-name && '/'
+              is_parent_type  = ls_node_type
+              i_container_ref = lr_target_field ).
 
-          if <n>-type = zif_ajson=>node_type-object and not ls_node_type-type_kind co 'uv'.
-            zcx_ajson_error=>raise( 'Expected structure' ).
-          elseif <n>-type = zif_ajson=>node_type-array and not ls_node_type-type_kind = 'h'.
-            zcx_ajson_error=>raise( 'Expected table' ).
-          endif.
+          when zif_ajson=>node_type-array.
+            if not ls_node_type-type_kind = 'h'.
+              zcx_ajson_error=>raise( 'Expected table' ).
+            endif.
+            any_to_abap(
+              iv_path         = <n>-path && <n>-name && '/'
+              is_parent_type  = ls_node_type
+              i_container_ref = lr_target_field ).
 
-          any_to_abap(
-            it_nodes        = it_nodes
-            iv_path         = <n>-path && <n>-name && '/'
-            is_parent_type  = ls_node_type
-            i_container_ref = lr_target_field ).
+          when others.
+            value_to_abap(
+              is_node         = <n>
+              is_node_type    = ls_node_type
+              i_container_ref = lr_target_field ).
+        endcase.
 
-        else.
-          value_to_abap(
-            is_node         = <n>
-            is_node_type    = ls_node_type
-            i_container_ref = lr_target_field ).
-        endif.
-
-        if ls_node_type-buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type.
-
-          field-symbols <buf> type any.
-          assign ls_node_type-buf->* to <buf>.
-          assert sy-subrc = 0.
-
-          assign i_container_ref->* to <anytab>.
-          assert sy-subrc = 0.
-
+        if is_parent_type-tab_item_buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type.
           try.
-            insert <buf> into table <anytab>.
+            insert <tab_item> into table <parent_anytab>.
           catch cx_sy_itab_duplicate_key.
             sy-subrc = 4.
           endtry.
           if sy-subrc <> 0.
             zcx_ajson_error=>raise( 'Duplicate insertion' ).
           endif.
-
         endif.
 
       endloop.
