@@ -572,12 +572,10 @@ class lcl_json_to_abap definition final.
 
     types:
       begin of ty_type_cache,
-        type_path type string,
-        dd        type ref to cl_abap_datadescr,
-        type_kind like cl_abap_typedescr=>typekind_any,
-        buf       type ref to data,
-        tab_key   type sorted table of abap_keydescr with unique key name,
-        tab_key_kind like cl_abap_tabledescr=>keydefkind_default,
+        type_path  type string,
+        dd         type ref to cl_abap_datadescr,
+        type_kind  like cl_abap_typedescr=>typekind_any,
+        buf        type ref to data,
       end of ty_type_cache.
     data mt_node_type_cache type sorted table of ty_type_cache with unique key type_path.
 
@@ -664,12 +662,10 @@ class lcl_json_to_abap implementation.
           data lo_tdescr type ref to cl_abap_tabledescr.
           lo_tdescr ?= is_parent_type-dd.
           rs_node_type-dd = lo_tdescr->get_table_line_type( ).
-
           if lo_tdescr->table_kind <> cl_abap_tabledescr=>tablekind_std.
             create data rs_node_type-buf type handle rs_node_type-dd.
-            rs_node_type-tab_key      = lo_tdescr->key.
-            rs_node_type-tab_key_kind = lo_tdescr->key_defkind.
           endif.
+
         when cl_abap_typedescr=>typekind_struct1 or cl_abap_typedescr=>typekind_struct2.
           data lo_sdescr type ref to cl_abap_structdescr.
           lo_sdescr ?= is_parent_type-dd.
@@ -683,6 +679,7 @@ class lcl_json_to_abap implementation.
           if sy-subrc <> 0.
             zcx_ajson_error=>raise( |Path not found| ).
           endif.
+
         when others.
           zcx_ajson_error=>raise( |Unexpected parent type| ).
       endcase.
@@ -741,7 +738,7 @@ class lcl_json_to_abap implementation.
               zcx_ajson_error=>raise( 'Need index to access tables' ).
             endif.
 
-            if ls_node_type-tab_key_kind is not initial. " Indirect hint that table was sorted/hashed, see get_node_type
+            if ls_node_type-buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type.
               lr_target_field = ls_node_type-buf.
             else.
               assign i_container_ref->* to <stdtab>.
@@ -787,13 +784,13 @@ class lcl_json_to_abap implementation.
             i_container_ref = lr_target_field ).
         endif.
 
-        if is_parent_type-type_kind = cl_abap_typedescr=>typekind_table and ls_node_type-tab_key_kind is not initial.
-
-          assign i_container_ref->* to <anytab>.
-          assert sy-subrc = 0.
+        if ls_node_type-buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type.
 
           field-symbols <buf> type any.
           assign ls_node_type-buf->* to <buf>.
+          assert sy-subrc = 0.
+
+          assign i_container_ref->* to <anytab>.
           assert sy-subrc = 0.
 
           insert <buf> into table <anytab>.
