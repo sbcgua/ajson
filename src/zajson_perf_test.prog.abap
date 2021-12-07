@@ -126,7 +126,27 @@ class lcl_app definition final inheriting from lcl_runner_base.
     methods prepare.
     methods prepare_parsed raising cx_static_check.
     methods prepare_complex.
+
+    methods prepare_components
+      importing
+        iv_fields type i
+      returning
+        value(rt_components) type cl_abap_structdescr=>component_table.
+    methods prepare_json_object
+      importing
+        iv_fields     type i
+        iv_start_data type i default 0
+      returning
+        value(rv_str) type string.
+
     methods prepare_long_array.
+    methods prepare_long_array_container
+      importing
+        iv_fields type i.
+    methods prepare_long_array_str
+      importing
+        iv_fields type i
+        iv_lines type i.
 
     data mv_json_plain_obj type string.
     data mv_json_deep type string.
@@ -239,18 +259,12 @@ class lcl_app implementation.
 
     data lo_long_struc type ref to cl_abap_structdescr.
     data lo_long_table type ref to cl_abap_tabledescr.
-    data lo_field_type type ref to cl_abap_datadescr.
     data lt_components type cl_abap_structdescr=>component_table.
-    data ls_comp like line of lt_components.
     data lv_data type i.
     data lo_complex_type type ref to cl_abap_structdescr.
+    data ls_comp like line of lt_components.
 
-    lo_field_type ?= cl_abap_typedescr=>describe_by_name( 'CHAR10' ).
-    ls_comp-type = lo_field_type.
-    do lc_fields times.
-      ls_comp-name = |C{ sy-index }|.
-      append ls_comp to lt_components.
-    enddo.
+    lt_components = prepare_components( lc_fields ).
 
     lo_long_struc = cl_abap_structdescr=>create( lt_components ).
     lo_long_table = cl_abap_tabledescr=>create( lo_long_struc ).
@@ -262,33 +276,23 @@ class lcl_app implementation.
     create data mr_complex_data type handle lo_complex_type.
 
     " Data
-    mv_json_complex = '{'.
-    do lc_fields times.
-      if sy-index <> 1.
-        mv_json_complex = mv_json_complex && `, `.
-      endif.
-      lv_data = lv_data + 1.
-      mv_json_complex = mv_json_complex && |"C{ sy-index }": "{ lv_data }"|.
-    enddo.
+    mv_json_complex = prepare_json_object(
+        iv_fields     = lc_fields
+        iv_start_data = lv_data ).
+    lv_data = lv_data + lc_fields.
 
-    mv_json_complex = mv_json_complex && ', "TAB": ['.
+    mv_json_complex = replace( val = mv_json_complex sub = '}' with = `, "TAB": [` ).
+
+    data lt_tab type string_table.
 
     do lc_tabrows times.
-      if sy-index <> 1.
-        mv_json_complex = mv_json_complex && `, `.
-      endif.
-      mv_json_complex = mv_json_complex && '{'.
-      do lc_fields times.
-        if sy-index <> 1.
-          mv_json_complex = mv_json_complex && `, `.
-        endif.
-        lv_data = lv_data + 1.
-        mv_json_complex = mv_json_complex && |"C{ sy-index }": "{ lv_data }"|.
-      enddo.
-      mv_json_complex = mv_json_complex && '}'.
+      append prepare_json_object(
+        iv_fields = lc_fields
+        iv_start_data = lv_data ) to lt_tab.
+      lv_data = lv_data + lc_fields.
     enddo.
 
-    mv_json_complex = mv_json_complex && ']}'.
+    mv_json_complex = mv_json_complex && concat_lines_of( table = lt_tab sep = `, ` ) && `]}`.
 
   endmethod.
 
@@ -297,44 +301,72 @@ class lcl_app implementation.
     constants lc_fields  type i value 20.
     constants lc_tabrows type i value 5000.
 
-    data lo_long_struc type ref to cl_abap_structdescr.
-    data lo_long_table type ref to cl_abap_tabledescr.
+    prepare_long_array_container( iv_fields = lc_fields ).
+    prepare_long_array_str(
+      iv_fields = lc_fields
+      iv_lines  = lc_tabrows ).
+
+  endmethod.
+
+  method prepare_components.
+
     data lo_field_type type ref to cl_abap_datadescr.
-    data lt_components type cl_abap_structdescr=>component_table.
-    data ls_comp like line of lt_components.
-    data lv_data type i.
+    data ls_comp like line of rt_components.
 
     lo_field_type ?= cl_abap_typedescr=>describe_by_name( 'CHAR10' ).
     ls_comp-type = lo_field_type.
-    do lc_fields times.
+    do iv_fields times.
       ls_comp-name = |C{ sy-index }|.
-      append ls_comp to lt_components.
+      append ls_comp to rt_components.
     enddo.
 
+  endmethod.
+
+  method prepare_long_array_container.
+
+    data lo_long_struc type ref to cl_abap_structdescr.
+    data lo_long_table type ref to cl_abap_tabledescr.
+    data lt_components type cl_abap_structdescr=>component_table.
+
+    lt_components = prepare_components( iv_fields ).
     lo_long_struc = cl_abap_structdescr=>create( lt_components ).
     lo_long_table = cl_abap_tabledescr=>create( lo_long_struc ).
 
     create data mr_long_array type handle lo_long_table.
 
-    " Data
-    mv_json_long_array = '['.
+  endmethod.
 
-    do lc_tabrows times.
-      if sy-index <> 1.
-        mv_json_long_array = mv_json_long_array && `, `.
-      endif.
-      mv_json_long_array = mv_json_long_array && '{'.
-      do lc_fields times.
-        if sy-index <> 1.
-          mv_json_long_array = mv_json_long_array && `, `.
-        endif.
-        lv_data = lv_data + 1.
-        mv_json_long_array = mv_json_long_array && |"C{ sy-index }": "{ lv_data }"|.
-      enddo.
-      mv_json_long_array = mv_json_long_array && '}'.
+  method prepare_json_object.
+
+    data lv_data type i.
+    data lt_tab type string_table.
+    data lv_tmp type string.
+
+    lv_data = iv_start_data.
+
+    do iv_fields times.
+      lv_data = lv_data + 1.
+      lv_tmp = |"C{ sy-index }": "{ lv_data }"|.
+      append lv_tmp to lt_tab.
     enddo.
 
-    mv_json_long_array = mv_json_long_array && ']'.
+    rv_str = `{` && concat_lines_of( table = lt_tab sep = `, ` ) && `}`.
+
+  endmethod.
+
+  method prepare_long_array_str.
+
+    data lt_tab type string_table.
+    data lv_data type i.
+
+    do iv_lines times.
+      append prepare_json_object(
+        iv_fields = iv_fields
+        iv_start_data = lv_data ) to lt_tab.
+      lv_data = lv_data + iv_fields.
+    enddo.
+
+    mv_json_long_array = `[` && concat_lines_of( table = lt_tab sep = `, ` ) && `]`.
 
   endmethod.
 
@@ -428,7 +460,6 @@ class lcl_app implementation.
 
     create object lo_app.
 
-    lo_app->prepare( ).
     lo_app->mv_num_rounds = 1000.
 
     lv_tmp = |{ sy-datum+0(4) }-{ sy-datum+4(2) }-{ sy-datum+6(2) }|.
@@ -436,15 +467,17 @@ class lcl_app implementation.
 
     try.
 
-      lo_app->run( 'parse_plain_obj' ).
-      lo_app->run( 'parse_deep_obj' ).
-      lo_app->run( 'parse_array' ).
-      lo_app->run(
-        iv_method = 'parse_long_array'
-        iv_times  = 5 ).
-      lo_app->run(
-        iv_method = 'parse_complex'
-        iv_times  = 5 ).
+      lo_app->prepare( ).
+
+*      lo_app->run( 'parse_plain_obj' ).
+*      lo_app->run( 'parse_deep_obj' ).
+*      lo_app->run( 'parse_array' ).
+*      lo_app->run(
+*        iv_method = 'parse_long_array'
+*        iv_times  = 5 ).
+*      lo_app->run(
+*        iv_method = 'parse_complex'
+*        iv_times  = 5 ).
 
       lo_app->prepare_parsed( ).
 
