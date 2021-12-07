@@ -597,7 +597,8 @@ class lcl_json_to_abap definition final.
         is_node_type type ty_type_cache
         i_container_ref type ref to data
       raising
-        zcx_ajson_error.
+        zcx_ajson_error
+        cx_sy_conversion_no_number.
 
     methods get_node_type
       importing
@@ -709,6 +710,7 @@ class lcl_json_to_abap implementation.
 
     data ls_node_type like line of mt_node_type_cache.
     data lx_ajson type ref to zcx_ajson_error.
+    data lx_root type ref to cx_root.
     data lr_target_field type ref to data.
 
     field-symbols <n> type zif_ajson=>ty_node.
@@ -827,50 +829,51 @@ class lcl_json_to_abap implementation.
         lx_ajson->set_location( <n>-path && <n>-name ).
       endif.
       raise exception lx_ajson.
+    catch cx_sy_conversion_no_number.
+      zcx_ajson_error=>raise(
+        iv_msg = 'Source is not a number'
+        iv_location = <n>-path && <n>-name ).
+    catch cx_root into lx_root.
+      zcx_ajson_error=>raise(
+        iv_msg = lx_root->get_text( )
+        iv_location = <n>-path && <n>-name ).
     endtry.
 
   endmethod.
 
   method value_to_abap.
 
-    data lx type ref to cx_root.
     field-symbols <container> type any.
 
     if is_node_type-type_kind ca 'lruvh'. " refs, table, strucs
       zcx_ajson_error=>raise( |Unsupported target for value [{ is_node_type-type_kind }]| ).
     endif.
 
-    try.
-      assign i_container_ref->* to <container>.
-      assert sy-subrc = 0.
+    assign i_container_ref->* to <container>.
+    assert sy-subrc = 0.
 
-      case is_node-type.
-        when zif_ajson=>node_type-null.
-          " Do nothing
-        when zif_ajson=>node_type-boolean.
-          " TODO: check type ?
-          <container> = boolc( is_node-value = 'true' ).
-        when zif_ajson=>node_type-number.
-          " TODO: check type ?
+    case is_node-type.
+      when zif_ajson=>node_type-null.
+        " Do nothing
+      when zif_ajson=>node_type-boolean.
+        " TODO: check type ?
+        <container> = boolc( is_node-value = 'true' ).
+      when zif_ajson=>node_type-number.
+        " TODO: check type ?
+        <container> = is_node-value.
+
+      when zif_ajson=>node_type-string.
+        " TODO: check type ?
+        if is_node_type-type_kind = 'D' and is_node-value is not initial.
+          <container> = to_date( is_node-value ).
+        elseif is_node_type-type_kind = 'P' and is_node-value is not initial.
+          <container> = to_timestamp( is_node-value ).
+        else.
           <container> = is_node-value.
-
-        when zif_ajson=>node_type-string.
-          " TODO: check type ?
-          if is_node_type-type_kind = 'D' and is_node-value is not initial.
-            <container> = to_date( is_node-value ).
-          elseif is_node_type-type_kind = 'P' and is_node-value is not initial.
-            <container> = to_timestamp( is_node-value ).
-          else.
-            <container> = is_node-value.
-          endif.
-        when others.
-          zcx_ajson_error=>raise( |Unexpected JSON type [{ is_node-type }]| ).
-      endcase.
-    catch cx_sy_conversion_no_number.
-      zcx_ajson_error=>raise( 'Source is not a number' ).
-    catch cx_root into lx.
-      zcx_ajson_error=>raise( lx->get_text( ) ).
-    endtry.
+        endif.
+      when others.
+        zcx_ajson_error=>raise( |Unexpected JSON type [{ is_node-type }]| ).
+    endcase.
 
   endmethod.
 
