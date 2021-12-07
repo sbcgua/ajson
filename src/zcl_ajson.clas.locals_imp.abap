@@ -577,7 +577,7 @@ class lcl_json_to_abap definition final.
         type_kind    like cl_abap_typedescr=>typekind_any,
         tab_item_buf type ref to data,
       end of ty_type_cache.
-    data mt_node_type_cache type sorted table of ty_type_cache with unique key type_path.
+    data mt_node_type_cache type hashed table of ty_type_cache with unique key type_path.
 
     data mr_nodes type ref to zif_ajson=>ty_nodes_ts.
     data mi_custom_mapping type ref to zif_ajson_mapping.
