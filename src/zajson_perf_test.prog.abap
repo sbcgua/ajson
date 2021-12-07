@@ -479,6 +479,16 @@ class lcl_app implementation.
         iv_method = 'parse_complex'
         iv_times  = 5 ).
 
+*      lo_app->run( 'parse_plain_obj' ).
+*      lo_app->run( 'parse_deep_obj' ).
+*      lo_app->run( 'parse_array' ).
+*      lo_app->run(
+*        iv_method = 'parse_long_array'
+*        iv_times  = 5 ).
+*      lo_app->run(
+*        iv_method = 'parse_complex'
+*        iv_times  = 5 ).
+
       lo_app->prepare_parsed( ).
 
       lo_app->run( 'to_abap_plain_obj' ).
