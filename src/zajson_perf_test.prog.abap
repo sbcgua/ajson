@@ -110,21 +110,32 @@ endclass.
 class lcl_app definition final inheriting from lcl_runner_base.
   public section.
 
-    methods plain_obj raising cx_static_check.
-    methods deep_obj raising cx_static_check.
-    methods array raising cx_static_check.
-    methods big_and_complex raising cx_static_check.
+    methods parse_plain_obj raising cx_static_check.
+    methods parse_deep_obj raising cx_static_check.
+    methods parse_array raising cx_static_check.
+    methods parse_complex raising cx_static_check.
+
+    methods to_abap_plain_obj raising cx_static_check.
+    methods to_abap_deep_obj raising cx_static_check.
+    methods to_abap_array raising cx_static_check.
+    methods to_abap_complex raising cx_static_check.
 
     class-methods main.
     methods prepare.
+    methods prepare_parsed raising cx_static_check.
     methods prepare_complex.
 
-    data mv_plain_obj type string.
-    data mv_deep_obj type string.
-    data mv_array type string.
-    data mv_big_and_complex type string.
-    data mo_complex_type type ref to cl_abap_structdescr.
+    data mv_json_plain_obj type string.
+    data mv_json_deep type string.
+    data mv_json_array type string.
+    data mv_json_complex type string.
+
     data mr_complex_data type ref to data.
+
+    data mo_plain_obj type ref to zif_ajson.
+    data mo_deep type ref to zif_ajson.
+    data mo_array type ref to zif_ajson.
+    data mo_complex type ref to zif_ajson.
 
     types:
       begin of ty_fragment,
@@ -161,7 +172,7 @@ endclass.
 class lcl_app implementation.
 
   method prepare.
-    mv_plain_obj =
+    mv_json_plain_obj =
       '{' &&
       '  "string": "abc",' &&
       '  "number": 123,' &&
@@ -174,7 +185,7 @@ class lcl_app implementation.
       '  "str2": "world"' &&
       '}'.
 
-    mv_deep_obj =
+    mv_json_deep =
       '{' &&
       '    "string": "abc",' &&
       '    "number": 123,' &&
@@ -196,19 +207,19 @@ class lcl_app implementation.
       '    }' &&
       '}'.
 
-    mv_array = '['.
+    mv_json_array = '['.
     do 10 times.
       if sy-index <> 1.
-        mv_array = mv_array && `, `.
+        mv_json_array = mv_json_array && `, `.
       endif.
-      mv_array = mv_array &&
+      mv_json_array = mv_json_array &&
         '{' &&
         '    "string": "abc", ' &&
         '    "number": 123,   ' &&
         '    "float": 123.45  ' &&
         '}'.
     enddo.
-    mv_array = mv_array && ']'.
+    mv_json_array = mv_json_array && ']'.
 
     prepare_complex( ).
 
@@ -225,6 +236,7 @@ class lcl_app implementation.
     data lt_components type cl_abap_structdescr=>component_table.
     data ls_comp like line of lt_components.
     data lv_data type i.
+    data lo_complex_type type ref to cl_abap_structdescr.
 
     lo_field_type ?= cl_abap_typedescr=>describe_by_name( 'CHAR10' ).
     ls_comp-type = lo_field_type.
@@ -239,74 +251,103 @@ class lcl_app implementation.
     ls_comp-name  = 'TAB'.
     append ls_comp to lt_components.
 
-    mo_complex_type = cl_abap_structdescr=>create( lt_components ).
-    create data mr_complex_data type handle mo_complex_type.
+    lo_complex_type = cl_abap_structdescr=>create( lt_components ).
+    create data mr_complex_data type handle lo_complex_type.
 
     " Data
-    mv_big_and_complex = '{'.
+    mv_json_complex = '{'.
     do lc_fields times.
       if sy-index <> 1.
-        mv_big_and_complex = mv_big_and_complex && `, `.
+        mv_json_complex = mv_json_complex && `, `.
       endif.
       lv_data = lv_data + 1.
-      mv_big_and_complex = mv_big_and_complex && |"C{ sy-index }": "{ lv_data }"|.
+      mv_json_complex = mv_json_complex && |"C{ sy-index }": "{ lv_data }"|.
     enddo.
 
-    mv_big_and_complex = mv_big_and_complex && ', "TAB": ['.
+    mv_json_complex = mv_json_complex && ', "TAB": ['.
 
     do lc_tabrows times.
       if sy-index <> 1.
-        mv_big_and_complex = mv_big_and_complex && `, `.
+        mv_json_complex = mv_json_complex && `, `.
       endif.
-      mv_big_and_complex = mv_big_and_complex && '{'.
+      mv_json_complex = mv_json_complex && '{'.
       do lc_fields times.
         if sy-index <> 1.
-          mv_big_and_complex = mv_big_and_complex && `, `.
+          mv_json_complex = mv_json_complex && `, `.
         endif.
         lv_data = lv_data + 1.
-        mv_big_and_complex = mv_big_and_complex && |"C{ sy-index }": "{ lv_data }"|.
+        mv_json_complex = mv_json_complex && |"C{ sy-index }": "{ lv_data }"|.
       enddo.
-      mv_big_and_complex = mv_big_and_complex && '}'.
+      mv_json_complex = mv_json_complex && '}'.
     enddo.
 
-    mv_big_and_complex = mv_big_and_complex && ']}'.
+    mv_json_complex = mv_json_complex && ']}'.
 
   endmethod.
 
-  method plain_obj.
+  method prepare_parsed.
+
+    mo_plain_obj = zcl_ajson=>parse( mv_json_plain_obj ).
+    mo_deep      = zcl_ajson=>parse( mv_json_deep ).
+    mo_array     = zcl_ajson=>parse( mv_json_array ).
+    mo_complex   = zcl_ajson=>parse( mv_json_complex ).
+
+  endmethod.
+
+  method parse_plain_obj.
 
     data lo_json type ref to zif_ajson.
+    lo_json = zcl_ajson=>parse( mv_json_plain_obj ).
+
+  endmethod.
+
+  method parse_deep_obj.
+
+    data lo_json type ref to zif_ajson.
+    lo_json = zcl_ajson=>parse( mv_json_deep ).
+
+  endmethod.
+
+  method parse_array.
+
+    data lo_json type ref to zif_ajson.
+    lo_json = zcl_ajson=>parse( mv_json_array ).
+
+  endmethod.
+
+  method parse_complex.
+
+    data lo_json type ref to zif_ajson.
+    lo_json = zcl_ajson=>parse( mv_json_complex ).
+
+  endmethod.
+
+  method to_abap_plain_obj.
+
     data ls_target type ty_plain.
-    lo_json = zcl_ajson=>parse( mv_plain_obj ).
-    lo_json->to_abap( importing ev_container = ls_target ).
+    mo_plain_obj->to_abap( importing ev_container = ls_target ).
 
   endmethod.
 
-  method deep_obj.
+  method to_abap_deep_obj.
 
-    data lo_json type ref to zif_ajson.
     data ls_target type ty_deep3.
-    lo_json = zcl_ajson=>parse( mv_deep_obj ).
-    lo_json->to_abap( importing ev_container = ls_target ).
+    mo_deep->to_abap( importing ev_container = ls_target ).
 
   endmethod.
 
-  method array.
+  method to_abap_array.
 
-    data lo_json type ref to zif_ajson.
     data ls_target type tt_fragment.
-    lo_json = zcl_ajson=>parse( mv_array ).
-    lo_json->to_abap( importing ev_container = ls_target ).
+    mo_array->to_abap( importing ev_container = ls_target ).
 
   endmethod.
 
-  method big_and_complex.
+  method to_abap_complex.
 
-    data lo_json type ref to zif_ajson.
     field-symbols <data> type any.
     assign mr_complex_data->* to <data>.
-    lo_json = zcl_ajson=>parse( mv_big_and_complex ).
-    lo_json->to_abap( importing ev_container = <data> ).
+    mo_complex->to_abap( importing ev_container = <data> ).
 
   endmethod.
 
@@ -325,10 +366,23 @@ class lcl_app implementation.
     write: / 'Date', lv_date.
 
     try.
-      lo_app->run( 'plain_obj' ).
-      lo_app->run( 'deep_obj' ).
-      lo_app->run( 'array' ).
-      lo_app->run( iv_method = 'big_and_complex' iv_times = 10 ).
+
+      lo_app->run( 'parse_plain_obj' ).
+      lo_app->run( 'parse_deep_obj' ).
+      lo_app->run( 'parse_array' ).
+      lo_app->run(
+        iv_method = 'parse_complex'
+        iv_times  = 10 ).
+
+      lo_app->prepare_parsed( ).
+
+      lo_app->run( 'to_abap_plain_obj' ).
+      lo_app->run( 'to_abap_deep_obj' ).
+      lo_app->run( 'to_abap_array' ).
+      lo_app->run(
+        iv_method = 'to_abap_complex'
+        iv_times  = 10 ).
+
     catch cx_root into lx.
       write: / lx->get_text( ).
     endtry.
