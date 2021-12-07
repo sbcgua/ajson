@@ -589,7 +589,6 @@ class lcl_json_to_abap definition final.
         it_nodes       type zif_ajson=>ty_nodes_ts
         iv_path        type string
         is_parent_type type ty_type_cache optional
-        iv_key_only    type abap_bool default abap_false
         i_container_ref type ref to data
       raising
         zcx_ajson_error.
@@ -699,15 +698,11 @@ class lcl_json_to_abap implementation.
     data lv_target_field_name type string.
     data lv_mapped_name type string.
     data lx_ajson type ref to zcx_ajson_error.
-    data lv_struc_w_key type abap_bool.
     data lr_target_field type ref to data.
 
     field-symbols <n> like line of it_nodes.
     field-symbols <stdtab> type standard table.
     field-symbols <anytab> type any table.
-
-    lv_struc_w_key = boolc( lines( is_parent_type-tab_key ) > 0 ).
-    assert not ( iv_key_only = abap_true and lv_struc_w_key = abap_false ).
 
     try.
 
@@ -728,14 +723,6 @@ class lcl_json_to_abap implementation.
           lv_target_field_name = to_upper( <n>-name ).
         endif.
 
-        if lv_struc_w_key = abap_true. " hashed/sorted table item
-          read table is_parent_type-tab_key with key table_line = lv_target_field_name transporting no fields.
-          if ( iv_key_only = abap_true and sy-subrc <> 0 ) or ( iv_key_only = abap_false and sy-subrc = 0 ).
-            " Fill only key fields for BUF run, and skip them for when the record has been already appended
-            continue.
-          endif.
-        endif.
-
         " Get or create type cache record
         ls_node_type = get_node_type(
           iv_node_name_upper = lv_target_field_name
@@ -753,51 +740,13 @@ class lcl_json_to_abap implementation.
             if not lv_target_field_name co '0123456789'. " Does not affect anything actually but for integrity
               zcx_ajson_error=>raise( 'Need index to access tables' ).
             endif.
+
             if ls_node_type-tab_key_kind is not initial. " Indirect hint that table was sorted/hashed, see get_node_type
-
-              field-symbols <buf> type any.
-              assign i_container_ref->* to <anytab>.
-              assert sy-subrc = 0.
-              assign ls_node_type-buf->* to <buf>.
-              assert sy-subrc = 0.
-
-              if ls_node_type-tab_key_kind = cl_abap_tabledescr=>keydefkind_user.
-                any_to_abap(
-                  it_nodes        = it_nodes
-                  iv_path         = <n>-path && <n>-name && '/'
-                  is_parent_type  = ls_node_type
-                  iv_key_only     = abap_true
-                  i_container_ref = ls_node_type-buf ).
-                insert <buf> into table <anytab> reference into lr_target_field.
-                if sy-subrc <> 0.
-                  zcx_ajson_error=>raise( 'Duplicate insertion' ).
-                  " TODO add handling for secondary keys CX_SY_ITAB_DUPLICATE_KEY
-                endif.
-              elseif ls_node_type-tab_key_kind = cl_abap_tabledescr=>keydefkind_tableline.
-                value_to_abap(
-                  is_node         = <n>
-                  is_node_type    = ls_node_type
-                  i_container_ref = ls_node_type-buf ).
-                insert <buf> into table <anytab>.
-                if sy-subrc <> 0.
-                  zcx_ajson_error=>raise( 'Duplicate insertion' ).
-                  " TODO add handling for secondary keys CX_SY_ITAB_DUPLICATE_KEY
-                endif.
-                continue.
-              else.
-                zcx_ajson_error=>raise( |Tab key kind { ls_node_type-tab_key_kind } currently not supported| ).
-                " this may need more elaboration
-                " maybe better pass to any_to_abap
-                " it should be more specifically analysed if line type is elementary or not
-                " in addition structure tables may be with table line (then key DOES NOT contain components)
-              endif.
-
+              lr_target_field = ls_node_type-buf.
             else.
-
               assign i_container_ref->* to <stdtab>.
               assert sy-subrc = 0.
               append initial line to <stdtab> reference into lr_target_field.
-
             endif.
 
           when cl_abap_typedescr=>typekind_struct1 or cl_abap_typedescr=>typekind_struct2.
@@ -811,7 +760,6 @@ class lcl_json_to_abap implementation.
 
           when ''. " Root node
             lr_target_field = i_container_ref.
-            assert sy-subrc = 0.
 
           when others.
             zcx_ajson_error=>raise( 'Unexpected parent type' ).
@@ -837,6 +785,23 @@ class lcl_json_to_abap implementation.
             is_node         = <n>
             is_node_type    = ls_node_type
             i_container_ref = lr_target_field ).
+        endif.
+
+        if is_parent_type-type_kind = cl_abap_typedescr=>typekind_table and ls_node_type-tab_key_kind is not initial.
+
+          assign i_container_ref->* to <anytab>.
+          assert sy-subrc = 0.
+
+          field-symbols <buf> type any.
+          assign ls_node_type-buf->* to <buf>.
+          assert sy-subrc = 0.
+
+          insert <buf> into table <anytab>.
+          if sy-subrc <> 0.
+            zcx_ajson_error=>raise( 'Duplicate insertion' ).
+            " TODO add handling for secondary keys CX_SY_ITAB_DUPLICATE_KEY
+          endif.
+
         endif.
 
       endloop.
