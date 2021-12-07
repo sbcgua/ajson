@@ -793,10 +793,13 @@ class lcl_json_to_abap implementation.
           assign i_container_ref->* to <anytab>.
           assert sy-subrc = 0.
 
-          insert <buf> into table <anytab>.
+          try.
+            insert <buf> into table <anytab>.
+          catch cx_sy_itab_duplicate_key.
+            sy-subrc = 4.
+          endtry.
           if sy-subrc <> 0.
             zcx_ajson_error=>raise( 'Duplicate insertion' ).
-            " TODO add handling for secondary keys CX_SY_ITAB_DUPLICATE_KEY
           endif.
 
         endif.
