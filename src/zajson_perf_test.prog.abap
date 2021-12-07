@@ -424,15 +424,15 @@ class lcl_app implementation.
 
     data lo_app type ref to lcl_app.
     data lx type ref to cx_root.
-    data lv_date type string.
+    data lv_tmp type string.
 
     create object lo_app.
 
     lo_app->prepare( ).
     lo_app->mv_num_rounds = 1000.
 
-    lv_date = |{ sy-datum+0(4) }-{ sy-datum+4(2) }-{ sy-datum+6(2) }|.
-    write: / 'Date', lv_date.
+    lv_tmp = |{ sy-datum+0(4) }-{ sy-datum+4(2) }-{ sy-datum+6(2) }|.
+    write: / 'Date', lv_tmp.
 
     try.
 
@@ -459,7 +459,8 @@ class lcl_app implementation.
         iv_times  = 5 ).
 
     catch cx_root into lx.
-      write: / 'Exception raised:', lx->get_text( ).
+      lv_tmp = lx->get_text( ).
+      write: / 'Exception raised:', lv_tmp.
     endtry.
 
   endmethod.
