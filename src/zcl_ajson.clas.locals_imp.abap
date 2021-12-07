@@ -572,10 +572,11 @@ class lcl_json_to_abap definition final.
 
     types:
       begin of ty_type_cache,
-        type_path    type string,
-        dd           type ref to cl_abap_datadescr,
-        type_kind    like cl_abap_typedescr=>typekind_any,
-        tab_item_buf type ref to data,
+        type_path         type string,
+        target_field_name type string,
+        dd                type ref to cl_abap_datadescr,
+        type_kind         like cl_abap_typedescr=>typekind_any,
+        tab_item_buf      type ref to data,
       end of ty_type_cache.
     data mt_node_type_cache type hashed table of ty_type_cache with unique key type_path.
 
@@ -600,7 +601,7 @@ class lcl_json_to_abap definition final.
 
     methods get_node_type
       importing
-        iv_node_name_upper type string
+        is_node            type zif_ajson=>ty_node optional " Empty for root
         is_parent_type     type ty_type_cache optional
         i_container_ref    type ref to data optional
       returning
@@ -626,9 +627,7 @@ class lcl_json_to_abap implementation.
     get reference of c_container into lr_ref.
     get reference of it_nodes into mr_nodes.
 
-    get_node_type( " Pre-cache root node type
-      iv_node_name_upper = ''
-      i_container_ref    = lr_ref ).
+    get_node_type( i_container_ref = lr_ref ). " Pre-cache root node type
 
     any_to_abap(
       iv_path         = ''
@@ -647,12 +646,26 @@ class lcl_json_to_abap implementation.
     if is_parent_type-type_kind = cl_abap_typedescr=>typekind_table.
       lv_node_type_path = is_parent_type-type_path && '/-'. " table item type
     elseif is_parent_type-type_kind is not initial.
-      lv_node_type_path = is_parent_type-type_path && '/' && iv_node_name_upper.
+      lv_node_type_path = is_parent_type-type_path && '/' && is_node-name.
     endif. " For root node lv_node_type_path remains ''
 
     " Get or create cached
     read table mt_node_type_cache into rs_node_type with key type_path = lv_node_type_path.
     if sy-subrc <> 0.
+
+      rs_node_type-type_path         = lv_node_type_path.
+
+      if mi_custom_mapping is bound.
+        rs_node_type-target_field_name = to_upper( mi_custom_mapping->to_abap(
+          iv_path = is_node-path
+          iv_name = is_node-name ) ).
+        if rs_node_type-target_field_name is initial.
+          rs_node_type-target_field_name = to_upper( is_node-name ).
+        endif.
+      else.
+        rs_node_type-target_field_name = to_upper( is_node-name ).
+      endif.
+
       case is_parent_type-type_kind.
         when 'h'. " Table
           lo_tdescr ?= is_parent_type-dd.
@@ -662,7 +675,7 @@ class lcl_json_to_abap implementation.
           lo_sdescr ?= is_parent_type-dd.
           lo_sdescr->get_component_type(
             exporting
-              p_name      = iv_node_name_upper
+              p_name      = rs_node_type-target_field_name
             receiving
               p_descr_ref = rs_node_type-dd
             exceptions
@@ -678,8 +691,7 @@ class lcl_json_to_abap implementation.
           zcx_ajson_error=>raise( |Unexpected parent type| ).
       endcase.
 
-      rs_node_type-type_path = lv_node_type_path.
-      rs_node_type-type_kind = rs_node_type-dd->type_kind. " for caching and cleaner unintialized access
+      rs_node_type-type_kind         = rs_node_type-dd->type_kind. " for caching and cleaner unintialized access
       if rs_node_type-type_kind = 'h'. " Table
         lo_tdescr ?= rs_node_type-dd.
         if lo_tdescr->table_kind <> 'S'. " standard
@@ -696,8 +708,6 @@ class lcl_json_to_abap implementation.
   method any_to_abap.
 
     data ls_node_type like line of mt_node_type_cache.
-    data lv_target_field_name type string.
-    data lv_mapped_name type string.
     data lx_ajson type ref to zcx_ajson_error.
     data lr_target_field type ref to data.
 
@@ -733,24 +743,13 @@ class lcl_json_to_abap implementation.
       " array_index because stringified index goes in wrong order [1, 10, 2 ...]
       loop at mr_nodes->* assigning <n> using key array_index where path = iv_path.
 
-        " Target field name
-        if mi_custom_mapping is bound.
-          lv_mapped_name = mi_custom_mapping->to_abap(
-            iv_path = <n>-path
-            iv_name = <n>-name ).
-          if lv_mapped_name is not initial.
-            lv_target_field_name = to_upper( lv_mapped_name ).
-          else.
-            lv_target_field_name = to_upper( <n>-name ).
-          endif.
-        else.
-          lv_target_field_name = to_upper( <n>-name ).
-        endif.
-
         " Get or create type cache record
-        ls_node_type = get_node_type(
-          iv_node_name_upper = lv_target_field_name
-          is_parent_type     = is_parent_type ).
+        if is_parent_type-type_kind <> 'h' or ls_node_type-type_kind is initial.
+          " table records are the same, no need to refetch twice
+          ls_node_type = get_node_type(
+            is_node        = <n>
+            is_parent_type = is_parent_type ).
+        endif.
 
         " Validate node type
         if ls_node_type-type_kind ca 'lr'. " data/obj ref
@@ -761,7 +760,7 @@ class lcl_json_to_abap implementation.
         " Find target field reference
         case is_parent_type-type_kind.
           when 'h'. " Table
-            if not lv_target_field_name co '0123456789'. " Does not affect anything actually but for integrity
+            if not ls_node_type-target_field_name co '0123456789'. " Does not affect anything actually but for integrity
               zcx_ajson_error=>raise( 'Need index to access tables' ).
             endif.
 
@@ -772,7 +771,7 @@ class lcl_json_to_abap implementation.
 
           when 'u' or 'v'.
             field-symbols <field> type any.
-            assign component lv_target_field_name of structure <parent_struc> to <field>.
+            assign component ls_node_type-target_field_name of structure <parent_struc> to <field>.
             assert sy-subrc = 0.
             get reference of <field> into lr_target_field.
 
