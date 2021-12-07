@@ -618,7 +618,6 @@ class lcl_json_to_abap implementation.
 
   method to_abap.
 
-    data ls_root_type like line of mt_node_type_cache.
     data lr_ref type ref to data.
 
     clear c_container. " what about data/obj refs ?
@@ -766,7 +765,7 @@ class lcl_json_to_abap implementation.
               zcx_ajson_error=>raise( 'Need index to access tables' ).
             endif.
 
-            if is_parent_type-tab_item_buf is not bound. " Indirect hint that table was sorted/hashed, see get_node_type.
+            if is_parent_type-tab_item_buf is not bound. " Indirect hint that table was srt/hsh, see get_node_type
               append initial line to <parent_stdtab> reference into lr_target_field.
               assert sy-subrc = 0.
             endif.

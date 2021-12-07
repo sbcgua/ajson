@@ -1337,7 +1337,7 @@ class ltcl_json_to_abap definition
       for testing
       raising zcx_ajson_error.
 
- endclass.
+endclass.
 
 class ltcl_json_to_abap implementation.
 
