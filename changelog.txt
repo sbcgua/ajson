@@ -8,6 +8,10 @@ Legend
 + : added
 - : removed
 
+v1.1.2, 2021-12-24
+------------------
+! heavy refactoring in json_to_abap logic, support for conversion to sorted/hashed tabs, better perf tests separation. Thanks @albertmind for the initial issue and UT submission
+
 v1.1.1, 2021-12-03
 ------------------
 + json filtering #71, #72 - empty values, predefined paths, generic filtering possibility
