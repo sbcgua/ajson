@@ -1287,6 +1287,8 @@ class ltcl_json_to_abap definition
         b type i,
       end of ty_struc,
       tty_struc type standard table of ty_struc with default key,
+      tty_struc_sorted type sorted table of ty_struc with unique key a,
+      tty_struc_hashed type hashed table of ty_struc with unique key a,
       begin of ty_complex,
         str   type string,
         int   type i,
@@ -1294,6 +1296,8 @@ class ltcl_json_to_abap definition
         bool  type abap_bool,
         obj   type ty_struc,
         tab   type tty_struc,
+        tab_plain  type string_table,
+        tab_hashed type tty_struc_hashed,
         oref  type ref to object,
         date1 type d,
         date2 type d,
@@ -1302,293 +1306,339 @@ class ltcl_json_to_abap definition
         timestamp3 type timestamp,
       end of ty_complex.
 
-    methods find_loc for testing raising zcx_ajson_error.
-    methods find_loc_negative for testing.
-    methods find_loc_append for testing raising zcx_ajson_error.
-    methods to_abap for testing raising zcx_ajson_error.
-    methods to_abap_negative for testing.
-
-    methods prepare_cut
-      exporting
-        eo_cut type ref to lcl_json_to_abap
-        e_elem type ty_struc
-        e_mock type ty_complex.
+    methods to_abap_struc
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_value
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_array
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_array_of_arrays
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_w_tab_of_struc
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_w_plain_tab
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_hashed_tab
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_sorted_tab
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_hashed_plain_tab
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_negative
+      for testing
+      raising zcx_ajson_error.
 
 endclass.
 
 class ltcl_json_to_abap implementation.
 
-  method prepare_cut.
-
-    e_mock-str = 'Hello'.
-    e_mock-int = 10.
-    e_mock-obj-a = 'World'.
-    e_elem-a = 'One'.
-    e_elem-b = 1.
-    append e_elem to e_mock-tab.
-    e_elem-a = 'two'.
-    e_elem-b = 2.
-    append e_elem to e_mock-tab.
-
-    lcl_json_to_abap=>bind(
-      changing
-        c_obj = e_mock
-        co_instance = eo_cut ).
-
-  endmethod.
-
-  method find_loc.
-
-    data last_elem type ty_struc.
-    data ls_mock type ty_complex.
-    data lo_cut type ref to lcl_json_to_abap.
-
-    prepare_cut(
-      importing
-        eo_cut = lo_cut
-        e_mock = ls_mock
-        e_elem = last_elem ).
-
-    data lr_ref type ref to data.
-    field-symbols <val> type any.
-
-    lr_ref = lo_cut->find_loc( 'str' ). " Relative also works but from root
-    assign lr_ref->* to <val>.
-    cl_abap_unit_assert=>assert_equals(
-      act = <val>
-      exp = 'Hello' ).
-
-    lr_ref = lo_cut->find_loc( '/str' ).
-    assign lr_ref->* to <val>.
-    cl_abap_unit_assert=>assert_equals(
-      act = <val>
-      exp = 'Hello' ).
-
-    lr_ref = lo_cut->find_loc( '/int' ).
-    assign lr_ref->* to <val>.
-    cl_abap_unit_assert=>assert_equals(
-      act = <val>
-      exp = 10 ).
-
-    lr_ref = lo_cut->find_loc( '/obj/a' ).
-    assign lr_ref->* to <val>.
-    cl_abap_unit_assert=>assert_equals(
-      act = <val>
-      exp = 'World' ).
-
-    lr_ref = lo_cut->find_loc( iv_path = '/obj' iv_name = 'a' ).
-    assign lr_ref->* to <val>.
-    cl_abap_unit_assert=>assert_equals(
-      act = <val>
-      exp = 'World' ).
-
-    lr_ref = lo_cut->find_loc( '/obj' ).
-    assign lr_ref->* to <val>.
-    cl_abap_unit_assert=>assert_equals(
-      act = <val>
-      exp = ls_mock-obj ).
-
-    lr_ref = lo_cut->find_loc( '/' ).
-    assign lr_ref->* to <val>.
-    cl_abap_unit_assert=>assert_equals(
-      act = <val>
-      exp = ls_mock ).
-
-    lr_ref = lo_cut->find_loc( '/tab/2' ).
-    assign lr_ref->* to <val>.
-    cl_abap_unit_assert=>assert_equals(
-      act = <val>
-      exp = last_elem ).
-
-    lr_ref = lo_cut->find_loc( '/tab/1/a' ).
-    assign lr_ref->* to <val>.
-    cl_abap_unit_assert=>assert_equals(
-      act = <val>
-      exp = 'One' ).
-
-  endmethod.
-
-  method find_loc_append.
-
-    data last_elem type ty_struc.
-    data ls_mock type ty_complex.
-    data lo_cut type ref to lcl_json_to_abap.
-    data lx type ref to zcx_ajson_error.
-
-    prepare_cut(
-      importing
-        eo_cut = lo_cut
-        e_mock = ls_mock
-        e_elem = last_elem ).
-
-    data lr_ref type ref to data.
-    field-symbols <val> type any.
-
-    lr_ref = lo_cut->find_loc( '/tab/1/a' ).
-    assign lr_ref->* to <val>.
-    cl_abap_unit_assert=>assert_equals(
-      act = <val>
-      exp = 'One' ).
-
-    cl_abap_unit_assert=>assert_equals(
-      act = lines( ls_mock-tab )
-      exp = 2 ).
-
-    try.
-      lo_cut->find_loc( '/tab/3/a' ).
-      cl_abap_unit_assert=>fail( ).
-    catch zcx_ajson_error into lx.
-      cl_abap_unit_assert=>assert_equals(
-        act = lx->message
-        exp = 'Index not found in table' ).
-    endtry.
-
-    lr_ref = lo_cut->find_loc( iv_path = '/tab/3/a' iv_append_tables = abap_true ).
-    assign lr_ref->* to <val>.
-    cl_abap_unit_assert=>assert_equals(
-      act = <val>
-      exp = '' ).
-    cl_abap_unit_assert=>assert_equals(
-      act = lines( ls_mock-tab )
-      exp = 3 ).
-
-    try.
-      lo_cut->find_loc( '/tab/5/a' ).
-      cl_abap_unit_assert=>fail( ).
-    catch zcx_ajson_error into lx.
-      cl_abap_unit_assert=>assert_equals(
-        act = lx->message
-        exp = 'Index not found in table' ).
-    endtry.
-
-  endmethod.
-
-  method find_loc_negative.
-
-    data lo_cut type ref to lcl_json_to_abap.
-    data lx type ref to zcx_ajson_error.
-    data ls_mock type ty_complex.
-
-    prepare_cut(
-      importing
-        e_mock = ls_mock " Must be here to keep reference alive
-        eo_cut = lo_cut ).
-
-    try.
-      lo_cut->find_loc( '/xyz' ).
-      cl_abap_unit_assert=>fail( ).
-    catch zcx_ajson_error into lx.
-      cl_abap_unit_assert=>assert_equals(
-        act = lx->message
-        exp = 'Path not found' ).
-    endtry.
-
-    try.
-      lo_cut->find_loc( '/oref/xyz' ).
-      cl_abap_unit_assert=>fail( ).
-    catch zcx_ajson_error into lx.
-      cl_abap_unit_assert=>assert_equals(
-        act = lx->message
-        exp = 'Cannot assign to ref' ).
-    endtry.
-
-    try.
-      lo_cut->find_loc( '/tab/xyz' ).
-      cl_abap_unit_assert=>fail( ).
-    catch zcx_ajson_error into lx.
-      cl_abap_unit_assert=>assert_equals(
-        act = lx->message
-        exp = 'Need index to access tables' ).
-    endtry.
-
-    try.
-      lo_cut->find_loc( '/tab/5' ).
-      cl_abap_unit_assert=>fail( ).
-    catch zcx_ajson_error into lx.
-      cl_abap_unit_assert=>assert_equals(
-        act = lx->message
-        exp = 'Index not found in table' ).
-    endtry.
-
-  endmethod.
-
-  method to_abap.
+  method to_abap_struc.
 
     data lo_cut type ref to lcl_json_to_abap.
     data ls_mock type ty_complex.
+    data ls_exp  type ty_complex.
     data lv_exp_date type d value '20200728'.
     data lv_exp_timestamp type timestamp value '20200728000000'.
-    lcl_json_to_abap=>bind(
-      changing
-        c_obj = ls_mock
-        co_instance = lo_cut ).
-
     data lo_nodes type ref to lcl_nodes_helper.
+
     create object lo_nodes.
-    lo_nodes->add( '/      |           |object |                          | ' ).
+    lo_nodes->add( '       |           |object |                          | ' ).
     lo_nodes->add( '/      |str        |str    |hello                     | ' ).
     lo_nodes->add( '/      |int        |num    |5                         | ' ).
     lo_nodes->add( '/      |float      |num    |5.5                       | ' ).
     lo_nodes->add( '/      |bool       |bool   |true                      | ' ).
     lo_nodes->add( '/      |obj        |object |                          | ' ).
-    lo_nodes->add( '/obj   |a          |str    |world                     | ' ).
+    lo_nodes->add( '/obj/  |a          |str    |world                     | ' ).
     lo_nodes->add( '/      |tab        |array  |                          | ' ).
-    lo_nodes->add( '/tab   |1          |object |                          |1' ).
-    lo_nodes->add( '/tab/1 |a          |str    | One                      | ' ).
-    lo_nodes->add( '/tab   |2          |object |                          |2' ).
-    lo_nodes->add( '/tab/2 |a          |str    | Two                      | ' ).
     lo_nodes->add( '/      |date1      |str    |2020-07-28                | ' ).
     lo_nodes->add( '/      |date2      |str    |2020-07-28T00:00:00Z      | ' ).
     lo_nodes->add( '/      |timestamp1 |str    |2020-07-28T00:00:00       | ' ).
     lo_nodes->add( '/      |timestamp2 |str    |2020-07-28T00:00:00Z      | ' ).
     lo_nodes->add( '/      |timestamp3 |str    |2020-07-28T01:00:00+01:00 | ' ).
 
-    lo_cut->to_abap( lo_nodes->sorted( ) ).
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = ls_mock ).
+
+    ls_exp-str        = 'hello'.
+    ls_exp-int        = 5.
+    ls_exp-float      = '5.5'.
+    ls_exp-bool       = abap_true.
+    ls_exp-obj-a      = 'world'.
+    ls_exp-date1      = lv_exp_date.
+    ls_exp-date2      = lv_exp_date.
+    ls_exp-timestamp1 = lv_exp_timestamp.
+    ls_exp-timestamp2 = lv_exp_timestamp.
+    ls_exp-timestamp3 = lv_exp_timestamp.
 
     cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-str
+      act = ls_mock
+      exp = ls_exp ).
+
+  endmethod.
+
+  method to_abap_value.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lv_mock type string.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |str    |hello                     | ' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lv_mock ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_mock
       exp = 'hello' ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-int
-      exp = 5 ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-float
-      exp = '5.5' ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-bool
-      exp = abap_true ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-obj-a
-      exp = 'world' ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-date1
-      exp = lv_exp_date ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-date2
-      exp = lv_exp_date ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-timestamp1
-      exp = lv_exp_timestamp ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-timestamp2
-      exp = lv_exp_timestamp ).
-    cl_abap_unit_assert=>assert_equals(
-      act = ls_mock-timestamp3
-      exp = lv_exp_timestamp ).
 
-    data ls_elem like line of ls_mock-tab.
-    cl_abap_unit_assert=>assert_equals(
-      act = lines( ls_mock-tab )
-      exp = 2 ).
+  endmethod.
 
-    read table ls_mock-tab into ls_elem index 1.
+  method to_abap_array.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lt_mock type string_table.
+    data lt_exp type string_table.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |array    |                     | ' ).
+    lo_nodes->add( '/      |1          |str      |One                  |1' ).
+    lo_nodes->add( '/      |2          |str      |Two                  |2' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lt_mock ).
+
+    append 'One' to lt_exp.
+    append 'Two' to lt_exp.
+
     cl_abap_unit_assert=>assert_equals(
-      act = ls_elem-a
-      exp = 'One' ).
-    read table ls_mock-tab into ls_elem index 2.
+      act = lt_mock
+      exp = lt_exp ).
+
+  endmethod.
+
+  method to_abap_array_of_arrays.
+
+    data lo_cut   type ref to lcl_json_to_abap.
+    data lt_mock  type table of string_table.
+    data lt_exp   type table of string_table.
+    data lt_tmp   type string_table.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |array    |                    | ' ).
+    lo_nodes->add( '/      |1          |array    |                    |1' ).
+    lo_nodes->add( '/      |2          |array    |                    |2' ).
+    lo_nodes->add( '/1/    |1          |str      |One                 |1' ).
+    lo_nodes->add( '/1/    |2          |str      |Two                 |2' ).
+    lo_nodes->add( '/2/    |1          |str      |Three               |1' ).
+    lo_nodes->add( '/2/    |2          |str      |Four                |2' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lt_mock ).
+
+    append 'One' to lt_tmp.
+    append 'Two' to lt_tmp.
+    append lt_tmp to lt_exp.
+    clear lt_tmp.
+    append 'Three' to lt_tmp.
+    append 'Four' to lt_tmp.
+    append lt_tmp to lt_exp.
+
     cl_abap_unit_assert=>assert_equals(
-      act = ls_elem-a
-      exp = 'Two' ).
+      act = lt_mock
+      exp = lt_exp ).
+
+  endmethod.
+
+  method to_abap_w_tab_of_struc.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data ls_mock type ty_complex.
+    data ls_exp  type ty_complex.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |object |                          | ' ).
+    lo_nodes->add( '/      |tab        |array  |                          | ' ).
+    lo_nodes->add( '/tab/  |1          |object |                          |1' ).
+    lo_nodes->add( '/tab/1/|a          |str    |One                       | ' ).
+    lo_nodes->add( '/tab/  |2          |object |                          |2' ).
+    lo_nodes->add( '/tab/2/|a          |str    |Two                       | ' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = ls_mock ).
+
+    data ls_elem like line of ls_exp-tab.
+    ls_elem-a = 'One'.
+    append ls_elem to ls_exp-tab.
+    ls_elem-a = 'Two'.
+    append ls_elem to ls_exp-tab.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_mock
+      exp = ls_exp ).
+
+  endmethod.
+
+  method to_abap_w_plain_tab.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data ls_mock type ty_complex.
+    data ls_exp  type ty_complex.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '             |           |object |                          | ' ).
+    lo_nodes->add( '/            |tab_plain  |array  |                          | ' ).
+    lo_nodes->add( '/tab_plain/  |1          |str    |One                       |1' ).
+    lo_nodes->add( '/tab_plain/  |2          |str    |Two                       |2' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = ls_mock ).
+
+    append 'One' to ls_exp-tab_plain.
+    append 'Two' to ls_exp-tab_plain.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_mock
+      exp = ls_exp ).
+
+  endmethod.
+
+  method to_abap_hashed_plain_tab.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lt_mock type hashed table of string with unique key table_line.
+    data lt_exp  type hashed table of string with unique key table_line.
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    create object lo_nodes.
+    lo_nodes->add( '            |           |array  |                          | ' ).
+    lo_nodes->add( '/           |1          |str    |One                       |1' ).
+    lo_nodes->add( '/           |2          |str    |Two                       |2' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lt_mock ).
+
+    insert `One` into table lt_exp.
+    insert `Two` into table lt_exp.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_mock
+      exp = lt_exp ).
+
+  endmethod.
+
+  method to_abap_hashed_tab.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lt_mock type tty_struc_hashed.
+    data lt_exp  type tty_struc_hashed.
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    create object lo_nodes.
+    lo_nodes->add( '              |           |array  |                          | ' ).
+    lo_nodes->add( '/             |1          |object |                          |1' ).
+    lo_nodes->add( '/             |2          |object |                          |2' ).
+    lo_nodes->add( '/1/           |a          |str    |One                       | ' ).
+    lo_nodes->add( '/1/           |b          |num    |1                         | ' ).
+    lo_nodes->add( '/2/           |a          |str    |Two                       | ' ).
+    lo_nodes->add( '/2/           |b          |num    |2                         | ' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lt_mock ).
+
+    data ls_elem like line of lt_exp.
+    ls_elem-a = 'One'.
+    ls_elem-b = 1.
+    insert ls_elem into table lt_exp.
+    ls_elem-a = 'Two'.
+    ls_elem-b = 2.
+    insert ls_elem into table lt_exp.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_mock
+      exp = lt_exp ).
+
+  endmethod.
+
+  method to_abap_sorted_tab.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lt_mock type tty_struc_sorted.
+    data lt_exp  type tty_struc_sorted.
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    create object lo_nodes.
+    lo_nodes->add( '              |           |array  |                          | ' ).
+    lo_nodes->add( '/             |1          |object |                          |1' ).
+    lo_nodes->add( '/             |2          |object |                          |2' ).
+    lo_nodes->add( '/1/           |a          |str    |One                       | ' ).
+    lo_nodes->add( '/1/           |b          |num    |1                         | ' ).
+    lo_nodes->add( '/2/           |a          |str    |Two                       | ' ).
+    lo_nodes->add( '/2/           |b          |num    |2                         | ' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lt_mock ).
+
+    data ls_elem like line of lt_exp.
+    ls_elem-a = 'One'.
+    ls_elem-b = 1.
+    insert ls_elem into table lt_exp.
+    ls_elem-a = 'Two'.
+    ls_elem-b = 2.
+    insert ls_elem into table lt_exp.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_mock
+      exp = lt_exp ).
 
   endmethod.
 
@@ -1597,19 +1647,21 @@ class ltcl_json_to_abap implementation.
     data lo_cut type ref to lcl_json_to_abap.
     data lx type ref to zcx_ajson_error.
     data ls_mock type ty_complex.
-    lcl_json_to_abap=>bind(
-      changing
-        c_obj = ls_mock
-        co_instance = lo_cut ).
+
+    create object lo_cut.
 
     data lo_nodes type ref to lcl_nodes_helper.
 
     try.
       create object lo_nodes.
-      lo_nodes->add( '/    |      |object | ' ).
+      lo_nodes->add( '     |      |object | ' ).
       lo_nodes->add( '/    |str   |object | ' ).
 
-      lo_cut->to_abap( lo_nodes->sorted( ) ).
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = ls_mock ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(
@@ -1619,10 +1671,14 @@ class ltcl_json_to_abap implementation.
 
     try.
       create object lo_nodes.
-      lo_nodes->add( '/    |      |object | ' ).
+      lo_nodes->add( '     |      |object | ' ).
       lo_nodes->add( '/    |str   |array  | ' ).
 
-      lo_cut->to_abap( lo_nodes->sorted( ) ).
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = ls_mock ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(
@@ -1632,10 +1688,14 @@ class ltcl_json_to_abap implementation.
 
     try.
       create object lo_nodes.
-      lo_nodes->add( '/    |      |object |      ' ).
+      lo_nodes->add( '     |      |object |      ' ).
       lo_nodes->add( '/    |int   |str    |hello ' ).
 
-      lo_cut->to_abap( lo_nodes->sorted( ) ).
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = ls_mock ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(
@@ -1645,15 +1705,107 @@ class ltcl_json_to_abap implementation.
 
     try.
       create object lo_nodes.
-      lo_nodes->add( '/    |      |object |        ' ).
+      lo_nodes->add( '     |      |object |        ' ).
       lo_nodes->add( '/    |date1 |str    |baddate ' ).
 
-      lo_cut->to_abap( lo_nodes->sorted( ) ).
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = ls_mock ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(
         act = lx->message
         exp = 'Unexpected date format' ).
+    endtry.
+
+    try.
+      create object lo_nodes.
+      lo_nodes->add( '    |        |object |        ' ).
+      lo_nodes->add( '/   |missing |str    |123     ' ).
+
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = ls_mock ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path not found' ).
+    endtry.
+
+    try.
+      data lt_str type string_table.
+      create object lo_nodes.
+      lo_nodes->add( '      |     |array  |      | ' ).
+      lo_nodes->add( '/     |a    |str    |hello |1' ).
+
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = lt_str ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Need index to access tables' ).
+    endtry.
+
+    try.
+      data lr_obj type ref to object.
+      create object lo_nodes.
+      lo_nodes->add( '      |     |str  |hello      | ' ).
+
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = lr_obj ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot assign to ref' ).
+    endtry.
+
+    try.
+      data lr_data type ref to data.
+      create object lo_nodes.
+      lo_nodes->add( '      |     |str  |hello      | ' ).
+
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = lr_data ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot assign to ref' ).
+    endtry.
+
+    try.
+      data lt_hashed type hashed table of string with unique key table_line.
+      create object lo_nodes.
+      lo_nodes->add( '            |           |array  |                          | ' ).
+      lo_nodes->add( '/           |1          |str    |One                       |1' ).
+      lo_nodes->add( '/           |2          |str    |One                       |2' ).
+
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = lt_hashed ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Duplicate insertion' ).
     endtry.
 
   endmethod.

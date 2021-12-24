@@ -540,205 +540,356 @@ endclass.
 class lcl_json_to_abap definition final.
   public section.
 
-    methods find_loc
+    methods constructor
       importing
-        iv_path type string
-        iv_name type string optional " not mandatory
-        iv_append_tables type abap_bool default abap_false
-      returning
-        value(r_ref) type ref to data
-      raising
-        zcx_ajson_error.
-
-    class-methods bind
-      importing
-        !ii_custom_mapping type ref to zif_ajson_mapping optional
-      changing
-        c_obj              type any
-        co_instance        type ref to lcl_json_to_abap.
+        !ii_custom_mapping type ref to zif_ajson_mapping optional.
 
     methods to_abap
       importing
-        it_nodes type zif_ajson=>ty_nodes_ts
+        it_nodes     type zif_ajson=>ty_nodes_ts
+      changing
+        c_container type any
       raising
         zcx_ajson_error.
 
     methods to_timestamp
       importing
-        is_path          type zif_ajson=>ty_node
+        iv_value         type zif_ajson=>ty_node-value
       returning
         value(rv_result) type timestamp
       raising
         zcx_ajson_error.
 
+    methods to_date
+      importing
+        iv_value         type zif_ajson=>ty_node-value
+      returning
+        value(rv_result) type d
+      raising
+        zcx_ajson_error.
+
   private section.
-    data mr_obj type ref to data.
+
+    types:
+      begin of ty_type_cache,
+        type_path         type string,
+        target_field_name type string,
+        dd                type ref to cl_abap_datadescr,
+        type_kind         like cl_abap_typedescr=>typekind_any,
+        tab_item_buf      type ref to data,
+      end of ty_type_cache.
+    data mt_node_type_cache type hashed table of ty_type_cache with unique key type_path.
+
+    data mr_nodes type ref to zif_ajson=>ty_nodes_ts.
     data mi_custom_mapping type ref to zif_ajson_mapping.
+
+    methods any_to_abap
+      importing
+        iv_path        type string
+        is_parent_type type ty_type_cache optional
+        i_container_ref type ref to data
+      raising
+        zcx_ajson_error.
+
+    methods value_to_abap
+      importing
+        is_node      type zif_ajson=>ty_node
+        is_node_type type ty_type_cache
+        i_container_ref type ref to data
+      raising
+        zcx_ajson_error
+        cx_sy_conversion_no_number.
+
+    methods get_node_type
+      importing
+        is_node            type zif_ajson=>ty_node optional " Empty for root
+        is_parent_type     type ty_type_cache optional
+        i_container_ref    type ref to data optional
+      returning
+        value(rs_node_type) type ty_type_cache
+      raising
+        zcx_ajson_error.
 
 endclass.
 
 class lcl_json_to_abap implementation.
 
-  method bind.
-    create object co_instance.
-    get reference of c_obj into co_instance->mr_obj.
-    co_instance->mi_custom_mapping = ii_custom_mapping.
+  method constructor.
+    mi_custom_mapping = ii_custom_mapping.
   endmethod.
 
   method to_abap.
 
     data lr_ref type ref to data.
-    data lv_type type c.
-    data lx type ref to cx_root.
-    field-symbols <n> like line of it_nodes.
-    field-symbols <value> type any.
+
+    clear c_container. " what about data/obj refs ?
+    clear mt_node_type_cache.
+
+    get reference of c_container into lr_ref.
+    get reference of it_nodes into mr_nodes.
+
+    get_node_type( i_container_ref = lr_ref ). " Pre-cache root node type
+
+    any_to_abap(
+      iv_path         = ''
+      i_container_ref = lr_ref ).
+
+  endmethod.
+
+  method get_node_type.
+
+    data lv_node_type_path type string.
+    data lo_sdescr type ref to cl_abap_structdescr.
+    data lo_tdescr type ref to cl_abap_tabledescr.
+    data lo_ddescr type ref to cl_abap_datadescr.
+
+    " Calculate type path
+    if is_parent_type-type_kind = cl_abap_typedescr=>typekind_table.
+      lv_node_type_path = is_parent_type-type_path && '/-'. " table item type
+    elseif is_parent_type-type_kind is not initial.
+      lv_node_type_path = is_parent_type-type_path && '/' && is_node-name.
+    endif. " For root node lv_node_type_path remains ''
+
+    " Get or create cached
+    read table mt_node_type_cache into rs_node_type with key type_path = lv_node_type_path.
+    if sy-subrc <> 0.
+
+      rs_node_type-type_path         = lv_node_type_path.
+
+      if mi_custom_mapping is bound.
+        rs_node_type-target_field_name = to_upper( mi_custom_mapping->to_abap(
+          iv_path = is_node-path
+          iv_name = is_node-name ) ).
+        if rs_node_type-target_field_name is initial.
+          rs_node_type-target_field_name = to_upper( is_node-name ).
+        endif.
+      else.
+        rs_node_type-target_field_name = to_upper( is_node-name ).
+      endif.
+
+      case is_parent_type-type_kind.
+        when 'h'. " Table
+          lo_tdescr ?= is_parent_type-dd.
+          rs_node_type-dd = lo_tdescr->get_table_line_type( ).
+
+        when 'u' or 'v'. " Structure
+          lo_sdescr ?= is_parent_type-dd.
+          lo_sdescr->get_component_type(
+            exporting
+              p_name      = rs_node_type-target_field_name
+            receiving
+              p_descr_ref = rs_node_type-dd
+            exceptions
+              component_not_found = 4 ).
+          if sy-subrc <> 0.
+            zcx_ajson_error=>raise( |Path not found| ).
+          endif.
+
+        when ''. " Root node
+          rs_node_type-dd ?= cl_abap_typedescr=>describe_by_data_ref( i_container_ref ).
+
+        when others.
+          zcx_ajson_error=>raise( |Unexpected parent type| ).
+      endcase.
+
+      rs_node_type-type_kind         = rs_node_type-dd->type_kind. " for caching and cleaner unintialized access
+      if rs_node_type-type_kind = 'h'. " Table
+        lo_tdescr ?= rs_node_type-dd.
+        if lo_tdescr->table_kind <> 'S'. " standard
+          lo_ddescr = lo_tdescr->get_table_line_type( ).
+          create data rs_node_type-tab_item_buf type handle lo_ddescr.
+        endif.
+      endif.
+
+      insert rs_node_type into table mt_node_type_cache.
+    endif.
+
+  endmethod.
+
+  method any_to_abap.
+
+    data ls_node_type like line of mt_node_type_cache.
+    data lx_ajson type ref to zcx_ajson_error.
+    data lx_root type ref to cx_root.
+    data lr_target_field type ref to data.
+
+    field-symbols <n> type zif_ajson=>ty_node.
+    field-symbols <parent_stdtab> type standard table.
+    field-symbols <parent_anytab> type any table.
+    field-symbols <parent_struc> type any.
+    field-symbols <tab_item> type any.
+
+    " Assign container
+    case is_parent_type-type_kind.
+      when 'h'. " Table
+        if is_parent_type-tab_item_buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type.
+          assign i_container_ref->* to <parent_anytab>.
+          assert sy-subrc = 0.
+
+          lr_target_field = is_parent_type-tab_item_buf. " For hashed/sorted table - same buffer for all children
+          assign is_parent_type-tab_item_buf->* to <tab_item>.
+          assert sy-subrc = 0.
+
+        else.
+          assign i_container_ref->* to <parent_stdtab>.
+          assert sy-subrc = 0.
+        endif.
+
+      when 'u' or 'v'. " Structure
+        assign i_container_ref->* to <parent_struc>.
+        assert sy-subrc = 0.
+    endcase.
 
     try.
-      loop at it_nodes assigning <n> using key array_index.
-        lr_ref = find_loc(
-          iv_append_tables = abap_true
-          iv_path = <n>-path
-          iv_name = <n>-name ).
-        assign lr_ref->* to <value>.
-        assert sy-subrc = 0.
-        describe field <value> type lv_type.
 
-        case <n>-type.
-          when zif_ajson=>node_type-null.
-            " Do nothing
-          when zif_ajson=>node_type-boolean.
-            <value> = boolc( <n>-value = 'true' ).
-          when zif_ajson=>node_type-number.
-            <value> = <n>-value.
-          when zif_ajson=>node_type-string.
-            if lv_type = 'D' and <n>-value is not initial.
-              data lv_y type c length 4.
-              data lv_m type c length 2.
-              data lv_d type c length 2.
+      " array_index because stringified index goes in wrong order [1, 10, 2 ...]
+      loop at mr_nodes->* assigning <n> using key array_index where path = iv_path.
 
-              find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
-                in <n>-value
-                submatches lv_y lv_m lv_d.
-              if sy-subrc <> 0.
-                zcx_ajson_error=>raise(
-                  iv_msg      = 'Unexpected date format'
-                  iv_location = <n>-path && <n>-name ).
-              endif.
-              concatenate lv_y lv_m lv_d into <value>.
-            elseif lv_type = 'P' and <n>-value is not initial.
-              <value> = to_timestamp( is_path = <n> ).
-            else.
-              <value> = <n>-value.
+        " Get or create type cache record
+        if is_parent_type-type_kind <> 'h' or ls_node_type-type_kind is initial.
+          " table records are the same, no need to refetch twice
+          ls_node_type = get_node_type(
+            is_node        = <n>
+            is_parent_type = is_parent_type ).
+        endif.
+
+        " Validate node type
+        if ls_node_type-type_kind ca 'lr'. " data/obj ref
+          " TODO maybe in future
+          zcx_ajson_error=>raise( 'Cannot assign to ref' ).
+        endif.
+
+        " Find target field reference
+        case is_parent_type-type_kind.
+          when 'h'. " Table
+            if not ls_node_type-target_field_name co '0123456789'. " Does not affect anything actually but for integrity
+              zcx_ajson_error=>raise( 'Need index to access tables' ).
             endif.
-          when zif_ajson=>node_type-object.
-            if not lv_type co 'uv'.
-              zcx_ajson_error=>raise(
-                iv_msg      = 'Expected structure'
-                iv_location = <n>-path && <n>-name ).
+
+            if is_parent_type-tab_item_buf is not bound. " Indirect hint that table was srt/hsh, see get_node_type
+              append initial line to <parent_stdtab> reference into lr_target_field.
+              assert sy-subrc = 0.
             endif.
-          when zif_ajson=>node_type-array.
-            if not lv_type co 'h'.
-              zcx_ajson_error=>raise(
-                iv_msg      = 'Expected table'
-                iv_location = <n>-path && <n>-name ).
-            endif.
+
+          when 'u' or 'v'.
+            field-symbols <field> type any.
+            assign component ls_node_type-target_field_name of structure <parent_struc> to <field>.
+            assert sy-subrc = 0.
+            get reference of <field> into lr_target_field.
+
+          when ''. " Root node
+            lr_target_field = i_container_ref.
+
           when others.
-            zcx_ajson_error=>raise(
-              iv_msg      = |Unexpected JSON type [{ <n>-type }]|
-              iv_location = <n>-path && <n>-name ).
+            zcx_ajson_error=>raise( 'Unexpected parent type' ).
         endcase.
 
+        " Process value assignment
+        case <n>-type.
+          when zif_ajson=>node_type-object.
+            if not ls_node_type-type_kind co 'uv'.
+              zcx_ajson_error=>raise( 'Expected structure' ).
+            endif.
+            any_to_abap(
+              iv_path         = <n>-path && <n>-name && '/'
+              is_parent_type  = ls_node_type
+              i_container_ref = lr_target_field ).
+
+          when zif_ajson=>node_type-array.
+            if not ls_node_type-type_kind = 'h'.
+              zcx_ajson_error=>raise( 'Expected table' ).
+            endif.
+            any_to_abap(
+              iv_path         = <n>-path && <n>-name && '/'
+              is_parent_type  = ls_node_type
+              i_container_ref = lr_target_field ).
+
+          when others.
+            value_to_abap(
+              is_node         = <n>
+              is_node_type    = ls_node_type
+              i_container_ref = lr_target_field ).
+        endcase.
+
+        if is_parent_type-tab_item_buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type.
+          try.
+            insert <tab_item> into table <parent_anytab>.
+          catch cx_sy_itab_duplicate_key.
+            sy-subrc = 4.
+          endtry.
+          if sy-subrc <> 0.
+            zcx_ajson_error=>raise( 'Duplicate insertion' ).
+          endif.
+        endif.
+
       endloop.
-    catch cx_sy_conversion_no_number into lx.
+
+    catch zcx_ajson_error into lx_ajson.
+      if lx_ajson->location is initial.
+        lx_ajson->set_location( <n>-path && <n>-name ).
+      endif.
+      raise exception lx_ajson.
+    catch cx_sy_conversion_no_number.
       zcx_ajson_error=>raise(
-        iv_msg      = |Source is not a number|
+        iv_msg = 'Source is not a number'
+        iv_location = <n>-path && <n>-name ).
+    catch cx_root into lx_root.
+      zcx_ajson_error=>raise(
+        iv_msg = lx_root->get_text( )
         iv_location = <n>-path && <n>-name ).
     endtry.
 
   endmethod.
 
-  method find_loc.
+  method value_to_abap.
 
-    data lt_path type string_table.
-    data lv_trace type string.
-    data lv_seg like line of lt_path.
-    data lv_type type c.
-    data lv_size type i.
-    data lv_index type i.
-    field-symbols <struc> type any.
-    field-symbols <table> type standard table.
-    field-symbols <value> type any.
-    field-symbols <seg> like line of lt_path.
+    field-symbols <container> type any.
 
-    split iv_path at '/' into table lt_path.
-    delete lt_path where table_line is initial.
-    if iv_name is not initial.
-      append iv_name to lt_path.
+    if is_node_type-type_kind ca 'lruvh'. " refs, table, strucs
+      zcx_ajson_error=>raise( |Unsupported target for value [{ is_node_type-type_kind }]| ).
     endif.
 
-    r_ref = mr_obj.
+    assign i_container_ref->* to <container>.
+    assert sy-subrc = 0.
 
-    loop at lt_path assigning <seg>.
-      lv_trace = lv_trace && '/' && <seg>.
+    case is_node-type.
+      when zif_ajson=>node_type-null.
+        " Do nothing
+      when zif_ajson=>node_type-boolean.
+        " TODO: check type ?
+        <container> = boolc( is_node-value = 'true' ).
+      when zif_ajson=>node_type-number.
+        " TODO: check type ?
+        <container> = is_node-value.
 
-      if mi_custom_mapping is bound.
-        lv_seg = mi_custom_mapping->to_abap( iv_path = iv_path iv_name = <seg> ).
-      else.
-        clear lv_seg.
-      endif.
-
-      if lv_seg is initial.
-        lv_seg = to_upper( <seg> ).
-      else.
-        lv_seg = to_upper( lv_seg ).
-      endif.
-
-      assign r_ref->* to <struc>.
-      assert sy-subrc = 0.
-      describe field <struc> type lv_type.
-
-      if lv_type ca 'lr'. " data/obj ref
-        " TODO maybe in future
-        zcx_ajson_error=>raise(
-          iv_msg      = 'Cannot assign to ref'
-          iv_location = lv_trace ).
-
-      elseif lv_type = 'h'. " table
-        if not lv_seg co '0123456789'.
-          zcx_ajson_error=>raise(
-            iv_msg      = 'Need index to access tables'
-            iv_location = lv_trace ).
+      when zif_ajson=>node_type-string.
+        " TODO: check type ?
+        if is_node_type-type_kind = 'D' and is_node-value is not initial.
+          <container> = to_date( is_node-value ).
+        elseif is_node_type-type_kind = 'P' and is_node-value is not initial.
+          <container> = to_timestamp( is_node-value ).
+        else.
+          <container> = is_node-value.
         endif.
-        lv_index = lv_seg.
-        assign r_ref->* to <table>.
-        assert sy-subrc = 0.
+      when others.
+        zcx_ajson_error=>raise( |Unexpected JSON type [{ is_node-type }]| ).
+    endcase.
 
-        lv_size = lines( <table> ).
-        if iv_append_tables = abap_true and lv_index = lv_size + 1.
-          append initial line to <table>.
-        endif.
+  endmethod.
 
-        read table <table> index lv_index assigning <value>.
-        if sy-subrc <> 0.
-          zcx_ajson_error=>raise(
-            iv_msg      = 'Index not found in table'
-            iv_location = lv_trace ).
-        endif.
+  method to_date.
 
-      elseif lv_type ca 'uv'. " structure
-        assign component lv_seg of structure <struc> to <value>.
-        if sy-subrc <> 0.
-          zcx_ajson_error=>raise(
-            iv_msg      = 'Path not found'
-            iv_location = lv_trace ).
-        endif.
-      else.
-        zcx_ajson_error=>raise(
-          iv_msg = 'Target is not deep'
-          iv_location = lv_trace ).
-      endif.
-      get reference of <value> into r_ref.
-    endloop.
+    data lv_y type c length 4.
+    data lv_m type c length 2.
+    data lv_d type c length 2.
+
+    find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
+      in iv_value
+      submatches lv_y lv_m lv_d.
+    if sy-subrc <> 0.
+      zcx_ajson_error=>raise( 'Unexpected date format' ).
+    endif.
+    concatenate lv_y lv_m lv_d into rv_result.
 
   endmethod.
 
@@ -770,9 +921,10 @@ class lcl_json_to_abap implementation.
     data lv_timestamp type timestampl.
 
     find first occurrence of regex lc_regex_ts_with_hour
-      in is_path-value submatches ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
-                                  ls_timestamp-hour ls_timestamp-minute ls_timestamp-second
-                                  ls_timestamp-local_sign ls_timestamp-local_hour ls_timestamp-local_minute.
+      in iv_value submatches
+        ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
+        ls_timestamp-hour ls_timestamp-minute ls_timestamp-second
+        ls_timestamp-local_sign ls_timestamp-local_hour ls_timestamp-local_minute.
 
     if sy-subrc = 0.
 
@@ -781,13 +933,12 @@ class lcl_json_to_abap implementation.
     else.
 
       find first occurrence of regex lc_regex_ts_utc
-        in is_path-value submatches ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
-                                    ls_timestamp-hour ls_timestamp-minute ls_timestamp-second.
+        in iv_value submatches
+          ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
+          ls_timestamp-hour ls_timestamp-minute ls_timestamp-second.
 
       if sy-subrc <> 0.
-        zcx_ajson_error=>raise(
-          iv_msg      = 'Unexpected timestamp format'
-          iv_location = is_path-path && is_path-name ).
+        zcx_ajson_error=>raise( 'Unexpected timestamp format' ).
       endif.
 
     endif.
@@ -801,19 +952,24 @@ class lcl_json_to_abap implementation.
 
       case ls_timestamp-local_sign.
         when '-'.
-          lv_timestamp = cl_abap_tstmp=>add( tstmp = lv_timestamp secs = lv_seconds_conv ).
+          lv_timestamp = cl_abap_tstmp=>add(
+            tstmp = lv_timestamp
+            secs  = lv_seconds_conv ).
         when '+'.
-          lv_timestamp = cl_abap_tstmp=>subtractsecs( tstmp = lv_timestamp secs = lv_seconds_conv ).
+          lv_timestamp = cl_abap_tstmp=>subtractsecs(
+            tstmp = lv_timestamp
+            secs  = lv_seconds_conv ).
       endcase.
 
     catch cx_parameter_invalid_range cx_parameter_invalid_type.
-      zcx_ajson_error=>raise(
-        iv_msg      = 'Unexpected error calculating timestamp'
-        iv_location = is_path-path && is_path-name ).
+      zcx_ajson_error=>raise( 'Unexpected error calculating timestamp' ).
     endtry.
 
-    cl_abap_tstmp=>move( exporting tstmp_src = lv_timestamp
-                         importing tstmp_tgt = rv_result ).
+    cl_abap_tstmp=>move(
+      exporting
+        tstmp_src = lv_timestamp
+      importing
+        tstmp_tgt = rv_result ).
 
   endmethod.
 
