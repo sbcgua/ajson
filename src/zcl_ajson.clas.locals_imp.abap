@@ -762,7 +762,8 @@ class lcl_json_to_abap implementation.
         " Find target field reference
         case is_parent_type-type_kind.
           when 'h'. " Table
-            if not ls_node_type-target_field_name co '0123456789'. " Does not affect anything actually but for integrity
+            if not ls_node_type-target_field_name co '0123456789'.
+              " Does not affect anything actually but for integrity
               zcx_ajson_error=>raise( 'Need index to access tables' ).
             endif.
 
