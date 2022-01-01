@@ -10,6 +10,7 @@ class zcl_ajson_utilities definition
         !iv_json_b type string optional
         !io_json_a type ref to zif_ajson optional
         !io_json_b type ref to zif_ajson optional
+        !iv_keep_empty_arrays type abap_bool default abap_false        
       exporting
         !eo_insert type ref to zif_ajson
         !eo_delete type ref to zif_ajson
@@ -47,6 +48,7 @@ class zcl_ajson_utilities definition
     methods delete_empty_nodes
       importing
         !io_json type ref to zif_ajson
+        !iv_keep_empty_arrays type abap_bool        
       raising
         zcx_ajson_error .
 ENDCLASS.
@@ -59,16 +61,22 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
   method delete_empty_nodes.
 
     data ls_json_tree like line of io_json->mt_json_tree.
-    data lv_subrc type sy-subrc.
+    data lv_done type abap_bool.
 
     do.
-      loop at io_json->mt_json_tree into ls_json_tree
-        where type = 'array' and children = 0.
+      lv_done = abap_true.
 
-        io_json->delete( ls_json_tree-path && ls_json_tree-name ).
+      if iv_keep_empty_arrays = abap_false.
+        loop at io_json->mt_json_tree into ls_json_tree
+          where type = 'array' and children = 0.
 
-      endloop.
-      lv_subrc = sy-subrc.
+          io_json->delete( ls_json_tree-path && ls_json_tree-name ).
+
+        endloop.
+        if sy-subrc <> 0.
+          lv_done = abap_false.
+        endif.
+      endif.
 
       loop at io_json->mt_json_tree into ls_json_tree
         where type = 'object' and children = 0.
@@ -76,7 +84,11 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
         io_json->delete( ls_json_tree-path && ls_json_tree-name ).
 
       endloop.
-      if lv_subrc = 4 and sy-subrc = 4.
+      if sy-subrc <> 0.
+        lv_done = abap_false.
+      endif.
+
+      if lv_done = abap_true.
         exit. " nothing else to delete
       endif.
     enddo.
@@ -120,9 +132,15 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
     eo_delete ?= mo_delete.
     eo_change ?= mo_change.
 
-    delete_empty_nodes( eo_insert ).
-    delete_empty_nodes( eo_delete ).
-    delete_empty_nodes( eo_change ).
+    delete_empty_nodes(
+      io_json              = eo_insert
+      iv_keep_empty_arrays = iv_keep_empty_arrays ).
+    delete_empty_nodes(
+      io_json              = eo_delete
+      iv_keep_empty_arrays = iv_keep_empty_arrays ).
+    delete_empty_nodes(
+      io_json              = eo_change
+      iv_keep_empty_arrays = iv_keep_empty_arrays ).
 
   endmethod.
 
