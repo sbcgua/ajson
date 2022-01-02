@@ -128,6 +128,7 @@ class ltcl_json_utils definition
 
     methods json_diff for testing raising zcx_ajson_error.
     methods json_diff_types for testing raising zcx_ajson_error.
+    methods json_diff_arrays for testing raising zcx_ajson_error.
     methods json_sort for testing raising zcx_ajson_error.
 
 endclass.
@@ -323,6 +324,85 @@ class ltcl_json_utils implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_delete->mt_json_tree
       exp = lo_insert_exp->mt_nodes ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_change->mt_json_tree )
+      exp = 0 ).
+
+  endmethod.
+
+  method json_diff_arrays.
+
+    data:
+      lv_json_a     type string,
+      lv_json_b     type string,
+      lo_util       type ref to zcl_ajson_utilities,
+      lo_insert     type ref to zif_ajson,
+      lo_delete     type ref to zif_ajson,
+      lo_change     type ref to zif_ajson,
+      lo_insert_exp type ref to lcl_nodes_helper.
+
+    " Add empty array
+    lv_json_a =
+      '{\n' &&
+      '  "number": 123\n' &&
+      '}'.
+
+    lv_json_b =
+      '{\n' &&
+      '  "names": [],\n' &&
+      '  "number": 123\n' &&
+      '}'.
+
+    replace all occurrences of '\n' in lv_json_a with cl_abap_char_utilities=>newline.
+    replace all occurrences of '\n' in lv_json_b with cl_abap_char_utilities=>newline.
+
+    create object lo_util.
+
+    " Empty arrays are ignored by default
+    lo_util->diff(
+      exporting
+        iv_json_a = lv_json_a
+        iv_json_b = lv_json_b
+      importing
+        eo_insert = lo_insert
+        eo_delete = lo_delete
+        eo_change = lo_change ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_insert->mt_json_tree )
+      exp = 0 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_delete->mt_json_tree )
+      exp = 0 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_change->mt_json_tree )
+      exp = 0 ).
+
+    " Keep empty arrays
+    lo_util->diff(
+      exporting
+        iv_json_a = lv_json_a
+        iv_json_b = lv_json_b
+        iv_keep_empty_arrays = abap_true
+      importing
+        eo_insert = lo_insert
+        eo_delete = lo_delete
+        eo_change = lo_change ).
+
+    create object lo_insert_exp.
+    lo_insert_exp->add( '                |        |object |        |0|1' ).
+    lo_insert_exp->add( '/               |names   |array  |        |0|0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_insert->mt_json_tree
+      exp = lo_insert_exp->mt_nodes ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_delete->mt_json_tree )
+      exp = 0 ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lines( lo_change->mt_json_tree )
