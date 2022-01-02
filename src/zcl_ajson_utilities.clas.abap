@@ -10,7 +10,7 @@ class zcl_ajson_utilities definition
         !iv_json_b type string optional
         !io_json_a type ref to zif_ajson optional
         !io_json_b type ref to zif_ajson optional
-        !iv_keep_empty_arrays type abap_bool default abap_false        
+        !iv_keep_empty_arrays type abap_bool default abap_false
       exporting
         !eo_insert type ref to zif_ajson
         !eo_delete type ref to zif_ajson
@@ -48,7 +48,7 @@ class zcl_ajson_utilities definition
     methods delete_empty_nodes
       importing
         !io_json type ref to zif_ajson
-        !iv_keep_empty_arrays type abap_bool        
+        !iv_keep_empty_arrays type abap_bool
       raising
         zcx_ajson_error .
 ENDCLASS.
@@ -115,7 +115,7 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
     if iv_json_b is supplied.
       mo_json_b = zcl_ajson=>parse( iv_json_b ).
-    elseif io_json_a is bound.
+    elseif io_json_b is bound.
       mo_json_b = io_json_b.
     else.
       zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
