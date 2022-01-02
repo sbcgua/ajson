@@ -73,7 +73,7 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
           io_json->delete( ls_json_tree-path && ls_json_tree-name ).
 
         endloop.
-        if sy-subrc <> 0.
+        if sy-subrc = 0.
           lv_done = abap_false.
         endif.
       endif.
@@ -84,7 +84,7 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
         io_json->delete( ls_json_tree-path && ls_json_tree-name ).
 
       endloop.
-      if sy-subrc <> 0.
+      if sy-subrc = 0.
         lv_done = abap_false.
       endif.
 
