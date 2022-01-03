@@ -129,7 +129,7 @@ class ltcl_json_utils definition
     methods json_diff for testing raising zcx_ajson_error.
     methods json_diff_types for testing raising zcx_ajson_error.
     methods json_diff_arrays for testing raising zcx_ajson_error.
-    methods json_merge for testing raising zcx_abapgit_ajson_error.
+    methods json_merge for testing raising zcx_ajson_error.
     methods json_sort for testing raising zcx_ajson_error.
 
 endclass.
@@ -416,8 +416,8 @@ class ltcl_json_utils implementation.
     data:
       lv_json_a    type string,
       lv_json_b    type string,
-      lo_util      type ref to zcl_abapgit_ajson_utilities,
-      lo_merge     type ref to zif_abapgit_ajson,
+      lo_util      type ref to zcl_ajson_utilities,
+      lo_merge     type ref to zif_ajson,
       lo_merge_exp type ref to lcl_nodes_helper.
 
     " Merge new value of b into a
