@@ -6,15 +6,26 @@ class zcl_ajson_utilities definition
 
     methods diff
       importing
-        !iv_json_a type string optional
-        !iv_json_b type string optional
-        !io_json_a type ref to zif_ajson optional
-        !io_json_b type ref to zif_ajson optional
+        !iv_json_a            type string optional
+        !iv_json_b            type string optional
+        !io_json_a            type ref to zif_ajson optional
+        !io_json_b            type ref to zif_ajson optional
         !iv_keep_empty_arrays type abap_bool default abap_false
       exporting
-        !eo_insert type ref to zif_ajson
-        !eo_delete type ref to zif_ajson
-        !eo_change type ref to zif_ajson
+        !eo_insert            type ref to zif_ajson
+        !eo_delete            type ref to zif_ajson
+        !eo_change            type ref to zif_ajson
+      raising
+        zcx_ajson_error .
+    methods merge
+      importing
+        !iv_json_a            type string optional
+        !iv_json_b            type string optional
+        !io_json_a            type ref to zif_ajson optional
+        !io_json_b            type ref to zif_ajson optional
+        !iv_keep_empty_arrays type abap_bool default abap_false
+      returning
+        value(ro_json)        type ref to zif_ajson
       raising
         zcx_ajson_error .
     methods sort
@@ -35,6 +46,14 @@ class zcl_ajson_utilities definition
     data mo_delete type ref to zif_ajson .
     data mo_change type ref to zif_ajson .
 
+    methods check_input
+      importing
+        !iv_json       type string optional
+        !io_json       type ref to zif_ajson optional
+      returning
+        value(ro_json) type ref to zif_ajson
+      raising
+        zcx_ajson_error .
     methods diff_a_b
       importing
         !iv_path type string
@@ -42,12 +61,13 @@ class zcl_ajson_utilities definition
         zcx_ajson_error .
     methods diff_b_a
       importing
-        !iv_path type string
+        !iv_path  type string
+        !iv_array type abap_bool default abap_false
       raising
         zcx_ajson_error .
     methods delete_empty_nodes
       importing
-        !io_json type ref to zif_ajson
+        !io_json              type ref to zif_ajson
         !iv_keep_empty_arrays type abap_bool
       raising
         zcx_ajson_error .
@@ -55,7 +75,24 @@ ENDCLASS.
 
 
 
-CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
+CLASS zcl_ajson_utilities IMPLEMENTATION.
+
+
+  method check_input.
+
+    if boolc( iv_json is initial ) = boolc( io_json is initial ).
+      zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
+    endif.
+
+    if iv_json is not initial.
+      ro_json = zcl_ajson=>parse( iv_json ).
+    elseif io_json is not initial.
+      ro_json = io_json.
+    else.
+      zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
+    endif.
+
+  endmethod.
 
 
   method delete_empty_nodes.
@@ -98,28 +135,13 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
   method diff.
 
-    if boolc( iv_json_a is supplied ) = boolc( io_json_a is supplied ).
-      zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
-    endif.
-    if boolc( iv_json_b is supplied ) = boolc( io_json_b is supplied ).
-      zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
-    endif.
+    mo_json_a = check_input(
+      iv_json = iv_json_a
+      io_json = io_json_a ).
 
-    if iv_json_a is supplied.
-      mo_json_a = zcl_ajson=>parse( iv_json_a ).
-    elseif io_json_a is bound.
-      mo_json_a = io_json_a.
-    else.
-      zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
-    endif.
-
-    if iv_json_b is supplied.
-      mo_json_b = zcl_ajson=>parse( iv_json_b ).
-    elseif io_json_b is bound.
-      mo_json_b = io_json_b.
-    else.
-      zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
-    endif.
+    mo_json_b = check_input(
+      iv_json = iv_json_b
+      io_json = io_json_b ).
 
     mo_insert = zcl_ajson=>create_empty( ).
     mo_delete = zcl_ajson=>create_empty( ).
@@ -232,9 +254,7 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
     data lv_path type string.
 
-    field-symbols:
-      <node_a> like line of mo_json_b->mt_json_tree,
-      <node_b> like line of mo_json_b->mt_json_tree.
+    field-symbols <node_b> like line of mo_json_b->mt_json_tree.
 
     loop at mo_json_b->mt_json_tree assigning <node_b> where path = iv_path.
       lv_path = <node_b>-path && <node_b>-name && '/'.
@@ -242,21 +262,59 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
       case <node_b>-type.
         when 'array'.
           mo_insert->touch_array( lv_path ).
-          diff_b_a( lv_path ).
+          diff_b_a(
+            iv_path  = lv_path
+            iv_array = abap_true ).
         when 'object'.
           diff_b_a( lv_path ).
         when others.
-          read table mo_json_a->mt_json_tree assigning <node_a>
-            with table key path = <node_b>-path name = <node_b>-name.
-          if sy-subrc <> 0.
-            " save as insert
-            mo_insert->set(
-              iv_path      = lv_path
-              iv_val       = <node_b>-value
-              iv_node_type = <node_b>-type ).
+          if iv_array = abap_false.
+            read table mo_json_a->mt_json_tree transporting no fields
+              with table key path = <node_b>-path name = <node_b>-name.
+            if sy-subrc <> 0.
+              " save as insert
+              mo_insert->set(
+                iv_path      = lv_path
+                iv_val       = <node_b>-value
+                iv_node_type = <node_b>-type ).
+            endif.
+          else.
+            read table mo_insert->mt_json_tree transporting no fields
+              with key path = <node_b>-path value = <node_b>-value.
+            if sy-subrc <> 0.
+              " save as new array value
+              mo_insert->push(
+                iv_path = iv_path
+                iv_val  = <node_b>-value ).
+            endif.
           endif.
       endcase.
     endloop.
+
+  endmethod.
+
+
+  method merge.
+
+    mo_json_a = check_input(
+      iv_json = iv_json_a
+      io_json = io_json_a ).
+
+    mo_json_b = check_input(
+      iv_json = iv_json_b
+      io_json = io_json_b ).
+
+    " Start with first JSON...
+    mo_insert = mo_json_a.
+
+    " ...and add all nodes from second JSON
+    diff_b_a( '/' ).
+
+    ro_json ?= mo_insert.
+
+    delete_empty_nodes(
+      io_json              = ro_json
+      iv_keep_empty_arrays = iv_keep_empty_arrays ).
 
   endmethod.
 
@@ -265,17 +323,9 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
     data lo_json type ref to zif_ajson.
 
-    if boolc( iv_json is supplied ) = boolc( io_json is supplied ).
-      zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
-    endif.
-
-    if iv_json is supplied.
-      lo_json = zcl_ajson=>parse( iv_json ).
-    elseif io_json is bound.
-      lo_json = io_json.
-    else.
-      zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
-    endif.
+    lo_json = check_input(
+      iv_json = iv_json
+      io_json = io_json ).
 
     " Nodes are parsed into a sorted table, so no explicit sorting required
     rv_sorted = lo_json->stringify( 2 ).
