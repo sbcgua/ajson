@@ -420,7 +420,7 @@ class ltcl_json_utils implementation.
       lo_merge     type ref to zif_abapgit_ajson,
       lo_merge_exp type ref to lcl_nodes_helper.
 
-    " Merge b into a
+    " Merge new value of b into a
     lv_json_a =
       '{\n' &&
       '  "string": [\n' &&
@@ -433,8 +433,10 @@ class ltcl_json_utils implementation.
     lv_json_b =
       '{\n' &&
       '  "string": [\n' &&
-      '    "b"' &&
+      '    "a",\n' &&
+      '    "b"\n' && " new array value
       '  ],\n' &&
+      '  "number": 456,\n' && " existing values are not overwritten
       '  "float": 123.45\n' &&
       '}'.
 
@@ -453,9 +455,8 @@ class ltcl_json_utils implementation.
     create object lo_util.
 
     lo_merge = lo_util->merge(
-      exporting
-        iv_json_a = lv_json_a
-        iv_json_b = lv_json_b ).
+      iv_json_a = lv_json_a
+      iv_json_b = lv_json_b ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_merge->mt_json_tree
