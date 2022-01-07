@@ -63,9 +63,6 @@ ENDCLASS.
 
 
 
-
-
-
 class zcl_ajson_utilities implementation.
 
 
