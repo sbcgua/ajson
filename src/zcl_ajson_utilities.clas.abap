@@ -46,7 +46,7 @@ class zcl_ajson_utilities definition
     data mo_delete type ref to zif_ajson .
     data mo_change type ref to zif_ajson .
 
-    methods check_input
+    methods normalize_input
       importing
         !iv_json       type string optional
         !io_json       type ref to zif_ajson optional
@@ -71,28 +71,11 @@ class zcl_ajson_utilities definition
         !iv_keep_empty_arrays type abap_bool
       raising
         zcx_ajson_error .
-ENDCLASS.
+endclass.
 
 
 
-CLASS zcl_ajson_utilities IMPLEMENTATION.
-
-
-  method check_input.
-
-    if boolc( iv_json is initial ) = boolc( io_json is initial ).
-      zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
-    endif.
-
-    if iv_json is not initial.
-      ro_json = zcl_ajson=>parse( iv_json ).
-    elseif io_json is not initial.
-      ro_json = io_json.
-    else.
-      zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
-    endif.
-
-  endmethod.
+class zcl_ajson_utilities implementation.
 
 
   method delete_empty_nodes.
@@ -135,11 +118,11 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
 
   method diff.
 
-    mo_json_a = check_input(
+    mo_json_a = normalize_input(
       iv_json = iv_json_a
       io_json = io_json_a ).
 
-    mo_json_b = check_input(
+    mo_json_b = normalize_input(
       iv_json = iv_json_b
       io_json = io_json_b ).
 
@@ -296,11 +279,11 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
 
   method merge.
 
-    mo_json_a = check_input(
+    mo_json_a = normalize_input(
       iv_json = iv_json_a
       io_json = io_json_a ).
 
-    mo_json_b = check_input(
+    mo_json_b = normalize_input(
       iv_json = iv_json_b
       io_json = io_json_b ).
 
@@ -319,11 +302,28 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
   endmethod.
 
 
+  method normalize_input.
+
+    if boolc( iv_json is initial ) = boolc( io_json is initial ).
+      zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
+    endif.
+
+    if iv_json is not initial.
+      ro_json = zcl_ajson=>parse( iv_json ).
+    elseif io_json is not initial.
+      ro_json = io_json.
+    else.
+      zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
+    endif.
+
+  endmethod.
+
+
   method sort.
 
     data lo_json type ref to zif_ajson.
 
-    lo_json = check_input(
+    lo_json = normalize_input(
       iv_json = iv_json
       io_json = io_json ).
 
@@ -331,4 +331,4 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
     rv_sorted = lo_json->stringify( 2 ).
 
   endmethod.
-ENDCLASS.
+endclass.
