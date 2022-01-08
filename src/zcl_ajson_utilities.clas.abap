@@ -6,15 +6,15 @@ class zcl_ajson_utilities definition
 
     methods diff
       importing
-        !iv_json_a type string optional
-        !iv_json_b type string optional
-        !io_json_a type ref to zif_ajson optional
-        !io_json_b type ref to zif_ajson optional
+        !iv_json_a            type string optional
+        !iv_json_b            type string optional
+        !io_json_a            type ref to zif_ajson optional
+        !io_json_b            type ref to zif_ajson optional
         !iv_keep_empty_arrays type abap_bool default abap_false
       exporting
-        !eo_insert type ref to zif_ajson
-        !eo_delete type ref to zif_ajson
-        !eo_change type ref to zif_ajson
+        !eo_insert            type ref to zif_ajson
+        !eo_delete            type ref to zif_ajson
+        !eo_change            type ref to zif_ajson
       raising
         zcx_ajson_error .
     methods sort
@@ -35,6 +35,14 @@ class zcl_ajson_utilities definition
     data mo_delete type ref to zif_ajson .
     data mo_change type ref to zif_ajson .
 
+    methods normalize_input
+      importing
+        !iv_json       type string optional
+        !io_json       type ref to zif_ajson optional
+      returning
+        value(ro_json) type ref to zif_ajson
+      raising
+        zcx_ajson_error .
     methods diff_a_b
       importing
         !iv_path type string
@@ -47,7 +55,7 @@ class zcl_ajson_utilities definition
         zcx_ajson_error .
     methods delete_empty_nodes
       importing
-        !io_json type ref to zif_ajson
+        !io_json              type ref to zif_ajson
         !iv_keep_empty_arrays type abap_bool
       raising
         zcx_ajson_error .
@@ -55,7 +63,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
+class zcl_ajson_utilities implementation.
 
 
   method delete_empty_nodes.
@@ -98,28 +106,13 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
   method diff.
 
-    if boolc( iv_json_a is supplied ) = boolc( io_json_a is supplied ).
-      zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
-    endif.
-    if boolc( iv_json_b is supplied ) = boolc( io_json_b is supplied ).
-      zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
-    endif.
+    mo_json_a = normalize_input(
+      iv_json = iv_json_a
+      io_json = io_json_a ).
 
-    if iv_json_a is supplied.
-      mo_json_a = zcl_ajson=>parse( iv_json_a ).
-    elseif io_json_a is bound.
-      mo_json_a = io_json_a.
-    else.
-      zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
-    endif.
-
-    if iv_json_b is supplied.
-      mo_json_b = zcl_ajson=>parse( iv_json_b ).
-    elseif io_json_b is bound.
-      mo_json_b = io_json_b.
-    else.
-      zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
-    endif.
+    mo_json_b = normalize_input(
+      iv_json = iv_json_b
+      io_json = io_json_b ).
 
     mo_insert = zcl_ajson=>create_empty( ).
     mo_delete = zcl_ajson=>create_empty( ).
@@ -261,21 +254,30 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
   endmethod.
 
 
+  method normalize_input.
+
+    if boolc( iv_json is initial ) = boolc( io_json is initial ).
+      zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
+    endif.
+
+    if iv_json is not initial.
+      ro_json = zcl_ajson=>parse( iv_json ).
+    elseif io_json is not initial.
+      ro_json = io_json.
+    else.
+      zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
+    endif.
+
+  endmethod.
+
+
   method sort.
 
     data lo_json type ref to zif_ajson.
 
-    if boolc( iv_json is supplied ) = boolc( io_json is supplied ).
-      zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
-    endif.
-
-    if iv_json is supplied.
-      lo_json = zcl_ajson=>parse( iv_json ).
-    elseif io_json is bound.
-      lo_json = io_json.
-    else.
-      zcx_ajson_error=>raise( 'Supply either JSON string or instance' ).
-    endif.
+    lo_json = normalize_input(
+      iv_json = iv_json
+      io_json = io_json ).
 
     " Nodes are parsed into a sorted table, so no explicit sorting required
     rv_sorted = lo_json->stringify( 2 ).
