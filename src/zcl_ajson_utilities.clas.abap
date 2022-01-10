@@ -17,6 +17,17 @@ class zcl_ajson_utilities definition
         !eo_change            type ref to zif_ajson
       raising
         zcx_ajson_error .
+    methods merge
+      importing
+        !iv_json_a            type string optional
+        !iv_json_b            type string optional
+        !io_json_a            type ref to zif_ajson optional
+        !io_json_b            type ref to zif_ajson optional
+        !iv_keep_empty_arrays type abap_bool default abap_false
+      returning
+        value(ro_json)        type ref to zif_ajson
+      raising
+        zcx_ajson_error .
     methods sort
       importing
         !iv_json         type string optional
@@ -50,7 +61,8 @@ class zcl_ajson_utilities definition
         zcx_ajson_error .
     methods diff_b_a
       importing
-        !iv_path type string
+        !iv_path  type string
+        !iv_array type abap_bool default abap_false
       raising
         zcx_ajson_error .
     methods delete_empty_nodes
@@ -59,7 +71,7 @@ class zcl_ajson_utilities definition
         !iv_keep_empty_arrays type abap_bool
       raising
         zcx_ajson_error .
-ENDCLASS.
+endclass.
 
 
 
@@ -225,9 +237,7 @@ class zcl_ajson_utilities implementation.
 
     data lv_path type string.
 
-    field-symbols:
-      <node_a> like line of mo_json_b->mt_json_tree,
-      <node_b> like line of mo_json_b->mt_json_tree.
+    field-symbols <node_b> like line of mo_json_b->mt_json_tree.
 
     loop at mo_json_b->mt_json_tree assigning <node_b> where path = iv_path.
       lv_path = <node_b>-path && <node_b>-name && '/'.
@@ -235,21 +245,59 @@ class zcl_ajson_utilities implementation.
       case <node_b>-type.
         when 'array'.
           mo_insert->touch_array( lv_path ).
-          diff_b_a( lv_path ).
+          diff_b_a(
+            iv_path  = lv_path
+            iv_array = abap_true ).
         when 'object'.
           diff_b_a( lv_path ).
         when others.
-          read table mo_json_a->mt_json_tree assigning <node_a>
-            with table key path = <node_b>-path name = <node_b>-name.
-          if sy-subrc <> 0.
-            " save as insert
-            mo_insert->set(
-              iv_path      = lv_path
-              iv_val       = <node_b>-value
-              iv_node_type = <node_b>-type ).
+          if iv_array = abap_false.
+            read table mo_json_a->mt_json_tree transporting no fields
+              with table key path = <node_b>-path name = <node_b>-name.
+            if sy-subrc <> 0.
+              " save as insert
+              mo_insert->set(
+                iv_path      = lv_path
+                iv_val       = <node_b>-value
+                iv_node_type = <node_b>-type ).
+            endif.
+          else.
+            read table mo_insert->mt_json_tree transporting no fields
+              with key path = <node_b>-path value = <node_b>-value.
+            if sy-subrc <> 0.
+              " save as new array value
+              mo_insert->push(
+                iv_path = iv_path
+                iv_val  = <node_b>-value ).
+            endif.
           endif.
       endcase.
     endloop.
+
+  endmethod.
+
+
+  method merge.
+
+    mo_json_a = normalize_input(
+      iv_json = iv_json_a
+      io_json = io_json_a ).
+
+    mo_json_b = normalize_input(
+      iv_json = iv_json_b
+      io_json = io_json_b ).
+
+    " Start with first JSON...
+    mo_insert = mo_json_a.
+
+    " ...and add all nodes from second JSON
+    diff_b_a( '/' ).
+
+    ro_json ?= mo_insert.
+
+    delete_empty_nodes(
+      io_json              = ro_json
+      iv_keep_empty_arrays = iv_keep_empty_arrays ).
 
   endmethod.
 
@@ -283,4 +331,4 @@ class zcl_ajson_utilities implementation.
     rv_sorted = lo_json->stringify( 2 ).
 
   endmethod.
-ENDCLASS.
+endclass.
