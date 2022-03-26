@@ -8,6 +8,10 @@ Legend
 + : added
 - : removed
 
+v1.1.3, 2022-??
+------------------
+* fix camel case conversion for deep strcutures @mbtools
+
 v1.1.2, 2021-12-24
 ------------------
 ! heavy refactoring in json_to_abap logic, support for conversion to sorted/hashed tabs, better perf tests separation. Thanks @albertmind for the initial issue and UT submission
