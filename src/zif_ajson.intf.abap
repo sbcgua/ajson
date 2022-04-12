@@ -48,6 +48,9 @@ interface zif_ajson
   methods keep_item_order
     returning
       value(ri_json) type ref to zif_ajson.
+  methods format_datetime
+    returning
+      value(ri_json) type ref to zif_ajson.
 
   " METHODS ex.reader
 

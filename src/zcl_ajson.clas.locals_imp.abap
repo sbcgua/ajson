@@ -990,6 +990,7 @@ class lcl_abap_to_json definition final.
         iv_array_index     type i default 0
         ii_custom_mapping  type ref to zif_ajson_mapping optional
         iv_keep_item_order type abap_bool default abap_false
+        iv_format_datetime type abap_bool default abap_false
       returning
         value(rt_nodes)   type zif_ajson=>ty_nodes_tt
       raising
@@ -1003,10 +1004,27 @@ class lcl_abap_to_json definition final.
         iv_array_index     type i default 0
         ii_custom_mapping  type ref to zif_ajson_mapping optional
         iv_keep_item_order type abap_bool default abap_false
+        iv_format_datetime type abap_bool default abap_false
       returning
         value(rt_nodes)   type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
+
+    class-methods format_date
+      importing
+        iv_date type d
+      returning
+        value(rv_str) type string.
+    class-methods format_time
+      importing
+        iv_time type t
+      returning
+        value(rv_str) type string.
+    class-methods format_timestamp
+      importing
+        iv_ts type timestamp
+      returning
+        value(rv_str) type string.
 
     class-methods class_constructor.
 
@@ -1015,6 +1033,7 @@ class lcl_abap_to_json definition final.
     class-data gv_ajson_absolute_type_name type string.
     data mi_custom_mapping type ref to zif_ajson_mapping.
     data mv_keep_item_order type abap_bool.
+    data mv_format_datetime type abap_bool.
 
     methods convert_any
       importing
@@ -1122,6 +1141,7 @@ class lcl_abap_to_json implementation.
     create object lo_converter.
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
+    lo_converter->mv_format_datetime = iv_format_datetime.
 
     lo_converter->convert_any(
       exporting
@@ -1223,6 +1243,43 @@ class lcl_abap_to_json implementation.
 
   endmethod.
 
+  method format_date.
+    if iv_date is not initial.
+      rv_str = iv_date+0(4) && '-' && iv_date+4(2) && '-' && iv_date+6(2).
+    endif.
+  endmethod.
+
+  method format_time.
+    if iv_time is not initial.
+      rv_str = iv_time+0(2) && ':' && iv_time+2(2) && ':' && iv_time+4(2).
+    endif.
+  endmethod.
+
+  method format_timestamp.
+
+    constants lc_utc type c length 6 value 'UTC'.
+
+    data lv_date type d.
+    data lv_time type t.
+
+    if iv_ts is initial.
+      " The zero value is January 1, year 1, 00:00:00.000000000 UTC.
+      lv_date = '00010101'.
+    else.
+
+      convert time stamp iv_ts time zone lc_utc
+        into date lv_date time lv_time.
+
+    endif.
+
+    rv_str =
+      lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
+      'T' &&
+      lv_time+0(2) && '-' && lv_time+2(2) && '-' && lv_time+4(2) &&
+      'Z'.
+
+  endmethod.
+
   method convert_value.
 
     data ls_node like line of ct_nodes.
@@ -1253,10 +1310,32 @@ class lcl_abap_to_json implementation.
       else.
         ls_node-value = 'false'.
       endif.
-    elseif io_type->type_kind co 'CNgXyDT'. " Char like, date/time, xstring
+    elseif io_type->absolute_name = '\TYPE=TIMESTAMP'.
+      if mv_format_datetime = abap_true.
+        ls_node-type  = zif_ajson=>node_type-string.
+        ls_node-value = format_timestamp( iv_data ).
+      else.
+        ls_node-type  = zif_ajson=>node_type-number.
+        ls_node-value = |{ iv_data }|.
+      endif.
+    elseif io_type->type_kind co 'CNgXy'. " Char like, xstring
       ls_node-type = zif_ajson=>node_type-string.
       ls_node-value = |{ iv_data }|.
-    elseif io_type->type_kind co 'bsI8PaeF'. " Numeric
+    elseif io_type->type_kind = 'D'. " Date
+      ls_node-type = zif_ajson=>node_type-string.
+      if mv_format_datetime = abap_true.
+        ls_node-value = format_date( iv_data ).
+      else.
+        ls_node-value = |{ iv_data }|.
+      endif.
+    elseif io_type->type_kind = 'T'. " Time
+      ls_node-type = zif_ajson=>node_type-string.
+      if mv_format_datetime = abap_true.
+        ls_node-value = format_time( iv_data ).
+      else.
+        ls_node-value = |{ iv_data }|.
+      endif.
+    elseif io_type->type_kind co 'bsI8aeFP'. " Numeric
       ls_node-type = zif_ajson=>node_type-number.
       ls_node-value = |{ iv_data }|.
     else.
@@ -1456,6 +1535,7 @@ class lcl_abap_to_json implementation.
     create object lo_converter.
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
+    lo_converter->mv_format_datetime = iv_format_datetime.
 
     lo_converter->insert_value_with_type(
       exporting

@@ -37,6 +37,7 @@ class zcl_ajson definition
     aliases:
       mt_json_tree for zif_ajson~mt_json_tree,
       keep_item_order for zif_ajson~keep_item_order,
+      format_datetime for zif_ajson~format_datetime,
       freeze for zif_ajson~freeze.
 
     class-methods parse
@@ -75,6 +76,7 @@ class zcl_ajson definition
     data mv_read_only type abap_bool.
     data mi_custom_mapping type ref to zif_ajson_mapping.
     data mv_keep_item_order type abap_bool.
+    data mv_format_datetime type abap_bool.
 
     methods get_item
       importing
@@ -329,6 +331,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   endmethod.
 
+  method zif_ajson~format_datetime.
+    mv_format_datetime = abap_true.
+    ri_json = me.
+  endmethod.
+
 
   method zif_ajson~freeze.
     mv_read_only = abap_true.
@@ -536,6 +543,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     if ls_split_path is initial. " Assign root, exceptional processing
       if iv_node_type is not initial.
         mt_json_tree = lcl_abap_to_json=>insert_with_type(
+          iv_format_datetime = mv_format_datetime
           iv_keep_item_order = mv_keep_item_order
           iv_data            = iv_val
           iv_type            = iv_node_type
@@ -543,6 +551,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
           ii_custom_mapping  = mi_custom_mapping ).
       else.
         mt_json_tree = lcl_abap_to_json=>convert(
+          iv_format_datetime = mv_format_datetime
           iv_keep_item_order = mv_keep_item_order
           iv_data            = iv_val
           is_prefix          = ls_split_path
@@ -573,6 +582,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     if iv_node_type is not initial.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
+        iv_format_datetime = mv_format_datetime
         iv_keep_item_order = mv_keep_item_order
         iv_data            = iv_val
         iv_type            = iv_node_type
@@ -581,6 +591,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         ii_custom_mapping  = mi_custom_mapping ).
     else.
       lt_new_nodes = lcl_abap_to_json=>convert(
+        iv_format_datetime = mv_format_datetime
         iv_keep_item_order = mv_keep_item_order
         iv_data            = iv_val
         iv_array_index     = lv_array_index
@@ -616,9 +627,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     ri_json = me.
 
     data lv_val type string.
-    if iv_val is not initial.
-      lv_val = iv_val+0(4) && '-' && iv_val+4(2) && '-' && iv_val+6(2).
-    endif.
+    lv_val = lcl_abap_to_json=>format_date( iv_val ).
 
     zif_ajson~set(
       iv_ignore_empty = abap_false
@@ -669,30 +678,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~set_timestamp.
 
-    constants lc_utc type c length 6 value 'UTC'.
-
-    data:
-      lv_date          type d,
-      lv_time          type t,
-      lv_timestamp_iso type string.
-
     ri_json = me.
 
-    if iv_val is initial.
-      " The zero value is January 1, year 1, 00:00:00.000000000 UTC.
-      lv_date = '00010101'.
-    else.
-
-      convert time stamp iv_val time zone lc_utc
-        into date lv_date time lv_time.
-
-    endif.
-
-    lv_timestamp_iso =
-        lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
-        'T' &&
-        lv_time+0(2) && '-' && lv_time+2(2) && '-' && lv_time+4(2) &&
-        'Z'.
+    data lv_timestamp_iso type string.
+    lv_timestamp_iso = lcl_abap_to_json=>format_timestamp( iv_val ).
 
     zif_ajson~set(
       iv_ignore_empty = abap_false

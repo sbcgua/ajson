@@ -1827,6 +1827,7 @@ class ltcl_writer_test definition final
     methods set_value for testing raising zcx_ajson_error.
     methods ignore_empty for testing raising zcx_ajson_error.
     methods set_obj for testing raising zcx_ajson_error.
+    methods set_obj_w_date_time for testing raising zcx_ajson_error.
     methods set_tab for testing raising zcx_ajson_error.
     methods set_tab_hashed for testing raising zcx_ajson_error.
     methods prove_path_exists for testing raising zcx_ajson_error.
@@ -2112,6 +2113,7 @@ class ltcl_writer_test implementation.
       begin of ls_struc,
         b type string value 'abc',
         c type i value 10,
+        d type d value '20220401',
       end of ls_struc.
 
     lo_cut = zcl_ajson=>create_empty( ).
@@ -2119,13 +2121,52 @@ class ltcl_writer_test implementation.
 
     " Prepare source
     create object lo_nodes.
-    lo_nodes->add( '        |      |object |     ||1' ).
-    lo_nodes->add( '/       |x     |object |     ||2' ).
-    lo_nodes->add( '/x/     |b     |str    |abc  ||0' ).
-    lo_nodes->add( '/x/     |c     |num    |10   ||0' ).
+    lo_nodes->add( '        |      |object |         ||1' ).
+    lo_nodes->add( '/       |x     |object |         ||3' ).
+    lo_nodes->add( '/x/     |b     |str    |abc      ||0' ).
+    lo_nodes->add( '/x/     |c     |num    |10       ||0' ).
+    lo_nodes->add( '/x/     |d     |str    |20220401 ||0' ).
 
     li_writer->set(
       iv_path = '/x'
+      iv_val  = ls_struc ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = lo_nodes->sorted( ) ).
+
+  endmethod.
+
+  method set_obj_w_date_time.
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to zif_ajson.
+    data li_writer type ref to zif_ajson.
+
+    data:
+      begin of ls_struc,
+        d       type d value '20220401',
+        d_empty type d,
+        t       type t value '200103',
+        t_empty type t,
+        ts      type timestamp value '20220401200103',
+        p(5)    type p decimals 2 value '123.45',
+      end of ls_struc.
+
+    lo_cut = zcl_ajson=>create_empty( )->format_datetime( ).
+    li_writer = lo_cut.
+
+    " Prepare source
+    create object lo_nodes.
+    lo_nodes->add( '      |        |object |           ||6' ).
+    lo_nodes->add( '/     |d       |str    |2022-04-01 ||0' ).
+    lo_nodes->add( '/     |d_empty |str    |           ||0' ).
+    lo_nodes->add( '/     |t       |str    |20:01:03   ||0' ).
+    lo_nodes->add( '/     |t_empty |str    |           ||0' ).
+    lo_nodes->add( '/     |ts      |str    |2022-04-01T20-01-03Z ||0' ).
+    lo_nodes->add( '/     |p       |num    |123.45     ||0' ).
+
+    li_writer->set(
+      iv_path = '/'
       iv_val  = ls_struc ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
@@ -2575,12 +2616,18 @@ class ltcl_writer_test implementation.
     lo_cut = zcl_ajson=>create_empty( ).
     li_writer = lo_cut.
     create object lo_nodes_exp.
-    lo_nodes_exp->add( '        |      |object |           ||1' ).
+    lo_nodes_exp->add( '        |      |object |           ||2' ).
     lo_nodes_exp->add( '/       |a     |str    |2020-07-05 ||0' ).
+    lo_nodes_exp->add( '/       |b     |str    |           ||0' ).
 
     lv_date = '20200705'.
     li_writer->set_date(
       iv_path = '/a'
+      iv_val  = lv_date ).
+
+    clear lv_date.
+    li_writer->set_date(
+      iv_path = '/b'
       iv_val  = lv_date ).
 
     cl_abap_unit_assert=>assert_equals(
