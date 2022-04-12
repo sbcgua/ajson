@@ -8,9 +8,10 @@ Legend
 + : added
 - : removed
 
-v1.1.3, 2022-??
+v1.1.3, 2022-04-12
 ------------------
 * fix camel case conversion for deep strcutures @mbtools
++ auto format date/time (YYYY-MM-DD / HH:MM:SS) when found in structures, use format_datetime method to enable. Might become the default in future !
 
 v1.1.2, 2021-12-24
 ------------------

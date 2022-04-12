@@ -361,6 +361,25 @@ Sometimes you may want to keep order of json items in the same order as it was i
   " otherwise - '{"alpha":"a","beta":"b","zulu":"z"}'
 ```
 
+#### Auto format date/time
+
+By default date, time and timestamp dates are not formatted and are written in abap format as 'YYYYMMDD', 'HHMMSS'. This can be changed by calling `format_datetime` method after creation. After that the date/time will be auto-formatted as 'YYYY-MM-DD' and 'HH:MM:SS' respectively. **Important: this may become the default behavior in future version**
+
+```abap
+  data:
+    begin of ls_dummy,
+      date type d value '20220412',
+    end of ls_dummy.
+
+  li_json->format_datetime( ).
+  li_json->set(
+    iv_path = '/'
+    iv_val  = ls_dummy ).
+  li_json->stringify( ). " {"date":"2022-04-12"}'
+  " otherwise - {"date":"20220412"}
+
+```
+
 ## Timestamps
 
 Conversion from JSON to ABAP can determine automatically if the value is a timestamp if:
