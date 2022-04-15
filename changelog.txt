@@ -8,6 +8,10 @@ Legend
 + : added
 - : removed
 
+v1.1.4, 2022-??
+------------------
+* better handling of incorrect JSON, as the native SAP parser does not properly signal if the content is json or xml (#97)
+
 v1.1.3, 2022-04-12
 ------------------
 * fix camel case conversion for deep strcutures @mbtools
