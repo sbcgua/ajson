@@ -85,6 +85,7 @@ class ltcl_parser_test definition final
     methods parse_bare_values for testing raising zcx_ajson_error.
     methods parse_error for testing raising zcx_ajson_error.
     methods duplicate_key for testing raising zcx_ajson_error.
+    methods non_json for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -354,6 +355,21 @@ class ltcl_parser_test implementation.
     try.
       create object lo_cut.
       lo_cut->parse( '{ "a" = 1, "a" = 1 }' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_not_initial( lx ).
+    endtry.
+
+  endmethod.
+
+  method non_json.
+
+    data lo_cut type ref to lcl_json_parser.
+    data lx type ref to zcx_ajson_error.
+
+    try.
+      create object lo_cut.
+      lo_cut->parse( '<html><head><title>X</title></head><body><h1>Y</h1></body></html>' ).
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_not_initial( lx ).

@@ -142,6 +142,9 @@ class lcl_json_parser implementation.
     data lx_sxml type ref to cx_sxml_error.
     data lv_location type string.
     try.
+      " TODO sane JSON check:
+      " JSON can be true,false,null,(-)digits
+      " or start from " or from {
       rt_json_tree = _parse( iv_json ).
     catch cx_sxml_parse_error into lx_sxml_parse.
       lv_location = _get_location(
@@ -242,6 +245,9 @@ class lcl_json_parser implementation.
                   <item>-name = lo_attr->get_value( ).
                 endif.
               endloop.
+            endif.
+            if <item>-name is initial.
+              raise( 'Node without name (maybe not JSON)' ).
             endif.
           endif.
 
