@@ -1197,12 +1197,8 @@ class lcl_abap_to_json implementation.
             ct_nodes = ct_nodes ).
 
       when others.
-        " Initial references are ok
-        if iv_data is initial.
-          return.
-        endif.
 
-        if io_type->type_kind = cl_abap_typedescr=>typekind_dref.
+        if io_type->type_kind = cl_abap_typedescr=>typekind_dref or iv_data is initial.
           convert_ref(
             exporting
               iv_data   = iv_data
