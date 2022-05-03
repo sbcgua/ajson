@@ -1862,7 +1862,7 @@ class ltcl_writer_test definition final
     methods set_obj_w_date_time for testing raising zcx_ajson_error.
     methods set_tab for testing raising zcx_ajson_error.
     methods set_tab_hashed for testing raising zcx_ajson_error.
-    methods set_tab_nested_struct for testing raising zcx_abapgit_ajson_error.
+    methods set_tab_nested_struct for testing raising zcx_ajson_error.
     methods prove_path_exists for testing raising zcx_ajson_error.
     methods delete_subtree for testing raising zcx_ajson_error.
     methods delete for testing raising zcx_ajson_error.
