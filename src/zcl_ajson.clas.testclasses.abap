@@ -1862,6 +1862,7 @@ class ltcl_writer_test definition final
     methods set_obj_w_date_time for testing raising zcx_ajson_error.
     methods set_tab for testing raising zcx_ajson_error.
     methods set_tab_hashed for testing raising zcx_ajson_error.
+    methods set_tab_nested_struct for testing raising zcx_abapgit_ajson_error.
     methods prove_path_exists for testing raising zcx_ajson_error.
     methods delete_subtree for testing raising zcx_ajson_error.
     methods delete for testing raising zcx_ajson_error.
@@ -2257,6 +2258,58 @@ class ltcl_writer_test implementation.
 
     li_writer->set(
       iv_path = '/x'
+      iv_val  = lt_tab ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = lo_nodes->sorted( ) ).
+
+  endmethod.
+
+  method set_tab_nested_struct.
+
+    types:
+      begin of ty_include,
+        str type string,
+        int type i,
+      end of ty_include,
+      begin of ty_struct.
+        include type ty_include.
+    types: dat type xstring,
+      end of ty_struct,
+      ty_tab type standard table of ty_struct with default key.
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson.
+    data ls_tab type ty_struct.
+    data lt_tab type ty_tab.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    ls_tab-str = 'hello'.
+    ls_tab-int = 123.
+    ls_tab-dat = '4041'.
+    insert ls_tab into table lt_tab.
+    ls_tab-str = 'world'.
+    ls_tab-int = 456.
+    ls_tab-dat = '6061'.
+    insert ls_tab into table lt_tab.
+
+    " prepare source
+    create object lo_nodes.
+    lo_nodes->add( '        |      |array  |     |0|2' ).
+    lo_nodes->add( '/       |1     |object |     |1|3' ).
+    lo_nodes->add( '/       |2     |object |     |2|3' ).
+    lo_nodes->add( '/1/     |dat   |str    |4041 |0|0' ).
+    lo_nodes->add( '/1/     |int   |num    |123  |0|0' ).
+    lo_nodes->add( '/1/     |str   |str    |hello|0|0' ).
+    lo_nodes->add( '/2/     |dat   |str    |6061 |0|0' ).
+    lo_nodes->add( '/2/     |int   |num    |456  |0|0' ).
+    lo_nodes->add( '/2/     |str   |str    |world|0|0' ).
+
+    li_writer->set(
+      iv_path = '/'
       iv_val  = lt_tab ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
