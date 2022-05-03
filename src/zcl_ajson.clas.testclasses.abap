@@ -2997,6 +2997,7 @@ class ltcl_integrated implementation.
     data li_writer type ref to zif_ajson.
     data lv_exp type string.
     data: begin of ls_dummy, x type i, end of ls_dummy.
+    data: begin of ls_data, str type string, cls type ref to zcl_ajson, end of ls_data.
 
     ls_dummy-x = 1.
     lo_cut    = zcl_ajson=>create_empty( ).
@@ -3062,6 +3063,19 @@ class ltcl_integrated implementation.
       occ = 0 ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->stringify( iv_indent = 2 )
+      exp = lv_exp ).
+
+    " structure with initial ref to class
+    ls_data-str = 'test'.
+
+    li_writer = lo_cut.
+    li_writer->set(
+      iv_path = '/'
+      iv_val  = ls_data ).
+
+    lv_exp = '{"cls":null,"str":"test"}'.
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->stringify( )
       exp = lv_exp ).
 
   endmethod.

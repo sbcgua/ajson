@@ -1198,7 +1198,9 @@ class lcl_abap_to_json implementation.
 
       when others.
 
-        if io_type->type_kind = cl_abap_typedescr=>typekind_dref.
+        if io_type->type_kind = cl_abap_typedescr=>typekind_dref or iv_data is initial.
+          " Convert data references and initial references to other types (like ref to class or interface)
+          " Initial references will result in "null"
           convert_ref(
             exporting
               iv_data   = iv_data
