@@ -99,6 +99,7 @@ class ltcl_camel_case implementation.
       lo_ajson   type ref to zcl_ajson,
       li_mapping type ref to zif_ajson_mapping.
     data:
+      lv_value type string,
       begin of ls_result,
         field_data type string,
         begin of struc_data,
@@ -109,7 +110,8 @@ class ltcl_camel_case implementation.
     li_mapping = zcl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ).
 
     ls_result-field_data = 'field_value'.
-    insert |field_more| into table ls_result-struc_data-field_more.
+    lv_value = 'field_more'.
+    insert lv_value into table ls_result-struc_data-field_more.
 
     lo_ajson = zcl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
@@ -118,7 +120,7 @@ class ltcl_camel_case implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
-      exp = '{"fielddata":"field_value","strucdata":{"fieldmore":["field_more"]}}' ).
+      exp = '{"fieldData":"field_value","strucData":{"fieldMore":["field_more"]}}' ).
 
   endmethod.
 
