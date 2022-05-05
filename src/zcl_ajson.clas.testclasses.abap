@@ -2214,7 +2214,7 @@ class ltcl_writer_test implementation.
     data li_writer type ref to zif_ajson.
     data lt_tab type string_table.
 
-    lo_cut = zcl_ajson=>create_empty( )->format_datetime( ).
+    lo_cut = zcl_ajson=>create_empty( ).
     li_writer = lo_cut.
 
     append 'hello' to lt_tab.
