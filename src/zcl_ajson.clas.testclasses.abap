@@ -2210,12 +2210,10 @@ class ltcl_writer_test implementation.
   method set_tab.
 
     data lo_nodes type ref to lcl_nodes_helper.
-    data lo_cut type ref to zcl_ajson.
-    data li_writer type ref to zif_ajson.
+    data li_cut type ref to zif_ajson.
     data lt_tab type string_table.
 
-    lo_cut = zcl_ajson=>create_empty( ).
-    li_writer = lo_cut.
+    li_cut = zcl_ajson=>create_empty( ).
 
     append 'hello' to lt_tab.
     append 'world' to lt_tab.
@@ -2227,11 +2225,11 @@ class ltcl_writer_test implementation.
     lo_nodes->add( '/x/     |1     |str    |hello|1|0' ).
     lo_nodes->add( '/x/     |2     |str    |world|2|0' ).
 
-    li_writer->set(
+    li_cut->set(
       iv_path = '/x'
       iv_val  = lt_tab ).
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->mt_json_tree
+      act = li_cut->mt_json_tree
       exp = lo_nodes->sorted( ) ).
 
   endmethod.
