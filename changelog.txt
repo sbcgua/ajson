@@ -13,6 +13,7 @@ v1.1.4, 2022-??
 * better handling of incorrect JSON, as the native SAP parser does not properly signal if the content is json or xml (#97)
 * Fix dump in case of components with initial references @mbtools (#99)
 * Fix `ITAB_DUPLICATE_KEY` (nested tables path) and CamelCase @mbtools (#100)
+* Fix issue with pushing ajson instances to an array
 
 v1.1.3, 2022-04-12
 ------------------
