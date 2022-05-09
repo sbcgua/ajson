@@ -49,6 +49,8 @@ interface zif_ajson
     returning
       value(ri_json) type ref to zif_ajson.
   methods format_datetime
+    importing
+      iv_use_iso type abap_bool default abap_true
     returning
       value(ri_json) type ref to zif_ajson.
 

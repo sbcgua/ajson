@@ -66,6 +66,8 @@ class zcl_ajson definition
       raising
         zcx_ajson_error .
 
+    methods constructor.
+
   protected section.
 
   private section.
@@ -101,6 +103,11 @@ ENDCLASS.
 
 
 CLASS ZCL_AJSON IMPLEMENTATION.
+
+
+  method constructor.
+    format_datetime( abap_false ).
+  endmethod.
 
 
   method create_empty.
@@ -331,8 +338,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   endmethod.
 
+
   method zif_ajson~format_datetime.
-    mv_format_datetime = abap_true.
+    mv_format_datetime = iv_use_iso.
     ri_json = me.
   endmethod.
 
