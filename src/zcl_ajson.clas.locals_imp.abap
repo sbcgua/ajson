@@ -1055,7 +1055,7 @@ class lcl_abap_to_json definition final.
 
     methods convert_ajson
       importing
-        io_json type ref to zcl_ajson
+        io_json type ref to zif_ajson
         is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
       changing

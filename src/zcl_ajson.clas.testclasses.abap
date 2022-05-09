@@ -2932,6 +2932,7 @@ class ltcl_integrated definition
     methods stringify for testing raising zcx_ajson_error.
     methods item_order_integrated for testing raising zcx_ajson_error.
     methods chaining for testing raising zcx_ajson_error.
+    methods push_json for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -3198,6 +3199,42 @@ class ltcl_integrated implementation.
         iv_val  = '1' ) ).
 
     cl_abap_unit_assert=>assert_bound( li_cut->keep_item_order( ) ).
+
+  endmethod.
+
+  method push_json.
+
+    data li_cut type ref to zif_ajson.
+    data li_sub type ref to zif_ajson.
+    data lv_act type string.
+    data lv_exp type string.
+
+    li_cut = zcl_ajson=>create_empty( ).
+    li_sub = zcl_ajson=>create_empty( )->set(
+      iv_path = 'a'
+      iv_val  = '1' ).
+
+    li_cut->touch_array( '/list' ).
+    li_cut->push(
+      iv_path = '/list'
+      iv_val  = 'hello' ).
+    li_cut->push(
+      iv_path = '/list'
+      iv_val  = zcl_ajson=>create_empty( )->set(
+        iv_path = 'a'
+        iv_val  = '1' ) ).
+    li_cut->push(
+      iv_path = '/list'
+      iv_val  = zcl_ajson=>create_empty( )->set(
+        iv_path = '/'
+        iv_val  = 'world' ) ).
+
+    lv_act = li_cut->stringify( ).
+    lv_exp = '{"list":["hello",{"a":"1"},"world"]}'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
 
   endmethod.
 
