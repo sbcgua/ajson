@@ -106,7 +106,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method constructor.
-    format_datetime( abap_false ).
+    format_datetime( abap_true ).
   endmethod.
 
 

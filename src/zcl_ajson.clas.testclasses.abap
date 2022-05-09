@@ -2154,11 +2154,11 @@ class ltcl_writer_test implementation.
 
     " Prepare source
     create object lo_nodes.
-    lo_nodes->add( '        |      |object |         ||1' ).
-    lo_nodes->add( '/       |x     |object |         ||3' ).
-    lo_nodes->add( '/x/     |b     |str    |abc      ||0' ).
-    lo_nodes->add( '/x/     |c     |num    |10       ||0' ).
-    lo_nodes->add( '/x/     |d     |str    |20220401 ||0' ).
+    lo_nodes->add( '        |      |object |           ||1' ).
+    lo_nodes->add( '/       |x     |object |           ||3' ).
+    lo_nodes->add( '/x/     |b     |str    |abc        ||0' ).
+    lo_nodes->add( '/x/     |c     |num    |10         ||0' ).
+    lo_nodes->add( '/x/     |d     |str    |2022-04-01 ||0' ).
 
     li_writer->set(
       iv_path = '/x'
