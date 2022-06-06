@@ -1869,7 +1869,9 @@ class ltcl_writer_test definition final
     methods arrays for testing raising zcx_ajson_error.
     methods arrays_negative for testing raising zcx_ajson_error.
     methods root_assignment for testing raising zcx_ajson_error.
-    methods set_bool for testing raising zcx_ajson_error.
+    methods set_bool_abap_bool for testing raising zcx_ajson_error.
+    methods set_bool_int for testing raising zcx_ajson_error.
+    methods set_bool_tab for testing raising zcx_ajson_error.
     methods set_str for testing raising zcx_ajson_error.
     methods set_int for testing raising zcx_ajson_error.
     methods set_date for testing raising zcx_ajson_error.
@@ -2567,12 +2569,11 @@ class ltcl_writer_test implementation.
 
   endmethod.
 
-  method set_bool.
+  method set_bool_abap_bool.
 
     data lo_cut type ref to zcl_ajson.
     data lo_nodes_exp type ref to lcl_nodes_helper.
     data li_writer type ref to zif_ajson.
-    data lt_tab type string_table.
 
     " abap_bool
     lo_cut = zcl_ajson=>create_empty( ).
@@ -2593,6 +2594,14 @@ class ltcl_writer_test implementation.
       act = lo_cut->mt_json_tree
       exp = lo_nodes_exp->sorted( ) ).
 
+  endmethod.
+
+  method set_bool_int.
+
+    data lo_cut type ref to zcl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson.
+
     " int
     lo_cut = zcl_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -2612,6 +2621,15 @@ class ltcl_writer_test implementation.
       act = lo_cut->mt_json_tree
       exp = lo_nodes_exp->sorted( ) ).
 
+  endmethod.
+
+  method set_bool_tab.
+
+    data lo_cut type ref to zcl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson.
+    data lt_tab type string_table.
+    
     " tab
     lo_cut = zcl_ajson=>create_empty( ).
     li_writer = lo_cut.
