@@ -2629,7 +2629,7 @@ class ltcl_writer_test implementation.
     data lo_nodes_exp type ref to lcl_nodes_helper.
     data li_writer type ref to zif_ajson.
     data lt_tab type string_table.
-    
+
     " tab
     lo_cut = zcl_ajson=>create_empty( ).
     li_writer = lo_cut.
