@@ -842,7 +842,8 @@ class lcl_json_to_abap implementation.
         " Process value assignment
         case <n>-type.
           when zif_ajson=>node_type-object.
-            if ls_node_type-type_kind <> lif_kind=>struct1 and ls_node_type-type_kind <> lif_kind=>struct2.
+            if ls_node_type-type_kind <> lif_kind=>struct1 and 
+               ls_node_type-type_kind <> lif_kind=>struct2.
               zcx_ajson_error=>raise( 'Expected structure' ).
             endif.
             any_to_abap(
