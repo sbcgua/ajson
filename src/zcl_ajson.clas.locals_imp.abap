@@ -19,10 +19,10 @@ interface lif_kind.
 
   constants:
     begin of numeric,
-      int        type ty_kind value cl_abap_tabledescr=>typekind_int,
       int1       type ty_kind value cl_abap_tabledescr=>typekind_int1,
       int2       type ty_kind value cl_abap_tabledescr=>typekind_int2,
-      int8       type ty_kind value cl_abap_tabledescr=>typekind_int8,
+      int4       type ty_kind value cl_abap_tabledescr=>typekind_int,
+      int8       type ty_kind value '8', " cl_abap_tabledescr=>typekind_int8 not in lower releases
       float      type ty_kind value cl_abap_tabledescr=>typekind_float,
       packed     type ty_kind value cl_abap_tabledescr=>typekind_packed,
       decfloat16 type ty_kind value cl_abap_tabledescr=>typekind_decfloat16,
