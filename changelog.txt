@@ -8,6 +8,10 @@ Legend
 + : added
 - : removed
 
+v1.1.5, 2022-05-09
+------------------
+* internal type constants improvements @mbtools (#107)
+
 v1.1.4, 2022-05-09
 ------------------
 ! Changed the default datetime formatting to ISO (YYYY-MM-DD) instead of ABAP (YYYYMMDD) #101
