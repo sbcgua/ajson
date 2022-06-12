@@ -7,16 +7,15 @@ interface lif_kind.
   types ty_kind type c length 1.
 
   constants:
-    any            type ty_kind value cl_abap_typedescr=>typekind_any,
-    date           type ty_kind value cl_abap_typedescr=>typekind_date,
-    time           type ty_kind value cl_abap_typedescr=>typekind_time,
-    packed         type ty_kind value cl_abap_typedescr=>typekind_packed,
-    table          type ty_kind value cl_abap_typedescr=>typekind_table,
-    struct1        type ty_kind value cl_abap_typedescr=>typekind_struct1,
-    struct2        type ty_kind value cl_abap_typedescr=>typekind_struct2,
-    data_ref       type ty_kind value cl_abap_typedescr=>typekind_dref,
-    object_ref     type ty_kind value cl_abap_typedescr=>typekind_oref,
-    standard_table type ty_kind value cl_abap_tabledescr=>tablekind_std.
+    any         type ty_kind value cl_abap_typedescr=>typekind_any,
+    date        type ty_kind value cl_abap_typedescr=>typekind_date,
+    time        type ty_kind value cl_abap_typedescr=>typekind_time,
+    packed      type ty_kind value cl_abap_typedescr=>typekind_packed,
+    table       type ty_kind value cl_abap_typedescr=>typekind_table,
+    struct_flat type ty_kind value cl_abap_typedescr=>typekind_struct1,
+    struct_deep type ty_kind value cl_abap_typedescr=>typekind_struct2,
+    data_ref    type ty_kind value cl_abap_typedescr=>typekind_dref,
+    object_ref  type ty_kind value cl_abap_typedescr=>typekind_oref.
 
   constants:
     begin of numeric,
@@ -32,21 +31,25 @@ interface lif_kind.
 
   constants:
     begin of texts,
-      char    type ty_kind value cl_abap_tabledescr=>typekind_char,
-      numc    type ty_kind value cl_abap_tabledescr=>typekind_num,
-      string  type ty_kind value cl_abap_tabledescr=>typekind_string,
-      hex     type ty_kind value cl_abap_tabledescr=>typekind_hex,
-      xstring type ty_kind value cl_abap_tabledescr=>typekind_xstring,
+      char   type ty_kind value cl_abap_tabledescr=>typekind_char,
+      numc   type ty_kind value cl_abap_tabledescr=>typekind_num,
+      string type ty_kind value cl_abap_tabledescr=>typekind_string,
     end of texts.
 
   constants:
-    begin of supported_targets,
-      table      type ty_kind value cl_abap_typedescr=>typekind_table,
-      struct1    type ty_kind value cl_abap_typedescr=>typekind_struct1,
-      struct2    type ty_kind value cl_abap_typedescr=>typekind_struct2,
-      data_ref   type ty_kind value cl_abap_typedescr=>typekind_dref,
-      object_ref type ty_kind value cl_abap_typedescr=>typekind_oref,
-    end of supported_targets.
+    begin of binary,
+      hex     type ty_kind value cl_abap_tabledescr=>typekind_hex,
+      xstring type ty_kind value cl_abap_tabledescr=>typekind_xstring,
+    end of binary.
+
+  constants:
+    begin of deep_targets,
+      table       type ty_kind value cl_abap_typedescr=>typekind_table,
+      struct_flat type ty_kind value cl_abap_typedescr=>typekind_struct1,
+      struct_deep type ty_kind value cl_abap_typedescr=>typekind_struct2,
+      data_ref    type ty_kind value cl_abap_typedescr=>typekind_dref,
+      object_ref  type ty_kind value cl_abap_typedescr=>typekind_oref,
+    end of deep_targets.
 
 endinterface.
 
@@ -726,7 +729,7 @@ class lcl_json_to_abap implementation.
           lo_tdescr ?= is_parent_type-dd.
           rs_node_type-dd = lo_tdescr->get_table_line_type( ).
 
-        when lif_kind=>struct1 or lif_kind=>struct2.
+        when lif_kind=>struct_flat or lif_kind=>struct_deep.
           lo_sdescr ?= is_parent_type-dd.
           lo_sdescr->get_component_type(
             exporting
@@ -749,7 +752,7 @@ class lcl_json_to_abap implementation.
       rs_node_type-type_kind         = rs_node_type-dd->type_kind. " for caching and cleaner unintialized access
       if rs_node_type-type_kind = lif_kind=>table.
         lo_tdescr ?= rs_node_type-dd.
-        if lo_tdescr->table_kind <> lif_kind=>standard_table.
+        if lo_tdescr->table_kind <> cl_abap_tabledescr=>tablekind_std.
           lo_ddescr = lo_tdescr->get_table_line_type( ).
           create data rs_node_type-tab_item_buf type handle lo_ddescr.
         endif.
@@ -789,7 +792,7 @@ class lcl_json_to_abap implementation.
           assert sy-subrc = 0.
         endif.
 
-      when lif_kind=>struct1 or lif_kind=>struct2.
+      when lif_kind=>struct_flat or lif_kind=>struct_deep.
         assign i_container_ref->* to <parent_struc>.
         assert sy-subrc = 0.
     endcase.
@@ -808,7 +811,8 @@ class lcl_json_to_abap implementation.
         endif.
 
         " Validate node type
-        if ls_node_type-type_kind = lif_kind=>data_ref or ls_node_type-type_kind = lif_kind=>object_ref.
+        if ls_node_type-type_kind = lif_kind=>data_ref or
+           ls_node_type-type_kind = lif_kind=>object_ref.
           " TODO maybe in future
           zcx_ajson_error=>raise( 'Cannot assign to ref' ).
         endif.
@@ -826,7 +830,7 @@ class lcl_json_to_abap implementation.
               assert sy-subrc = 0.
             endif.
 
-          when lif_kind=>struct1 or lif_kind=>struct2.
+          when lif_kind=>struct_flat or lif_kind=>struct_deep.
             field-symbols <field> type any.
             assign component ls_node_type-target_field_name of structure <parent_struc> to <field>.
             assert sy-subrc = 0.
@@ -842,8 +846,8 @@ class lcl_json_to_abap implementation.
         " Process value assignment
         case <n>-type.
           when zif_ajson=>node_type-object.
-            if ls_node_type-type_kind <> lif_kind=>struct1 and 
-               ls_node_type-type_kind <> lif_kind=>struct2.
+            if ls_node_type-type_kind <> lif_kind=>struct_flat and
+               ls_node_type-type_kind <> lif_kind=>struct_deep.
               zcx_ajson_error=>raise( 'Expected structure' ).
             endif.
             any_to_abap(
@@ -901,7 +905,7 @@ class lcl_json_to_abap implementation.
 
     field-symbols <container> type any.
 
-    if is_node_type-type_kind ca lif_kind=>supported_targets.
+    if is_node_type-type_kind ca lif_kind=>deep_targets.
       zcx_ajson_error=>raise( |Unsupported target for value [{ is_node_type-type_kind }]| ).
     endif.
 
@@ -1375,7 +1379,8 @@ class lcl_abap_to_json implementation.
         ls_node-type  = zif_ajson=>node_type-number.
         ls_node-value = |{ iv_data }|.
       endif.
-    elseif io_type->type_kind co lif_kind=>texts.
+    elseif io_type->type_kind co lif_kind=>texts or
+           io_type->type_kind co lif_kind=>binary.
       ls_node-type = zif_ajson=>node_type-string.
       ls_node-value = |{ iv_data }|.
     elseif io_type->type_kind = lif_kind=>date.
