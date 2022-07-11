@@ -8,6 +8,10 @@ Legend
 + : added
 - : removed
 
+v???, ???
+------------------
+* fixed camel case convertion issue @jrodriguez-rc (#110)
+
 v1.1.5, 2022-05-09
 ------------------
 * internal type constants improvements @mbtools (#107)
