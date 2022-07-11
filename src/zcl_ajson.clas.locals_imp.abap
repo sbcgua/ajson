@@ -1350,12 +1350,6 @@ class lcl_abap_to_json implementation.
     ls_node-index = iv_index.
     ls_node-order = iv_item_order.
 
-    if mi_custom_mapping is bound.
-      ls_node-name = mi_custom_mapping->to_json(
-        iv_path = is_prefix-path
-        iv_name = is_prefix-name ).
-    endif.
-
     if ls_node-name is initial.
       ls_node-name  = is_prefix-name.
     endif.
@@ -1445,6 +1439,7 @@ class lcl_abap_to_json implementation.
     data lo_struc type ref to cl_abap_structdescr.
     data lt_comps type cl_abap_structdescr=>component_table.
     data ls_next_prefix like is_prefix.
+    data lv_mapping_prefix_name like is_prefix-name.
     data lv_item_order type i.
     data ls_root like line of ct_nodes.
 
@@ -1490,6 +1485,7 @@ class lcl_abap_to_json implementation.
     ls_next_prefix-path = is_prefix-path && <root>-name && '/'.
 
     loop at lt_comps assigning <c>.
+      clear lv_mapping_prefix_name.
 
       if <c>-as_include = abap_true.
 
@@ -1508,6 +1504,15 @@ class lcl_abap_to_json implementation.
         ls_next_prefix-name = to_lower( <c>-name ).
         assign component <c>-name of structure iv_data to <val>.
         assert sy-subrc = 0.
+
+        if mi_custom_mapping is bound and <c>-type->kind = cl_abap_typedescr=>kind_elem.
+          lv_mapping_prefix_name = mi_custom_mapping->to_json( iv_path = ls_next_prefix-path
+                                                               iv_name = ls_next_prefix-name ).
+        endif.
+
+        if lv_mapping_prefix_name is not initial.
+          ls_next_prefix-name = lv_mapping_prefix_name.
+        endif.
 
         if mv_keep_item_order = abap_true.
           lv_item_order = <root>-children.
