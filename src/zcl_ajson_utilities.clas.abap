@@ -4,6 +4,9 @@ class zcl_ajson_utilities definition
 
   public section.
 
+    class-methods new
+      returning
+        value(ro_instance) type ref to zcl_ajson_utilities.
     methods diff
       importing
         !iv_json_a            type string optional
@@ -36,6 +39,18 @@ class zcl_ajson_utilities definition
         value(rv_sorted) type string
       raising
         zcx_ajson_error .
+    methods is_equal
+      importing
+        !iv_json_a            type string optional
+        !iv_json_b            type string optional
+        !ii_json_a            type ref to zif_ajson optional
+        !ii_json_b            type ref to zif_ajson optional
+        !iv_keep_empty_arrays type abap_bool default abap_false
+      returning
+        value(rv_yes) type abap_bool
+      raising
+        zcx_ajson_error .
+
   protected section.
 
   private section.
@@ -71,11 +86,11 @@ class zcl_ajson_utilities definition
         !iv_keep_empty_arrays type abap_bool
       raising
         zcx_ajson_error .
-endclass.
+ENDCLASS.
 
 
 
-class zcl_ajson_utilities implementation.
+CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
 
   method delete_empty_nodes.
@@ -277,6 +292,31 @@ class zcl_ajson_utilities implementation.
   endmethod.
 
 
+  method is_equal.
+
+    data li_ins type ref to zif_ajson.
+    data li_del type ref to zif_ajson.
+    data li_mod type ref to zif_ajson.
+
+    diff(
+      exporting
+        iv_json_a = iv_json_a
+        iv_json_b = iv_json_b
+        io_json_a = ii_json_a
+        io_json_b = ii_json_b
+      importing
+        eo_insert = li_ins
+        eo_delete = li_del
+        eo_change = li_mod ).
+
+    rv_yes = boolc(
+      li_ins->is_empty( ) = abap_true and
+      li_del->is_empty( ) = abap_true and
+      li_mod->is_empty( ) = abap_true ).
+
+  endmethod.
+
+
   method merge.
 
     mo_json_a = normalize_input(
@@ -299,6 +339,11 @@ class zcl_ajson_utilities implementation.
       io_json              = ro_json
       iv_keep_empty_arrays = iv_keep_empty_arrays ).
 
+  endmethod.
+
+
+  method new.
+    create object ro_instance.
   endmethod.
 
 
@@ -331,4 +376,4 @@ class zcl_ajson_utilities implementation.
     rv_sorted = lo_json->stringify( 2 ).
 
   endmethod.
-endclass.
+ENDCLASS.

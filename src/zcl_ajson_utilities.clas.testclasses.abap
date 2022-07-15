@@ -131,6 +131,7 @@ class ltcl_json_utils definition
     methods json_diff_arrays for testing raising zcx_ajson_error.
     methods json_merge for testing raising zcx_ajson_error.
     methods json_sort for testing raising zcx_ajson_error.
+    methods is_equal for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -507,6 +508,35 @@ class ltcl_json_utils implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lv_sorted
       exp = lv_sorted_exp ).
+
+  endmethod.
+
+  method is_equal.
+
+    cl_abap_unit_assert=>assert_true(
+      zcl_ajson_utilities=>new( )->is_equal(
+        ii_json_a = zcl_ajson=>parse( '{"a":1,"b":2}' )
+        ii_json_b = zcl_ajson=>parse( '{"a":1,"b":2}' ) ) ).
+
+    cl_abap_unit_assert=>assert_true(
+      zcl_ajson_utilities=>new( )->is_equal(
+        iv_json_a = '{"a":1,"b":2}'
+        iv_json_b = '{"a":1,"b":2}' ) ).
+
+    cl_abap_unit_assert=>assert_false(
+      zcl_ajson_utilities=>new( )->is_equal(
+        iv_json_a = '{"a":1,"b":2}'
+        iv_json_b = '{"a":1,"b":3}' ) ).
+
+    cl_abap_unit_assert=>assert_false(
+      zcl_ajson_utilities=>new( )->is_equal(
+        iv_json_a = '{"a":1,"b":2}'
+        iv_json_b = '{"a":1,"b":2,"c":3}' ) ).
+
+    cl_abap_unit_assert=>assert_false(
+      zcl_ajson_utilities=>new( )->is_equal(
+        iv_json_a = '{"a":1,"b":2,"c":3}'
+        iv_json_b = '{"a":1,"b":2}' ) ).
 
   endmethod.
 
