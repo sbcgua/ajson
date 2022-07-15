@@ -2951,6 +2951,7 @@ class ltcl_integrated definition
     methods item_order_integrated for testing raising zcx_ajson_error.
     methods chaining for testing raising zcx_ajson_error.
     methods push_json for testing raising zcx_ajson_error.
+    methods is_empty for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -3253,6 +3254,22 @@ class ltcl_integrated implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lv_act
       exp = lv_exp ).
+
+  endmethod.
+
+  method is_empty.
+
+    data li_cut type ref to zif_ajson.
+
+    li_cut = zcl_ajson=>create_empty( ).
+
+    cl_abap_unit_assert=>assert_true( li_cut->is_empty( ) ).
+
+    li_cut->set(
+      iv_path = '/x'
+      iv_val  = '123' ).
+
+    cl_abap_unit_assert=>assert_false( li_cut->is_empty( ) ).
 
   endmethod.
 

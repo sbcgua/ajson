@@ -7,6 +7,7 @@ class zcl_ajson definition
     interfaces zif_ajson .
 
     aliases:
+      is_empty for zif_ajson~is_empty,
       exists for zif_ajson~exists,
       members for zif_ajson~members,
       get for zif_ajson~get,
@@ -458,6 +459,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       return.
     endtry.
 
+  endmethod.
+
+
+  method zif_ajson~is_empty.
+    rv_yes = boolc( lines( mt_json_tree ) = 0 ).
   endmethod.
 
 

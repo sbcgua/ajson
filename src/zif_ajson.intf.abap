@@ -56,6 +56,10 @@ interface zif_ajson
 
   " METHODS ex.reader
 
+  methods is_empty
+    returning
+      value(rv_yes) type abap_bool.
+
   methods exists
     importing
       iv_path type string
