@@ -45,7 +45,6 @@ class zcl_ajson_utilities definition
         !iv_json_b            type string optional
         !ii_json_a            type ref to zif_ajson optional
         !ii_json_b            type ref to zif_ajson optional
-        !iv_keep_empty_arrays type abap_bool default abap_false
       returning
         value(rv_yes) type abap_bool
       raising
