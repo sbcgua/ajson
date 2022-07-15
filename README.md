@@ -62,7 +62,8 @@ Examples below assume original json was:
 data r type ref to zif_ajson.
 r = zcl_ajson=>parse( lv_json_string_from_above ).
 
-r->exists( '/success' ).              " returns abap_true
+r->is_empty( ).                     " returns abap_false
+r->exists( '/success' ).            " returns abap_true
 
 r->get( '/success' ).               " returns "1"
 r->get_integer( '/success' ).       " returns 1 (number)
@@ -80,7 +81,7 @@ r->get_string( '/payload/null' ).   " returns "" (empty string)
 r->get( '/payload/date' ).          " returns "2020-07-28"
 r->get_date( '/payload/date' ).     " returns "20200728" (type d)
 
-r->members( '/' ).                    " returns table of "success", "error", "payload"
+r->members( '/' ).                  " returns table of "success", "error", "payload"
 ```
 
 #### Segment slicing
@@ -674,8 +675,11 @@ In order to apply a custom filter you have to implement a class with `zif_ajson_
 ## Utilities
 
 Class `zcl_ajson_utilities` provides the following methods:
+- `new` - static method to create an instance (the shortcut for pre 7.4 abap releases)
 - `diff` - returns all inserts, deletions, and changes between two JSON objects
 - `sort` - returns JSON string with nodes sorted alphabetically
+- `is_equal` - returns true if 2 jsons (or json string) are deeply equal
+- `merge` - merges 2 jsons together
 
 ### Difference between JSON
 
@@ -740,6 +744,17 @@ You can see a more complex example in the test class of `zcl_ajson_utilities`.
   "     5
   "   ]
   " }
+```
+
+### Testing equality
+
+```abap
+  zcl_ajson_utilities=>new( )->is_equal(
+    iv_json_a = '{"a":1,"b":2}'
+    iv_json_b = '{"a":1,"b":2}' ).       " Return abap_true
+  zcl_ajson_utilities=>new( )->is_equal(
+    iv_json_a = '{"a":1,"b":2}'
+    iv_json_b = '{"a":1,"b":2,"c":3}' ). " Return abap_false
 ```
 
 ## Known issues
