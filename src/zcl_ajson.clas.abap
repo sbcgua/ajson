@@ -99,6 +99,9 @@ class zcl_ajson definition
         iv_name           type string
       returning
         value(rv_deleted) type abap_bool.
+    methods read_only_watchdog
+      raising
+        zcx_ajson_error.
 ENDCLASS.
 
 
@@ -261,6 +264,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method read_only_watchdog.
+    if mv_read_only = abap_true.
+      zcx_ajson_error=>raise( 'This json instance is read only' ).
+    endif.
+  endmethod.
+
+
   method zif_ajson~array_to_string_table.
 
     data lv_normalized_path type string.
@@ -302,10 +312,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~clear.
 
-    if mv_read_only = abap_true.
-      zcx_ajson_error=>raise( 'This json instance is read only' ).
-    endif.
-
+    read_only_watchdog( ).
     clear mt_json_tree.
 
   endmethod.
@@ -313,9 +320,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~delete.
 
-    if mv_read_only = abap_true.
-      zcx_ajson_error=>raise( 'This json instance is read only' ).
-    endif.
+    read_only_watchdog( ).
 
     data ls_split_path type zif_ajson=>ty_path_name.
     ls_split_path = lcl_utils=>split_path( iv_path ).
@@ -492,9 +497,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lr_parent type ref to zif_ajson=>ty_node.
     data lr_new_node type ref to zif_ajson=>ty_node.
 
-    if mv_read_only = abap_true.
-      zcx_ajson_error=>raise( 'This json instance is read only' ).
-    endif.
+    read_only_watchdog( ).
 
     lr_parent = get_item( iv_path ).
 
@@ -537,9 +540,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lr_parent type ref to zif_ajson=>ty_node.
     data lt_node_stack type tty_node_stack.
 
-    if mv_read_only = abap_true.
-      zcx_ajson_error=>raise( 'This json instance is read only' ).
-    endif.
+    read_only_watchdog( ).
 
     ri_json = me.
 
@@ -751,9 +752,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data ls_new_node like line of mt_json_tree.
     data ls_split_path type zif_ajson=>ty_path_name.
 
-    if mv_read_only = abap_true.
-      zcx_ajson_error=>raise( 'This json instance is read only' ).
-    endif.
+    read_only_watchdog( ).
 
     ls_split_path = lcl_utils=>split_path( iv_path ).
     if ls_split_path is initial. " Assign root, exceptional processing
