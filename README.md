@@ -764,4 +764,6 @@ You can see a more complex example in the test class of `zcl_ajson_utilities`.
 ## References
 
 - Forked from [here](https://github.com/abaplint/abaplint-abap-backend) originally, at early stages
-- Publication at SCN - https://blogs.sap.com/2020/08/14/bicycles.-2-ajson-yet-another-abap-json-parser-and-serializer
+- Publication at SCN:
+  - https://blogs.sap.com/2020/08/14/bicycles.-2-ajson-yet-another-abap-json-parser-and-serializer
+  - https://blogs.sap.com/2022/07/23/json-alternative-to-maintenance-views-in-abap/
