@@ -90,7 +90,7 @@ class zcl_ajson definition
       importing
         iv_path              type string
       returning
-        value(rt_node_stack) type tty_node_stack
+        value(rr_end_node) type ref to zif_ajson=>ty_node
       raising
         zcx_ajson_error.
     methods delete_subtree
@@ -221,8 +221,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method prove_path_exists.
 
     data lt_path type string_table.
-    data lr_node like line of rt_node_stack.
-    data lr_node_parent like line of rt_node_stack.
+    data lr_node_parent like rr_end_node.
     data lv_cur_path type string.
     data lv_cur_name type string.
     data ls_new_node like line of mt_json_tree.
@@ -231,8 +230,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     delete lt_path where table_line is initial.
 
     do.
-      lr_node_parent = lr_node.
-      read table mt_json_tree reference into lr_node
+      lr_node_parent = rr_end_node.
+      read table mt_json_tree reference into rr_end_node
         with key
           path = lv_cur_path
           name = lv_cur_name.
@@ -249,17 +248,14 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         ls_new_node-path = lv_cur_path.
         ls_new_node-name = lv_cur_name.
         ls_new_node-type = zif_ajson=>node_type-object.
-        insert ls_new_node into table mt_json_tree reference into lr_node.
+        insert ls_new_node into table mt_json_tree reference into rr_end_node.
       endif.
-      insert lr_node into rt_node_stack index 1.
       lv_cur_path = lv_cur_path && lv_cur_name && '/'.
       read table lt_path index sy-index into lv_cur_name.
       if sy-subrc <> 0.
         exit. " no more segments
       endif.
     enddo.
-
-    assert lv_cur_path = iv_path. " Just in case
 
   endmethod.
 
@@ -538,7 +534,6 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     data ls_split_path type zif_ajson=>ty_path_name.
     data lr_parent type ref to zif_ajson=>ty_node.
-    data lt_node_stack type tty_node_stack.
 
     read_only_watchdog( ).
 
@@ -576,9 +571,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     endif.
 
     " Ensure whole path exists
-    lt_node_stack = prove_path_exists( ls_split_path-path ).
-    read table lt_node_stack index 1 into lr_parent.
-    assert sy-subrc = 0.
+    lr_parent = prove_path_exists( ls_split_path-path ).
+    assert lr_parent is not initial.
 
     " delete if exists with subtree
     delete_subtree(
@@ -774,11 +768,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     if lr_node is initial. " Or node was cleared
 
       data lr_parent type ref to zif_ajson=>ty_node.
-      data lt_node_stack type tty_node_stack.
+      lr_parent = prove_path_exists( ls_split_path-path ).
+      assert lr_parent is not initial.
 
-      lt_node_stack = prove_path_exists( ls_split_path-path ).
-      read table lt_node_stack index 1 into lr_parent.
-      assert sy-subrc = 0.
       lr_parent->children = lr_parent->children + 1.
 
       ls_new_node-path = ls_split_path-path.
