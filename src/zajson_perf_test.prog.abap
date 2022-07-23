@@ -122,6 +122,10 @@ class lcl_app definition final inheriting from lcl_runner_base.
     methods to_abap_long_array raising cx_static_check.
     methods to_abap_complex raising cx_static_check.
 
+    methods set_same_level raising cx_static_check.
+    methods set_deep raising cx_static_check.
+    methods set_overwrite raising cx_static_check.
+
     class-methods main.
     methods prepare.
     methods prepare_parsed raising cx_static_check.
@@ -452,6 +456,57 @@ class lcl_app implementation.
 
   endmethod.
 
+  method set_same_level.
+
+    data li_json type ref to zif_ajson.
+    li_json = zcl_ajson=>create_empty( ).
+
+    do 10 times.
+      li_json->set(
+        iv_path = |/a{ sy-index }|
+        iv_val  = sy-index ).
+    enddo.
+
+  endmethod.
+
+  method set_deep.
+
+    data li_json type ref to zif_ajson.
+    data lv_path type string.
+    li_json = zcl_ajson=>create_empty( ).
+
+    do 10 times.
+      lv_path = lv_path && |/a{ sy-index }|.
+      li_json->set(
+        iv_path = |{ lv_path }/x|
+        iv_val  = sy-index ).
+    enddo.
+
+  endmethod.
+
+  method set_overwrite.
+
+    data li_json type ref to zif_ajson.
+    data lv_path type string.
+
+    li_json = zcl_ajson=>create_empty( ).
+
+    do 10 times.
+      lv_path = lv_path && |/a{ sy-index }|.
+    enddo.
+
+    li_json->set(
+      iv_path = lv_path
+      iv_val  = 'x' ).
+
+    do 10 times.
+      li_json->set(
+        iv_path = lv_path
+        iv_val  = sy-index ).
+    enddo.
+
+  endmethod.
+
   method main.
 
     data lo_app type ref to lcl_app.
@@ -467,29 +522,33 @@ class lcl_app implementation.
 
     try.
 
-      lo_app->prepare( ).
+*      lo_app->prepare( ).
+*
+*      lo_app->run( 'parse_plain_obj' ).
+*      lo_app->run( 'parse_deep_obj' ).
+*      lo_app->run( 'parse_array' ).
+*      lo_app->run(
+*        iv_method = 'parse_long_array'
+*        iv_times  = 5 ).
+*      lo_app->run(
+*        iv_method = 'parse_complex'
+*        iv_times  = 5 ).
+*
+*      lo_app->prepare_parsed( ).
+*
+*      lo_app->run( 'to_abap_plain_obj' ).
+*      lo_app->run( 'to_abap_deep_obj' ).
+*      lo_app->run( 'to_abap_array' ).
+*      lo_app->run(
+*        iv_method = 'to_abap_long_array'
+*        iv_times  = 5 ).
+*      lo_app->run(
+*        iv_method = 'to_abap_complex'
+*        iv_times  = 5 ).
 
-      lo_app->run( 'parse_plain_obj' ).
-      lo_app->run( 'parse_deep_obj' ).
-      lo_app->run( 'parse_array' ).
-      lo_app->run(
-        iv_method = 'parse_long_array'
-        iv_times  = 5 ).
-      lo_app->run(
-        iv_method = 'parse_complex'
-        iv_times  = 5 ).
-
-      lo_app->prepare_parsed( ).
-
-      lo_app->run( 'to_abap_plain_obj' ).
-      lo_app->run( 'to_abap_deep_obj' ).
-      lo_app->run( 'to_abap_array' ).
-      lo_app->run(
-        iv_method = 'to_abap_long_array'
-        iv_times  = 5 ).
-      lo_app->run(
-        iv_method = 'to_abap_complex'
-        iv_times  = 5 ).
+      lo_app->run( 'set_same_level' ).
+      lo_app->run( 'set_deep' ).
+      lo_app->run( 'set_overwrite' ).
 
     catch cx_root into lx.
       lv_tmp = lx->get_text( ).
