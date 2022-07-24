@@ -530,6 +530,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     data ls_split_path type zif_ajson=>ty_path_name.
     data lr_parent type ref to zif_ajson=>ty_node.
+    data ls_deleted_node type zif_ajson=>ty_node.
 
     read_only_watchdog( ).
 
@@ -571,7 +572,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     assert lr_parent is not initial.
 
     " delete if exists with subtree
-    delete_subtree(
+    ls_deleted_node = delete_subtree(
       ir_parent = lr_parent
       iv_path   = ls_split_path-path
       iv_name   = ls_split_path-name ).
@@ -590,6 +591,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
         iv_format_datetime = mv_format_datetime
         iv_keep_item_order = mv_keep_item_order
+        iv_item_order      = ls_deleted_node-order
         iv_data            = iv_val
         iv_type            = iv_node_type
         iv_array_index     = lv_array_index
@@ -599,13 +601,14 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       lt_new_nodes = lcl_abap_to_json=>convert(
         iv_format_datetime = mv_format_datetime
         iv_keep_item_order = mv_keep_item_order
+        iv_item_order      = ls_deleted_node-order
         iv_data            = iv_val
         iv_array_index     = lv_array_index
         is_prefix          = ls_split_path
         ii_custom_mapping  = mi_custom_mapping ).
     endif.
 
-    " update data
+    " update nodes
     if lines( lt_new_nodes ) > 0.
       lr_parent->children = lr_parent->children + 1.
       insert lines of lt_new_nodes into table mt_json_tree.

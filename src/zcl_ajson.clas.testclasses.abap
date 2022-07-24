@@ -2910,6 +2910,42 @@ class ltcl_writer_test implementation.
 
   method overwrite_w_keep_order_set.
 
+    data li_cut type ref to zif_ajson.
+    data:
+      begin of ls_dummy,
+        b type i,
+        a type i,
+      end of ls_dummy.
+
+    li_cut = zcl_ajson=>create_empty(
+    )->set(
+      iv_ignore_empty = abap_false
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"a":0,"b":0}' ). " ordered by path, name
+
+    li_cut = zcl_ajson=>create_empty(
+    )->keep_item_order(
+    )->set(
+      iv_ignore_empty = abap_false
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"b":0,"a":0}' ). " ordered by structure order
+
+    li_cut->set(
+      iv_path  = '/a'
+      iv_val   = 1 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"b":0,"a":1}' ). " still ordered after overwrite
+
   endmethod.
 
   method overwrite_w_keep_order_touch.
