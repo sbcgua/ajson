@@ -547,27 +547,27 @@ class lcl_app implementation.
 
       lo_app->prepare( ).
 
-*      lo_app->run( 'parse_plain_obj' ).
-*      lo_app->run( 'parse_deep_obj' ).
-*      lo_app->run( 'parse_array' ).
-*      lo_app->run(
-*        iv_method = 'parse_long_array'
-*        iv_times  = 5 ).
-*      lo_app->run(
-*        iv_method = 'parse_complex'
-*        iv_times  = 5 ).
-*
-*      lo_app->prepare_parsed( ).
-*
-*      lo_app->run( 'to_abap_plain_obj' ).
-*      lo_app->run( 'to_abap_deep_obj' ).
-*      lo_app->run( 'to_abap_array' ).
-*      lo_app->run(
-*        iv_method = 'to_abap_long_array'
-*        iv_times  = 5 ).
-*      lo_app->run(
-*        iv_method = 'to_abap_complex'
-*        iv_times  = 5 ).
+      lo_app->run( 'parse_plain_obj' ).
+      lo_app->run( 'parse_deep_obj' ).
+      lo_app->run( 'parse_array' ).
+      lo_app->run(
+        iv_method = 'parse_long_array'
+        iv_times  = 5 ).
+      lo_app->run(
+        iv_method = 'parse_complex'
+        iv_times  = 5 ).
+
+      lo_app->prepare_parsed( ).
+
+      lo_app->run( 'to_abap_plain_obj' ).
+      lo_app->run( 'to_abap_deep_obj' ).
+      lo_app->run( 'to_abap_array' ).
+      lo_app->run(
+        iv_method = 'to_abap_long_array'
+        iv_times  = 5 ).
+      lo_app->run(
+        iv_method = 'to_abap_complex'
+        iv_times  = 5 ).
 
       lo_app->run( 'set_same_level' ).
       lo_app->run( 'set_deep' ).
