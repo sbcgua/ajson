@@ -1879,6 +1879,8 @@ class ltcl_writer_test definition final
     methods read_only for testing raising zcx_ajson_error.
     methods set_array_obj for testing raising zcx_ajson_error.
     methods set_with_type for testing raising zcx_ajson_error.
+    methods overwrite_w_keep_order_touch for testing raising zcx_ajson_error.
+    methods overwrite_w_keep_order_set for testing raising zcx_ajson_error.
 
     methods set_with_type_slice
       importing
@@ -2903,6 +2905,50 @@ class ltcl_writer_test implementation.
             iv_node_type = <node>-type ).
       endcase.
     endloop.
+
+  endmethod.
+
+  method overwrite_w_keep_order_set.
+
+  endmethod.
+
+  method overwrite_w_keep_order_touch.
+
+    data li_cut type ref to zif_ajson.
+    data:
+      begin of ls_dummy,
+        b type i,
+        a type string_table,
+      end of ls_dummy.
+
+    li_cut = zcl_ajson=>create_empty(
+    )->set(
+      iv_ignore_empty = abap_false
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"a":[],"b":0}' ). " ordered by path, name
+
+    li_cut = zcl_ajson=>create_empty(
+    )->keep_item_order(
+    )->set(
+      iv_ignore_empty = abap_false
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"b":0,"a":[]}' ). " ordered by structure order
+
+    li_cut->touch_array(
+      iv_path  = '/a'
+      iv_clear = abap_true ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"b":0,"a":[]}' ). " still ordered after touch with clear
 
   endmethod.
 

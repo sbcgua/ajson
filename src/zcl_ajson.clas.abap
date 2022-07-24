@@ -740,6 +740,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method zif_ajson~touch_array.
 
     data lr_node type ref to zif_ajson=>ty_node.
+    data ls_deleted_node type zif_ajson=>ty_node.
     data ls_new_node like line of mt_json_tree.
     data ls_split_path type zif_ajson=>ty_path_name.
 
@@ -755,7 +756,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     endif.
 
     if iv_clear = abap_true.
-      delete_subtree(
+      ls_deleted_node = delete_subtree(
         iv_path = ls_split_path-path
         iv_name = ls_split_path-name ).
     else.
@@ -773,6 +774,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
       ls_new_node-type = zif_ajson=>node_type-array.
+
+      if mv_keep_item_order = abap_true and ls_deleted_node is not initial.
+        ls_new_node-order = ls_deleted_node-order.
+      endif.
+
       insert ls_new_node into table mt_json_tree.
 
     elseif lr_node->type <> zif_ajson=>node_type-array.
