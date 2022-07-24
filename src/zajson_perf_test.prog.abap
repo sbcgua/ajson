@@ -125,6 +125,7 @@ class lcl_app definition final inheriting from lcl_runner_base.
     methods set_same_level raising cx_static_check.
     methods set_deep raising cx_static_check.
     methods set_overwrite raising cx_static_check.
+    methods delete_tree raising cx_static_check.
 
     class-methods main.
     methods prepare.
@@ -166,6 +167,8 @@ class lcl_app definition final inheriting from lcl_runner_base.
     data mo_array type ref to zif_ajson.
     data mo_long_array type ref to zif_ajson.
     data mo_complex type ref to zif_ajson.
+
+    data mv_deep_path type string.
 
     types:
       begin of ty_fragment,
@@ -253,6 +256,10 @@ class lcl_app implementation.
 
     prepare_complex( ).
     prepare_long_array( ).
+
+    do 50 times.
+      mv_deep_path = mv_deep_path && |/a{ sy-index }|.
+    enddo.
 
   endmethod.
 
@@ -507,6 +514,22 @@ class lcl_app implementation.
 
   endmethod.
 
+  method delete_tree.
+
+    data li_json type ref to zif_ajson.
+    li_json = zcl_ajson=>create_empty( ).
+
+    li_json->set(
+      iv_path = |/x{ mv_deep_path }|
+      iv_val  = '1' ).
+    li_json->set(
+      iv_path = |/y{ mv_deep_path }|
+      iv_val  = '1' ).
+
+    li_json->delete( '/x' ).
+
+  endmethod.
+
   method main.
 
     data lo_app type ref to lcl_app.
@@ -522,8 +545,8 @@ class lcl_app implementation.
 
     try.
 
-*      lo_app->prepare( ).
-*
+      lo_app->prepare( ).
+
 *      lo_app->run( 'parse_plain_obj' ).
 *      lo_app->run( 'parse_deep_obj' ).
 *      lo_app->run( 'parse_array' ).
@@ -549,6 +572,7 @@ class lcl_app implementation.
       lo_app->run( 'set_same_level' ).
       lo_app->run( 'set_deep' ).
       lo_app->run( 'set_overwrite' ).
+      lo_app->run( 'delete_tree' ).
 
     catch cx_root into lx.
       lv_tmp = lx->get_text( ).

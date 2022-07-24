@@ -97,8 +97,9 @@ class zcl_ajson definition
       importing
         iv_path           type string
         iv_name           type string
+        ir_parent         type ref to zif_ajson=>ty_node optional
       returning
-        value(rv_deleted) type abap_bool.
+        value(rs_top_node) type zif_ajson=>ty_node.
     methods read_only_watchdog
       raising
         zcx_ajson_error.
@@ -149,35 +150,30 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method delete_subtree.
 
     data lv_parent_path type string.
-    data lv_parent_path_len type i.
-    field-symbols <node> like line of mt_json_tree.
-    read table mt_json_tree assigning <node>
+    data lr_parent like ir_parent.
+
+    read table mt_json_tree into rs_top_node
       with key
         path = iv_path
         name = iv_name.
-    if sy-subrc = 0. " Found ? delete !
-      if <node>-children > 0. " only for objects and arrays
-        lv_parent_path = iv_path && iv_name && '/'.
-        lv_parent_path_len = strlen( lv_parent_path ).
-        loop at mt_json_tree assigning <node>.
-          if strlen( <node>-path ) >= lv_parent_path_len
-            and substring( val = <node>-path len = lv_parent_path_len ) = lv_parent_path.
-            delete mt_json_tree index sy-tabix.
-          endif.
-        endloop.
-      endif.
+    if sy-subrc <> 0.
+      return. " Not found ? nothing to delete !
+    endif.
 
-      delete mt_json_tree where path = iv_path and name = iv_name.
-      rv_deleted = abap_true.
+    delete mt_json_tree index sy-tabix. " where path = iv_path and name = iv_name.
 
-      data ls_path type zif_ajson=>ty_path_name.
-      ls_path = lcl_utils=>split_path( iv_path ).
-      read table mt_json_tree assigning <node>
-        with key
-          path = ls_path-path
-          name = ls_path-name.
-      if sy-subrc = 0.
-        <node>-children = <node>-children - 1.
+    if rs_top_node-children > 0. " only for objects and arrays
+      lv_parent_path = iv_path && iv_name && '/*'.
+      delete mt_json_tree where path cp lv_parent_path.
+    endif.
+
+    " decrement parent children
+    if ir_parent is supplied.
+      ir_parent->children = ir_parent->children - 1.
+    else.
+      lr_parent = get_item( iv_path ).
+      if lr_parent is not initial.
+        lr_parent->children = lr_parent->children - 1.
       endif.
     endif.
 
@@ -576,8 +572,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     " delete if exists with subtree
     delete_subtree(
-      iv_path = ls_split_path-path
-      iv_name = ls_split_path-name ).
+      ir_parent = lr_parent
+      iv_path   = ls_split_path-path
+      iv_name   = ls_split_path-name ).
 
     " convert to json
     data lt_new_nodes type zif_ajson=>ty_nodes_tt.
