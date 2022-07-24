@@ -73,9 +73,6 @@ class zcl_ajson definition
 
   private section.
 
-    types:
-      tty_node_stack type standard table of ref to zif_ajson=>ty_node with default key.
-
     data mv_read_only type abap_bool.
     data mi_custom_mapping type ref to zif_ajson_mapping.
     data mv_keep_item_order type abap_bool.
