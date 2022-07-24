@@ -324,13 +324,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method zif_ajson~exists.
-
-    data lv_item type ref to zif_ajson=>ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is not initial.
-      rv_exists = abap_true.
-    endif.
-
+    rv_exists = boolc( get_item( iv_path ) is not initial ).
   endmethod.
 
 
@@ -347,10 +341,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get.
 
-    data lv_item type ref to zif_ajson=>ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is not initial.
-      rv_value = lv_item->value.
+    data lr_item type ref to zif_ajson=>ty_node.
+    lr_item = get_item( iv_path ).
+    if lr_item is not initial.
+      rv_value = lr_item->value.
     endif.
 
   endmethod.
@@ -358,13 +352,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_boolean.
 
-    data lv_item type ref to zif_ajson=>ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is initial or lv_item->type = zif_ajson=>node_type-null.
+    data lr_item type ref to zif_ajson=>ty_node.
+    lr_item = get_item( iv_path ).
+    if lr_item is initial or lr_item->type = zif_ajson=>node_type-null.
       return.
-    elseif lv_item->type = zif_ajson=>node_type-boolean.
-      rv_value = boolc( lv_item->value = 'true' ).
-    elseif lv_item->value is not initial.
+    elseif lr_item->type = zif_ajson=>node_type-boolean.
+      rv_value = boolc( lr_item->value = 'true' ).
+    elseif lr_item->value is not initial.
       rv_value = abap_true.
     endif.
 
@@ -373,16 +367,16 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_date.
 
-    data lv_item type ref to zif_ajson=>ty_node.
+    data lr_item type ref to zif_ajson=>ty_node.
     data lv_y type c length 4.
     data lv_m type c length 2.
     data lv_d type c length 2.
 
-    lv_item = get_item( iv_path ).
+    lr_item = get_item( iv_path ).
 
-    if lv_item is not initial and lv_item->type = zif_ajson=>node_type-string.
+    if lr_item is not initial and lr_item->type = zif_ajson=>node_type-string.
       find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
-        in lv_item->value
+        in lr_item->value
         submatches lv_y lv_m lv_d.
       concatenate lv_y lv_m lv_d into rv_value.
     endif.
@@ -392,10 +386,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_integer.
 
-    data lv_item type ref to zif_ajson=>ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type = zif_ajson=>node_type-number.
-      rv_value = lv_item->value.
+    data lr_item type ref to zif_ajson=>ty_node.
+    lr_item = get_item( iv_path ).
+    if lr_item is not initial and lr_item->type = zif_ajson=>node_type-number.
+      rv_value = lr_item->value.
     endif.
 
   endmethod.
@@ -403,10 +397,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_node_type.
 
-    data lv_item type ref to zif_ajson=>ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is not initial.
-      rv_node_type = lv_item->type.
+    data lr_item type ref to zif_ajson=>ty_node.
+    lr_item = get_item( iv_path ).
+    if lr_item is not initial.
+      rv_node_type = lr_item->type.
     endif.
 
   endmethod.
@@ -414,10 +408,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_number.
 
-    data lv_item type ref to zif_ajson=>ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type = zif_ajson=>node_type-number.
-      rv_value = lv_item->value.
+    data lr_item type ref to zif_ajson=>ty_node.
+    lr_item = get_item( iv_path ).
+    if lr_item is not initial and lr_item->type = zif_ajson=>node_type-number.
+      rv_value = lr_item->value.
     endif.
 
   endmethod.
@@ -425,10 +419,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_string.
 
-    data lv_item type ref to zif_ajson=>ty_node.
-    lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type <> zif_ajson=>node_type-null.
-      rv_value = lv_item->value.
+    data lr_item type ref to zif_ajson=>ty_node.
+    lr_item = get_item( iv_path ).
+    if lr_item is not initial and lr_item->type <> zif_ajson=>node_type-null.
+      rv_value = lr_item->value.
     endif.
 
   endmethod.
