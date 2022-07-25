@@ -8,6 +8,10 @@ Legend
 + : added
 - : removed
 
+v1.1.7, 2022-??
+-----------------
+* Fixed keep order when overwriteiung existing node values (#113)
+
 v1.1.6, 2022-07-15
 ------------------
 * fixed camel case convertion issue @jrodriguez-rc (#110)
