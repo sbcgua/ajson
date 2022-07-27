@@ -62,6 +62,7 @@ class zcl_ajson definition
       importing
         !ii_source_json type ref to zif_ajson
         !ii_filter type ref to zif_ajson_filter optional
+        !ii_mapper type ref to zif_ajson_mapping optional
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
@@ -126,7 +127,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method create_from.
 
-    data lo_filter_runner type ref to lcl_filter_runner.
+    data lt_buf like ii_source_json->mt_json_tree.
+    field-symbols <from> like ii_source_json->mt_json_tree.
+    field-symbols <to> like ii_source_json->mt_json_tree.
 
     if ii_source_json is not bound.
       zcx_ajson_error=>raise( 'Source not bound' ).
@@ -134,18 +137,44 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     create object ro_instance.
 
-    if ii_filter is bound.
-      create object lo_filter_runner.
-      lo_filter_runner->run(
-        exporting
-          ii_filter = ii_filter
-          it_source_tree = ii_source_json->mt_json_tree
-        changing
-          ct_dest_tree = ro_instance->mt_json_tree ).
-    else.
+    if ii_filter is not bound and ii_mapper is not bound.
       ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
-      " Copy keep order and custom mapping ???
+    else.
+      assign ii_source_json->mt_json_tree to <from>.
+
+      " Mapping goes first. But maybe it should be a freely definable queue of processors ?
+      if ii_mapper is bound.
+        if ii_filter is bound.
+          assign lt_buf to <to>.
+        else.
+          assign ro_instance->mt_json_tree to <to>.
+        endif.
+
+        lcl_mapper_runner=>new( )->run(
+          exporting
+            ii_mapper = ii_mapper
+            it_source_tree = <from>
+          changing
+            ct_dest_tree = <to> ).
+
+        assign lt_buf to <from>.
+      endif.
+
+      assign ro_instance->mt_json_tree to <to>.
+
+      if ii_filter is bound.
+        lcl_filter_runner=>new( )->run(
+          exporting
+            ii_filter = ii_filter
+            it_source_tree = <from>
+          changing
+            ct_dest_tree = <to> ).
+      endif.
     endif.
+
+    " Copy keep order and custom mapping ???
+*    ro_instance->mv_format_datetime = ii_source_json->mv_fo
+*    ro_instance->mv_keep_item_order = ii_source_json->mv_fo
 
   endmethod.
 

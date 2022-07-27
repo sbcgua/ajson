@@ -11,6 +11,10 @@ class ltcl_camel_case definition final for testing
       to_json_nested_table for testing raising zcx_ajson_error,
       to_json_first_lower for testing raising zcx_ajson_error.
 
+    methods:
+      to_upper for testing raising zcx_ajson_error,
+      to_lower for testing raising zcx_ajson_error.
+
 endclass.
 
 
@@ -169,6 +173,26 @@ class ltcl_camel_case implementation.
 
   endmethod.
 
+
+  method to_lower.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>create_from(
+        ii_source_json = zcl_ajson=>parse( '{"a":1,"b":{"c":2}}' )
+        ii_mapper      =  zcl_ajson_mapping=>create_lower_case( ) )->stringify( )
+      exp = '{"A":1,"B":{"C":2}}' ).
+
+  endmethod.
+
+  method to_upper.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>create_from(
+        ii_source_json = zcl_ajson=>parse( '{"A":1,"B":{"C":2}}' )
+        ii_mapper      =  zcl_ajson_mapping=>create_upper_case( ) )->stringify( )
+      exp = '{"a":1,"b":{"c":2}}' ).
+
+  endmethod.
 
 endclass.
 

@@ -1687,6 +1687,9 @@ endclass.
 
 class lcl_filter_runner definition final.
   public section.
+    class-methods new
+      returning
+        value(ro_instance) type ref to lcl_filter_runner.
     methods run
       importing
         ii_filter type ref to zif_ajson_filter
@@ -1712,6 +1715,10 @@ class lcl_filter_runner definition final.
 endclass.
 
 class lcl_filter_runner implementation.
+
+  method new.
+    create object ro_instance.
+  endmethod.
 
   method run.
 
@@ -1776,6 +1783,52 @@ class lcl_filter_runner implementation.
       insert ls_node into table mr_dest_tree->*.
 
     endloop.
+
+  endmethod.
+
+endclass.
+
+**********************************************************************
+* MAPPER RUNNER
+**********************************************************************
+
+class lcl_mapper_runner definition final.
+  public section.
+    class-methods new
+      returning
+        value(ro_instance) type ref to lcl_mapper_runner.
+    methods run
+      importing
+        ii_mapper type ref to zif_ajson_mapping
+        it_source_tree type zif_ajson=>ty_nodes_ts
+      changing
+        ct_dest_tree type zif_ajson=>ty_nodes_ts
+      raising
+        zcx_ajson_error.
+
+  private section.
+    data mi_mapper type ref to zif_ajson_mapping.
+    data mr_source_tree type ref to zif_ajson=>ty_nodes_ts.
+    data mr_dest_tree type ref to zif_ajson=>ty_nodes_ts.
+
+endclass.
+
+class lcl_mapper_runner implementation.
+
+  method new.
+    create object ro_instance.
+  endmethod.
+
+  method run.
+
+    assert ii_mapper is bound.
+    mi_mapper = ii_mapper.
+    clear ct_dest_tree.
+
+    get reference of it_source_tree into mr_source_tree.
+    get reference of ct_dest_tree into mr_dest_tree.
+
+*    walk( iv_path = '' ).
 
   endmethod.
 

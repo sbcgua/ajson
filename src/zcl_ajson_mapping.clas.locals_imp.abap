@@ -41,6 +41,9 @@ class lcl_mapping_fields implementation.
 
   endmethod.
 
+  method zif_ajson_mapping~rename_field.
+
+  endmethod.
 
 endclass.
 
@@ -74,6 +77,11 @@ class lcl_mapping_to_upper implementation.
 
   endmethod.
 
+  method zif_ajson_mapping~rename_field.
+
+    cv_name = to_upper( cv_name ).
+
+  endmethod.
 
 endclass.
 
@@ -107,6 +115,11 @@ class lcl_mapping_to_lower implementation.
 
   endmethod.
 
+  method zif_ajson_mapping~rename_field.
+
+    cv_name = to_lower( cv_name ).
+
+  endmethod.
 
 endclass.
 
@@ -173,5 +186,8 @@ class lcl_mapping_camel implementation.
 
   endmethod.
 
+  method zif_ajson_mapping~rename_field.
+
+  endmethod.
 
 endclass.

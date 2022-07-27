@@ -3,8 +3,8 @@ class lcl_mapping_fields definition.
   public section.
     interfaces zif_ajson_mapping.
 
-    aliases to_abap for zif_ajson_mapping~to_abap.
-    aliases to_json for zif_ajson_mapping~to_json.
+*    aliases to_abap for zif_ajson_mapping~to_abap.
+*    aliases to_json for zif_ajson_mapping~to_json.
 
     methods constructor
       importing
