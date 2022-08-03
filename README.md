@@ -421,7 +421,58 @@ Can be mapped to following structure:
   lo_ajson->to_abap( IMPORTING ev_container = json_timestamp ).
 ```
 
-## Mapping / Formatting JSON
+## Mapping (field renaming)
+
+You can rename json field named with a mapper. Typical example for this is making all field names upper/lower case or converting camel-snake naming styles (e.g. `helloWorld -> hello_world`). Although you can create your mapper.
+
+```abap
+  lo_orig_json = zcl_ajson=>parse( '{"ab":1,"bc":2}' ).
+  lo_new_json = zcl_ajson=>create_from(
+    ii_source_json = lo_orig_json
+    ii_mapper      = li_mapper ). " instance of zif_ajson_mapping
+```
+
+where `li_mapper` would be an instance of `zif_ajson_mapping`. AJSON implements a couple of frequent convertors in `zcl_ajson_mapping` class, in particular:
+- upper/lower case
+- to camel case (`camelCase`)
+- to snake case (`snake_case`)
+
+You can also implement you custom mapper. To do this you have to implement `zif_ajson_mapping->rename_field()`. It accepts the json nodes item-by-item and is able to change name via `cv_name` parameter. E.g.
+
+```abap
+  method zif_ajson_mapping~rename_field.
+    if cv_name+0(1) = 'a'. " Upper case all fields that start with "a"
+      cv_name = to_upper( cv_name ).
+    endif.
+  endmethod.
+```
+
+A realistic use case would be converting an external API result, which are often camel-cased (as this is very common in java script world), and then converting it into abap structure:
+
+```abap
+  data:
+    begin of ls_api_response,
+      error_code type string,
+      ...
+    end of ls_api_response.
+
+  lo_orig_json = zcl_ajson=>parse( lv_api_response_string ). " { "errorCode": 0, ... }
+  lo_new_json = zcl_ajson=>create_from(
+    ii_source_json = lo_orig_json
+    ii_mapper      = zcl_ajson_mapping=>camel_to_snake( ) ).
+  lo_new_json->to_abap( importing ev_container = ls_api_response )
+
+  " OR just
+  zcl_ajson=>create_from(
+    ii_source_json = zcl_ajson=>parse( lv_api_response_string )
+    ii_mapper      = zcl_ajson_mapping=>camel_to_snake( )
+  )->to_abap( importing ev_container = ls_api_response ).
+```
+
+### "Boxed-in" mappers
+
+TODO
+
 
 The interface `zif_ajson_mapping` allows to create custom mapping for ABAP and JSON fields.
 
