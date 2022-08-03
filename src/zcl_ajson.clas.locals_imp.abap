@@ -1801,8 +1801,8 @@ class lcl_mapper_runner definition final.
       importing
         ii_mapper type ref to zif_ajson_mapping
         it_source_tree type zif_ajson=>ty_nodes_ts
-      changing
-        ct_dest_tree type zif_ajson=>ty_nodes_ts
+      exporting
+        et_dest_tree type zif_ajson=>ty_nodes_ts
       raising
         zcx_ajson_error.
 
@@ -1810,6 +1810,14 @@ class lcl_mapper_runner definition final.
     data mi_mapper type ref to zif_ajson_mapping.
     data mr_source_tree type ref to zif_ajson=>ty_nodes_ts.
     data mr_dest_tree type ref to zif_ajson=>ty_nodes_ts.
+
+    methods process_deep_node
+      importing
+        iv_path         type string
+        iv_renamed_path type string
+        iv_node_type    type zif_ajson=>ty_node-type
+      raising
+        zcx_ajson_error.
 
 endclass.
 
@@ -1821,14 +1829,65 @@ class lcl_mapper_runner implementation.
 
   method run.
 
+    field-symbols <root> like line of it_source_tree.
+
     assert ii_mapper is bound.
+
+    read table it_source_tree with key path = `` name = `` assigning <root>.
+    if sy-subrc <> 0 or not ( <root>-type = zif_ajson=>node_type-array or <root>-type = zif_ajson=>node_type-object ).
+      " empty or one-value-only tree
+      et_dest_tree = it_source_tree.
+      return.
+    endif.
+
     mi_mapper = ii_mapper.
-    clear ct_dest_tree.
-
+    clear et_dest_tree.
     get reference of it_source_tree into mr_source_tree.
-    get reference of ct_dest_tree into mr_dest_tree.
+    get reference of et_dest_tree into mr_dest_tree.
+    insert <root> into table et_dest_tree.
 
-*    walk( iv_path = '' ).
+    process_deep_node(
+      iv_path         = `/`
+      iv_renamed_path = `/`
+      iv_node_type    = <root>-type ).
+
+  endmethod.
+
+  method process_deep_node.
+
+
+    field-symbols <item> like line of mr_source_tree->*.
+    data ls_renamed_node like <item>.
+
+    loop at mr_source_tree->* assigning <item> where path = iv_path.
+      ls_renamed_node = <item>.
+      if iv_node_type <> zif_ajson=>node_type-array.
+        " don't rename array item names -> they are numeric index
+        mi_mapper->rename_field(
+          exporting
+            is_node = <item>
+          changing
+            cv_name = ls_renamed_node-name ).
+      endif.
+      ls_renamed_node-path = iv_renamed_path.
+
+      insert ls_renamed_node into table mr_dest_tree->*.
+      if sy-subrc <> 0. " = 4 ?
+        zcx_ajson_error=>raise(
+          iv_msg      = 'Renamed node has a duplicate'
+          iv_location = ls_renamed_node-path && ls_renamed_node-name ).
+      endif.
+
+      " maybe also catch CX_SY_ITAB_DUPLICATE_KEY but secondary keys are not changed here, so not for now
+
+      if <item>-type = zif_ajson=>node_type-array or <item>-type = zif_ajson=>node_type-object.
+        process_deep_node(
+          iv_path         = iv_path && <item>-name && `/`
+          iv_renamed_path = iv_renamed_path && ls_renamed_node-name && `/`
+          iv_node_type    = <item>-type ).
+      endif.
+
+    endloop.
 
   endmethod.
 

@@ -154,8 +154,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
           exporting
             ii_mapper = ii_mapper
             it_source_tree = <from>
-          changing
-            ct_dest_tree = <to> ).
+          importing
+            et_dest_tree = <to> ).
 
         assign lt_buf to <from>.
       endif.
