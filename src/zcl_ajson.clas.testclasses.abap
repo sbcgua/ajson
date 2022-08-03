@@ -4015,6 +4015,7 @@ class ltcl_mapper_test definition final
     methods simple_test for testing raising zcx_ajson_error.
     methods array_test for testing raising zcx_ajson_error.
     methods duplication_test for testing raising zcx_ajson_error.
+    methods trivial for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -4145,6 +4146,33 @@ class ltcl_mapper_test implementation.
         act = lx_err->get_text( )
         exp = 'Renamed node has a duplicate @/AB' ).
     endtry.
+
+  endmethod.
+
+  method trivial.
+
+    data lo_json type ref to zcl_ajson.
+    data lo_json_filtered type ref to zcl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    lo_json = zcl_ajson=>create_empty( ).
+    lo_json_filtered = zcl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_mapper      = me ).
+    cl_abap_unit_assert=>assert_initial( lo_json_filtered->mt_json_tree ).
+
+    lo_json->set(
+      iv_path = '/'
+      iv_val  = 1 ).
+    lo_json_filtered = zcl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_mapper      = me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |num    |1    | |0' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_json_filtered->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
 
   endmethod.
 
