@@ -1682,22 +1682,34 @@ class lcl_abap_to_json implementation.
 endclass.
 
 **********************************************************************
+* MUTATOR INTERFACE
+**********************************************************************
+
+interface lif_mutator_runner.
+  methods run
+    importing
+      it_source_tree type zif_ajson=>ty_nodes_ts
+    exporting
+      et_dest_tree type zif_ajson=>ty_nodes_ts
+    raising
+      zcx_ajson_error.
+endinterface.
+
+**********************************************************************
 * FILTER RUNNER
 **********************************************************************
 
 class lcl_filter_runner definition final.
   public section.
+    interfaces lif_mutator_runner.
     class-methods new
-      returning
-        value(ro_instance) type ref to lcl_filter_runner.
-    methods run
       importing
         ii_filter type ref to zif_ajson_filter
-        it_source_tree type zif_ajson=>ty_nodes_ts
-      changing
-        ct_dest_tree type zif_ajson=>ty_nodes_ts
-      raising
-        zcx_ajson_error.
+      returning
+        value(ro_instance) type ref to lcl_filter_runner.
+    methods constructor
+      importing
+        ii_filter type ref to zif_ajson_filter.
 
   private section.
     data mi_filter type ref to zif_ajson_filter.
@@ -1717,17 +1729,19 @@ endclass.
 class lcl_filter_runner implementation.
 
   method new.
-    create object ro_instance.
+    create object ro_instance exporting ii_filter = ii_filter.
   endmethod.
 
-  method run.
-
+  method constructor.
     assert ii_filter is bound.
     mi_filter = ii_filter.
-    clear ct_dest_tree.
+  endmethod.
 
+  method lif_mutator_runner~run.
+
+    clear et_dest_tree.
     get reference of it_source_tree into mr_source_tree.
-    get reference of ct_dest_tree into mr_dest_tree.
+    get reference of et_dest_tree into mr_dest_tree.
 
     walk( iv_path = '' ).
 
@@ -1794,17 +1808,15 @@ endclass.
 
 class lcl_mapper_runner definition final.
   public section.
+    interfaces lif_mutator_runner.
     class-methods new
-      returning
-        value(ro_instance) type ref to lcl_mapper_runner.
-    methods run
       importing
         ii_mapper type ref to zif_ajson_mapping
-        it_source_tree type zif_ajson=>ty_nodes_ts
-      exporting
-        et_dest_tree type zif_ajson=>ty_nodes_ts
-      raising
-        zcx_ajson_error.
+      returning
+        value(ro_instance) type ref to lcl_mapper_runner.
+    methods constructor
+      importing
+        ii_mapper type ref to zif_ajson_mapping.
 
   private section.
     data mi_mapper type ref to zif_ajson_mapping.
@@ -1824,14 +1836,17 @@ endclass.
 class lcl_mapper_runner implementation.
 
   method new.
-    create object ro_instance.
+    create object ro_instance exporting ii_mapper = ii_mapper.
   endmethod.
 
-  method run.
+  method constructor.
+    assert ii_mapper is bound.
+    mi_mapper = ii_mapper.
+  endmethod.
+
+  method lif_mutator_runner~run.
 
     field-symbols <root> like line of it_source_tree.
-
-    assert ii_mapper is bound.
 
     read table it_source_tree with key path = `` name = `` assigning <root>.
     if sy-subrc <> 0 or not ( <root>-type = zif_ajson=>node_type-array or <root>-type = zif_ajson=>node_type-object ).
@@ -1840,7 +1855,6 @@ class lcl_mapper_runner implementation.
       return.
     endif.
 
-    mi_mapper = ii_mapper.
     clear et_dest_tree.
     get reference of it_source_tree into mr_source_tree.
     get reference of et_dest_tree into mr_dest_tree.

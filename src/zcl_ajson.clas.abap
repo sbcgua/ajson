@@ -150,9 +150,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
           assign ro_instance->mt_json_tree to <to>.
         endif.
 
-        lcl_mapper_runner=>new( )->run(
+        lcl_mapper_runner=>new( ii_mapper )->lif_mutator_runner~run(
           exporting
-            ii_mapper = ii_mapper
             it_source_tree = <from>
           importing
             et_dest_tree = <to> ).
@@ -163,12 +162,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       assign ro_instance->mt_json_tree to <to>.
 
       if ii_filter is bound.
-        lcl_filter_runner=>new( )->run(
+        lcl_filter_runner=>new( ii_filter )->lif_mutator_runner~run(
           exporting
-            ii_filter = ii_filter
             it_source_tree = <from>
-          changing
-            ct_dest_tree = <to> ).
+          importing
+            et_dest_tree = <to> ).
       endif.
     endif.
 
