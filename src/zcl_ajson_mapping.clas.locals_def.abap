@@ -3,9 +3,6 @@ class lcl_mapping_fields definition.
   public section.
     interfaces zif_ajson_mapping.
 
-*    aliases to_abap for zif_ajson_mapping~to_abap.
-*    aliases to_json for zif_ajson_mapping~to_json.
-
     methods constructor
       importing
         it_mapping_fields type zif_ajson_mapping~ty_mapping_fields optional.
@@ -14,6 +11,38 @@ class lcl_mapping_fields definition.
 
   private section.
     data mt_mapping_fields type zif_ajson_mapping~ty_mapping_fields.
+
+endclass.
+
+class lcl_rename definition.
+
+  public section.
+    interfaces zif_ajson_mapping.
+
+    methods constructor
+      importing
+        it_rename_map type zif_ajson_mapping~tty_rename_map.
+
+  protected section.
+
+  private section.
+    data mt_rename_map type zif_ajson_mapping~tty_rename_map.
+
+endclass.
+
+class lcl_rename_path definition.
+
+  public section.
+    interfaces zif_ajson_mapping.
+
+    methods constructor
+      importing
+        it_rename_map type zif_ajson_mapping~tty_rename_map.
+
+  protected section.
+
+  private section.
+    data mt_rename_map type zif_ajson_mapping~tty_rename_map.
 
 endclass.
 

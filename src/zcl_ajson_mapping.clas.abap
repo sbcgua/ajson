@@ -29,6 +29,18 @@ class zcl_ajson_mapping definition
       returning
         value(ri_mapping) type ref to zif_ajson_mapping.
 
+    class-methods create_rename
+      importing
+        it_rename_map type zif_ajson_mapping=>tty_rename_map
+      returning
+        value(ri_mapping) type ref to zif_ajson_mapping.
+
+    class-methods create_rename_path
+      importing
+        it_rename_map type zif_ajson_mapping=>tty_rename_map
+      returning
+        value(ri_mapping) type ref to zif_ajson_mapping.
+
   protected section.
 
   private section.
@@ -75,4 +87,21 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
         it_mapping_fields = it_mapping_fields.
 
   endmethod.
+
+  method create_rename.
+
+    create object ri_mapping type lcl_rename
+      exporting
+        it_rename_map = it_rename_map.
+
+  endmethod.
+
+  method create_rename_path.
+
+    create object ri_mapping type lcl_rename_path
+      exporting
+        it_rename_map = it_rename_map.
+
+  endmethod.
+
 ENDCLASS.

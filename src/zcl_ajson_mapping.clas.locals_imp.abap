@@ -47,6 +47,59 @@ class lcl_mapping_fields implementation.
 
 endclass.
 
+class lcl_rename implementation.
+
+  method constructor.
+    mt_rename_map = it_rename_map.
+  endmethod.
+
+  method zif_ajson_mapping~to_abap.
+  endmethod.
+
+  method zif_ajson_mapping~to_json.
+  endmethod.
+
+  method zif_ajson_mapping~rename_field.
+
+    field-symbols <r> like line of mt_rename_map.
+
+    read table mt_rename_map assigning <r> with table key by_name components from = cv_name.
+    if sy-subrc = 0.
+      cv_name = <r>-to.
+    endif.
+
+  endmethod.
+
+endclass.
+
+class lcl_rename_path implementation.
+
+  method constructor.
+    mt_rename_map = it_rename_map.
+  endmethod.
+
+  method zif_ajson_mapping~to_abap.
+  endmethod.
+
+  method zif_ajson_mapping~to_json.
+  endmethod.
+
+  method zif_ajson_mapping~rename_field.
+
+    data lv_full_path type string.
+    field-symbols <r> like line of mt_rename_map.
+
+    lv_full_path = is_node-path && cv_name.
+
+    read table mt_rename_map assigning <r> with table key by_name components from = lv_full_path.
+    if sy-subrc = 0.
+      cv_name = <r>-to.
+    endif.
+
+  endmethod.
+
+endclass.
+
 
 class lcl_mapping_to_upper implementation.
 
