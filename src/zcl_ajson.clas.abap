@@ -170,9 +170,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       endif.
     endif.
 
-    " Copy keep order and custom mapping ???
-*    ro_instance->mv_format_datetime = ii_source_json->mv_fo
-*    ro_instance->mv_keep_item_order = ii_source_json->mv_fo
+    ro_instance->mv_format_datetime = ii_source_json->opts( )-format_datetime.
+    ro_instance->mv_keep_item_order = ii_source_json->opts( )-keep_item_order.
 
   endmethod.
 
