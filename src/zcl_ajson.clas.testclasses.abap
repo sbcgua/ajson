@@ -53,6 +53,43 @@ class lcl_nodes_helper implementation.
 endclass.
 
 **********************************************************************
+* CUSTOM OBJECT FOR TESTING
+**********************************************************************
+
+class lcl_custom_object_for_testing definition final.
+
+  public section.
+    interfaces zif_ajson_object.
+
+endclass.
+
+class lcl_custom_object_for_testing implementation.
+
+  method zif_ajson_object~retrieve_content.
+
+    data:
+      begin of ls_content,
+        field1 type string,
+        field2 type string,
+      end of ls_content.
+
+    data:
+      lo_ajson type ref to zcl_ajson.
+
+    ls_content-field1 = 'Value1'.
+    ls_content-field2 = 'Value2'.
+
+    lo_ajson = zcl_ajson=>create_empty( ).
+
+    lo_ajson->set( iv_path = '' iv_val = ls_content ).
+
+    ri_result = lo_ajson.
+
+  endmethod.
+
+endclass.
+
+**********************************************************************
 * PARSER
 **********************************************************************
 
@@ -3384,6 +3421,11 @@ class ltcl_abap_to_json definition
         tab type tt_struc,
         stab type string_table,
       end of ty_struc_complex.
+    types:
+      begin of ty_custom_object,
+        field  TYPE string,
+        object TYPE REF TO zif_ajson_object,
+      end of ty_custom_object.
 
     methods set_ajson for testing raising zcx_ajson_error.
     methods set_value_number for testing raising zcx_ajson_error.
@@ -3395,6 +3437,7 @@ class ltcl_abap_to_json definition
     methods set_obj for testing raising zcx_ajson_error.
     methods set_array for testing raising zcx_ajson_error.
     methods set_complex_obj for testing raising zcx_ajson_error.
+    methods set_cutom_object for testing raising zcx_ajson_error.
     methods prefix for testing raising zcx_ajson_error.
 
 endclass.
@@ -3630,6 +3673,31 @@ class ltcl_abap_to_json implementation.
     lo_nodes_exp->add( '/stab/ |2     |str    |world|2|0' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = ls_struc ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = lo_nodes_exp->mt_nodes ).
+
+  endmethod.
+
+  method set_cutom_object.
+
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data ls_struc type ty_custom_object.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
+
+    ls_struc-field = 'abc'.
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |       |object |      ||2' ).
+    lo_nodes_exp->add( '/       |field  |str    |abc   ||0' ).
+    lo_nodes_exp->add( '/       |object |object |      ||2' ).
+    lo_nodes_exp->add( '/object/|field1 |str    |Value1||0' ).
+    lo_nodes_exp->add( '/object/|field2 |str    |Value2||0' ).
+
+    create object ls_struc-object type lcl_custom_object_for_testing.
+
+    lt_nodes = lcl_abap_to_json=>convert( ls_struc ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
