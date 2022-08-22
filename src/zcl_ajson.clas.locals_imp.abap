@@ -1291,7 +1291,7 @@ class lcl_abap_to_json implementation.
                 iv_index  = iv_index
               changing
                 ct_nodes  = ct_nodes ).
-            catch cx_sy_move_cast_error.
+          catch cx_sy_move_cast_error.
             zcx_ajson_error=>raise( |Unsupported type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
           endtry.
 
