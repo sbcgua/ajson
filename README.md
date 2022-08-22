@@ -291,7 +291,76 @@ w->touch_array( '/array2' ).
 
 #### Setting data refs
 
-Currently not supported, but maybe in future. Except initial data ref which is equivalent to `set_null`.
+Currently not supported, but maybe in future. Except initial data ref which is equivalent to `set_null` and objects using interface `zif_ajson_object`.
+
+#### Custom JSON object. Interface `ZIF_AJSON_OBJECT`
+
+Serializing objects with the interface `zif_ajson_object` will retrieve the object content at the moment of setting data to `zcl_ajson` instance.
+
+Example
+```abap
+class zcl_custom_object definition final.
+
+  public section.
+    interfaces zif_ajson_object.
+
+endclass.
+
+class zcl_custom_object implementation.
+
+  method zif_ajson_object~retrieve_content.
+
+    data:
+      begin of ls_content,
+        field1 type string,
+        field2 type string,
+      end of ls_content.
+
+    data:
+      lo_ajson type ref to zcl_ajson.
+
+    ls_content-field1 = 'Value1'.
+    ls_content-field2 = 'Value2'.
+
+    lo_ajson = zcl_ajson=>create_empty( ).
+
+    lo_ajson->set( iv_path = '' iv_val = ls_content ).
+
+    ri_result = lo_ajson.
+
+  endmethod.
+
+endclass.
+```
+
+```abap
+  method set_cutom_object.
+
+    data ls_struc type ty_custom_object.
+
+    ls_struc-field = 'abc'.
+
+    create object ls_struc-object type lcl_custom_object_for_testing.
+
+    DATA(lo_ajson) = zcl_ajson=>create_empty( ).
+
+    lo_ajson->set( ls_struc ).
+
+    DATA(lv_json_result) = lo_ajson->stringify( ).
+
+  endmethod.
+```
+
+The result of the upper example code is this JSON
+```json
+{
+	"field": "abc",
+	"object": {
+		"field1": "Value1",
+		"field2": "Value2"
+	}
+}
+```
 
 #### Chaining
 
