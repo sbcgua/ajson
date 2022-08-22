@@ -3423,8 +3423,8 @@ class ltcl_abap_to_json definition
       end of ty_struc_complex.
     types:
       begin of ty_custom_object,
-        field  TYPE string,
-        object TYPE REF TO zif_ajson_object,
+        field  type string,
+        object type ref to zif_ajson_object,
       end of ty_custom_object.
 
     methods set_ajson for testing raising zcx_ajson_error.

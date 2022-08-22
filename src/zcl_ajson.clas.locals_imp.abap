@@ -1283,16 +1283,16 @@ class lcl_abap_to_json implementation.
         elseif io_type->type_kind = lif_kind=>object_ref.
 
           try.
-              li_ajson_object = iv_data.
-              convert_ajson(
-                exporting
-                  io_json   = li_ajson_object->retrieve_content( )
-                  is_prefix = is_prefix
-                  iv_index  = iv_index
-                changing
-                  ct_nodes  = ct_nodes ).
+            li_ajson_object ?= iv_data.
+            convert_ajson(
+              exporting
+                io_json   = li_ajson_object->retrieve_content( )
+                is_prefix = is_prefix
+                iv_index  = iv_index
+              changing
+                ct_nodes  = ct_nodes ).
             catch cx_sy_move_cast_error.
-              zcx_ajson_error=>raise( |Unsupported type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
+            zcx_ajson_error=>raise( |Unsupported type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
           endtry.
 
         else.
