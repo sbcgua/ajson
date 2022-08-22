@@ -18,7 +18,7 @@ Features:
 - filtering. Create a json skipping empty values, predefined paths, or your custom filter. *EXPERIMENTAL, interface may change*
 - utility to calculate difference between 2 jsons
 
-Installed using [abapGit](https://github.com/larshp/abapGit)
+Installed using [abapGit](https://github.com/abapGit/abapGit)
 
 ## Examples and documentation
 
