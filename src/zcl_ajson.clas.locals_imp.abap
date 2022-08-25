@@ -1327,15 +1327,8 @@ class lcl_abap_to_json implementation.
     data lv_date type d.
     data lv_time type t.
 
-    if iv_ts is initial.
-      " The zero value is January 1, year 1, 00:00:00.000000000 UTC.
-      lv_date = '00010101'.
-    else.
-
-      convert time stamp iv_ts time zone lc_utc
-        into date lv_date time lv_time.
-
-    endif.
+    convert time stamp iv_ts time zone lc_utc
+      into date lv_date time lv_time.
 
     rv_str =
       lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
