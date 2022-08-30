@@ -1371,6 +1371,12 @@ class ltcl_json_to_abap definition
     methods to_abap_negative
       for testing
       raising zcx_ajson_error.
+    methods to_abap_corresponding
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_corresponding_negative
+      for testing
+      raising zcx_ajson_error.
 
 endclass.
 
@@ -1867,6 +1873,69 @@ class ltcl_json_to_abap implementation.
 
   endmethod.
 
+  method to_abap_corresponding.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data ls_act type ty_struc.
+    data ls_exp  type ty_struc.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lx type ref to zcx_ajson_error.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |object |                          | ' ).
+    lo_nodes->add( '/      |a          |str    |test                      | ' ).
+    lo_nodes->add( '/      |с          |num    |24022022                  | ' ).
+
+    ls_exp-a  = 'test'.
+
+    create object lo_cut
+      exporting
+        iv_corresponding = abap_true.
+
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = ls_act ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_act
+      exp = ls_exp ).
+
+  endmethod.
+
+  method to_abap_corresponding_negative.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data ls_act type ty_struc.
+    data ls_exp  type ty_struc.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lx type ref to zcx_ajson_error.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |object |                          | ' ).
+    lo_nodes->add( '/      |a          |str    |test                      | ' ).
+    lo_nodes->add( '/      |c          |num    |24022022                  | ' ).
+
+    ls_exp-a  = 'test'.
+    ls_exp-b  = 24022022.
+
+    try.
+      create object lo_cut.
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = ls_act ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path not found' ).
+    endtry.
+
+  endmethod.
+
 endclass.
 
 **********************************************************************
@@ -2224,7 +2293,7 @@ class ltcl_writer_test implementation.
     lo_nodes->add( '/     |d_empty |str    |           ||0' ).
     lo_nodes->add( '/     |t       |str    |20:01:03   ||0' ).
     lo_nodes->add( '/     |t_empty |str    |           ||0' ).
-    lo_nodes->add( '/     |ts      |str    |2022-04-01T20:01:03Z ||0' ).
+    lo_nodes->add( '/     |ts      |str    |2022-04-01T20-01-03Z ||0' ).
     lo_nodes->add( '/     |p       |num    |123.45     ||0' ).
 
     li_writer->set(
@@ -2775,7 +2844,7 @@ class ltcl_writer_test implementation.
     li_writer = lo_cut.
     create object lo_nodes_exp.
     lo_nodes_exp->add( '        |      |object |                     ||1' ).
-    lo_nodes_exp->add( '/       |a     |str    |2021-05-05T12:00:00Z ||0' ).
+    lo_nodes_exp->add( '/       |a     |str    |2021-05-05T12-00-00Z ||0' ).
 
     lv_timestamp = '20210505120000'.
     li_writer->set_timestamp(
