@@ -1854,12 +1854,11 @@ class ltcl_json_to_abap implementation.
     data ls_act type ty_struc.
     data ls_exp  type ty_struc.
     data lo_nodes type ref to lcl_nodes_helper.
-    data lx type ref to zcx_ajson_error.
 
     create object lo_nodes.
     lo_nodes->add( '       |           |object |                          | ' ).
     lo_nodes->add( '/      |a          |str    |test                      | ' ).
-    lo_nodes->add( '/      |с          |num    |24022022                  | ' ).
+    lo_nodes->add( '/      |c          |num    |24022022                  | ' ).
 
     ls_exp-a  = 'test'.
 
