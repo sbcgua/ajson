@@ -600,6 +600,7 @@ class lcl_json_to_abap definition final.
 
     methods constructor
       importing
+        !iv_corresponding  type abap_bool default abap_false
         !ii_custom_mapping type ref to zif_ajson_mapping optional.
 
     methods to_abap
@@ -640,6 +641,7 @@ class lcl_json_to_abap definition final.
 
     data mr_nodes type ref to zif_ajson=>ty_nodes_ts.
     data mi_custom_mapping type ref to zif_ajson_mapping.
+    data mv_corresponding type abap_bool.
 
     methods any_to_abap
       importing
@@ -674,6 +676,7 @@ class lcl_json_to_abap implementation.
 
   method constructor.
     mi_custom_mapping = ii_custom_mapping.
+    mv_corresponding  = iv_corresponding.
   endmethod.
 
   method to_abap.
@@ -740,7 +743,12 @@ class lcl_json_to_abap implementation.
             exceptions
               component_not_found = 4 ).
           if sy-subrc <> 0.
-            zcx_ajson_error=>raise( |Path not found| ).
+            if mv_corresponding = abap_false.
+              zcx_ajson_error=>raise( |Path not found| ).
+            else.
+              clear rs_node_type.
+              return.
+            endif.
           endif.
 
         when ''. " Root node
@@ -806,9 +814,15 @@ class lcl_json_to_abap implementation.
         " Get or create type cache record
         if is_parent_type-type_kind <> lif_kind=>table or ls_node_type-type_kind is initial.
           " table records are the same, no need to refetch twice
+
           ls_node_type = get_node_type(
             is_node        = <n>
             is_parent_type = is_parent_type ).
+
+          if mv_corresponding = abap_true and ls_node_type is initial.
+            continue.
+          endif.
+
         endif.
 
         " Validate node type
@@ -1340,7 +1354,7 @@ class lcl_abap_to_json implementation.
     rv_str =
       lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
       'T' &&
-      lv_time+0(2) && ':' && lv_time+2(2) && ':' && lv_time+4(2) &&
+      lv_time+0(2) && '-' && lv_time+2(2) && '-' && lv_time+4(2) &&
       'Z'.
 
   endmethod.
