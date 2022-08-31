@@ -45,7 +45,7 @@ class zcl_ajson_mapping definition
       returning
         value(ri_mapping) type ref to zif_ajson_mapping.
 
-    class-methods create_mapper_queue
+    class-methods create_compound_mapper
       importing
         ii_mapper1 type ref to zif_ajson_mapping optional
         ii_mapper2 type ref to zif_ajson_mapping optional
@@ -92,7 +92,7 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
 
   endmethod.
 
-  method create_mapper_queue.
+  method create_compound_mapper.
 
     data lt_queue type zif_ajson_mapping=>ty_table_of.
 
@@ -102,7 +102,7 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
     append lines of it_more to lt_queue.
     delete lt_queue where table_line is initial.
 
-    create object ri_mapping type lcl_mapping_queue
+    create object ri_mapping type lcl_compound_mapper
       exporting
         it_queue = lt_queue.
 

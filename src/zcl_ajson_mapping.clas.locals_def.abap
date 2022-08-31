@@ -84,7 +84,7 @@ class lcl_mapping_camel definition.
 
 endclass.
 
-class lcl_mapping_queue definition.
+class lcl_compound_mapper definition.
 
   public section.
     interfaces zif_ajson_mapping.

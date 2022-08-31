@@ -238,7 +238,7 @@ class lcl_mapping_camel implementation.
 
 endclass.
 
-class lcl_mapping_queue implementation.
+class lcl_compound_mapper implementation.
 
   method constructor.
     mt_queue = it_queue.
