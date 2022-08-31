@@ -1026,11 +1026,7 @@ class lcl_json_to_abap implementation.
       zcx_ajson_error=>raise( 'Unexpected error calculating timestamp' ).
     endtry.
 
-    cl_abap_tstmp=>move(
-      exporting
-        tstmp_src = lv_timestamp
-      importing
-        tstmp_tgt = rv_result ).
+    rv_result = lv_timestamp.
 
   endmethod.
 
