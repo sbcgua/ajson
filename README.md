@@ -421,6 +421,15 @@ Can be mapped to following structure:
   lo_ajson->to_abap( IMPORTING ev_container = json_timestamp ).
 ```
 
+## Cloning
+
+```abap
+  lo_new_json = zcl_ajson=>create_from(
+    ii_source_json = lo_orig_json ). " results in new independent json copy
+  " OR ...
+  lo_new_json = lo_orig_json->clone( ). " same
+```
+
 ## Mapping (field renaming)
 
 You can rename json attribute (node) names with a mapper. Typical example for this is making all attribute names upper/lower case or converting camel-snake naming styles (e.g. `helloWorld -> hello_world`). Also you can create your mapper.
@@ -430,6 +439,8 @@ You can rename json attribute (node) names with a mapper. Typical example for th
   lo_new_json = zcl_ajson=>create_from(
     ii_source_json = lo_orig_json
     ii_mapper      = li_mapper ). " instance of zif_ajson_mapping
+  " OR ...
+  lo_new_json = lo_orig_json->map( li_mapper ).
 ```
 
 where `li_mapper` would be an instance of `zif_ajson_mapping`. AJSON implements a couple of frequent convertors in `zcl_ajson_mapping` class, in particular:
@@ -469,11 +480,26 @@ A realistic use case would be converting an external API result, which are often
     ii_mapper      = zcl_ajson_mapping=>camel_to_snake( )
   )->to_abap( importing ev_container = ls_api_response ).
 ```
+... or even (combined with filter) ...
+```abap
+  zcl_ajson=>parse( lv_api_response_string
+    )->filter( zcl_ajson_filter_lib=>create_path_filter(
+      iv_skip_paths = '*/@*' " remove meta attributes
+      iv_pattern_search = abap_true ) )
+    )->map( zcl_ajson_mapping=>camel_to_snake( )
+    )->to_abap( importing ev_container = ls_api_response ).
+```
 
 ### "Boxed-in" mappers
 
 TODO
 
+- upper_case
+- lower_case
+- rename (+w path, +w patterns)
+- queue (or chain ? or compound?)
+- to_snake_case
+- to_camel_case
 
 The interface `zif_ajson_mapping` allows to create custom mapping for ABAP and JSON fields.
 
@@ -680,7 +706,8 @@ JSON Output
 
 ## Filtering
 
-*This is an experimental feature, the interface may change*
+*This is an experimental feature, the interface may change.*
+*`filter()` method looks more favorable option*
 
 This feature allows creating a json from existing one skipping some nodes. E.g. empty values, predefined paths or using your custom filter.
 
@@ -693,6 +720,8 @@ This feature allows creating a json from existing one skipping some nodes. E.g. 
     ii_source_json = li_json_source
     ii_filter = zcl_ajson_filter_lib=>create_empty_filter( ) ).
   " li_json_filtered: { "a":1 }
+  " OR ...
+  li_json_filtered = li_json_source->filter( zcl_ajson_filter_lib=>create_empty_filter( ) ).
 ```
 
 - Remove predefined paths
@@ -729,6 +758,13 @@ This feature allows creating a json from existing one skipping some nodes. E.g. 
 ### Custom filters
 
 In order to apply a custom filter you have to implement a class with `zif_ajson_filter` interface. The interface has one method `keep_node` which receives `is_node` - json tree node of `zif_ajson=>ty_node` type and also the `iv_visit` param. `iv_visit` will be `zif_ajson_filter=>visit_type-value` for all final leafs (str,num,bool,null) and will get `visit_type-open` or `visit_type-close` values for objects and arrays. So the objects and arrays will be called twice - before and after filtering - this allows examining their children number before and after the current filtering. For example of implementation see local implementations of `zcl_ajson_filter_lib` class.
+
+```abap
+  method zif_ajson_filter~keep_node.
+    " remove all nodes starting with 'x'
+    rv_keep = boolc( is_node-name is initial or is_node-name+0(1) <> 'x' ).
+  endmethod.
+```
 
 ## Utilities
 
