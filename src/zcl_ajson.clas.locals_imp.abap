@@ -1220,7 +1220,7 @@ class lcl_abap_to_json implementation.
   method convert_any.
 
     data:
-      li_ajson_object type ref to zif_ajson_object.
+      li_ajson_object type ref to zif_ajson_serializable.
 
     case io_type->kind.
       when cl_abap_typedescr=>kind_elem.
@@ -1286,7 +1286,7 @@ class lcl_abap_to_json implementation.
             li_ajson_object ?= iv_data.
             convert_ajson(
               exporting
-                io_json   = li_ajson_object->retrieve_content( )
+                io_json   = li_ajson_object->serialize( )
                 is_prefix = is_prefix
                 iv_index  = iv_index
               changing

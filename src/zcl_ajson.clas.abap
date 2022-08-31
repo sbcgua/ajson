@@ -107,11 +107,6 @@ ENDCLASS.
 
 CLASS ZCL_AJSON IMPLEMENTATION.
 
-  method zif_ajson~opts.
-    rs_opts-read_only       = mv_read_only.
-    rs_opts-format_datetime = mv_format_datetime.
-    rs_opts-keep_item_order = mv_keep_item_order.
-  endmethod.
 
   method constructor.
     format_datetime( abap_true ).
@@ -478,6 +473,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       append <item>-name to rt_members.
     endloop.
 
+  endmethod.
+
+
+  method zif_ajson~opts.
+    rs_opts-read_only       = mv_read_only.
+    rs_opts-format_datetime = mv_format_datetime.
+    rs_opts-keep_item_order = mv_keep_item_order.
   endmethod.
 
 

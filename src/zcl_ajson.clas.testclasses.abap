@@ -59,13 +59,13 @@ endclass.
 class lcl_custom_object_for_testing definition final.
 
   public section.
-    interfaces zif_ajson_object.
+    interfaces zif_ajson_serializable.
 
 endclass.
 
 class lcl_custom_object_for_testing implementation.
 
-  method zif_ajson_object~retrieve_content.
+  method zif_ajson_serializable~serialize.
 
     data:
       begin of ls_content,
@@ -3424,7 +3424,7 @@ class ltcl_abap_to_json definition
     types:
       begin of ty_custom_object,
         field  type string,
-        object type ref to zif_ajson_object,
+        object type ref to zif_ajson_serializable,
       end of ty_custom_object.
 
     methods set_ajson for testing raising zcx_ajson_error.

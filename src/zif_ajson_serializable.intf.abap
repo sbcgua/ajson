@@ -1,7 +1,7 @@
-interface zif_ajson_object
+interface zif_ajson_serializable
   public.
 
-  methods retrieve_content
+  methods serialize
     returning
       value(ri_result) type ref to zif_ajson
     raising
