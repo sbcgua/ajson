@@ -1882,14 +1882,19 @@ class lcl_mapper_runner implementation.
             is_node = <item>
           changing
             cv_name = ls_renamed_node-name ).
+        if ls_renamed_node-name is initial.
+          zcx_ajson_error=>raise(
+            iv_msg  = 'Renamed node name cannot be empty'
+            is_node = <item> ).
+        endif.
       endif.
       ls_renamed_node-path = iv_renamed_path.
 
       insert ls_renamed_node into table mr_dest_tree->*.
       if sy-subrc <> 0. " = 4 ?
         zcx_ajson_error=>raise(
-          iv_msg      = 'Renamed node has a duplicate'
-          iv_location = ls_renamed_node-path && ls_renamed_node-name ).
+          iv_msg  = 'Renamed node has a duplicate'
+          is_node = ls_renamed_node ).
       endif.
 
       " maybe also catch CX_SY_ITAB_DUPLICATE_KEY but secondary keys are not changed here, so not for now

@@ -4015,6 +4015,7 @@ class ltcl_mapper_test definition final
     methods simple_test for testing raising zcx_ajson_error.
     methods array_test for testing raising zcx_ajson_error.
     methods duplication_test for testing raising zcx_ajson_error.
+    methods empty_name_test for testing raising zcx_ajson_error.
     methods trivial for testing raising zcx_ajson_error.
 
 endclass.
@@ -4024,6 +4025,9 @@ class ltcl_mapper_test implementation.
   method zif_ajson_mapping~rename_node.
     if cv_name+0(1) = 'a'.
       cv_name = to_upper( cv_name ).
+    endif.
+    if cv_name = 'set_this_empty'.
+      clear cv_name.
     endif.
     " watch dog for array
     if is_node-index <> 0.
@@ -4173,6 +4177,29 @@ class ltcl_mapper_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lo_json_filtered->mt_json_tree
       exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method empty_name_test.
+
+    data lo_json type ref to zcl_ajson.
+    data lx_err type ref to zcx_ajson_error.
+
+    lo_json = zcl_ajson=>create_empty( ).
+    lo_json->set(
+      iv_path = '/set_this_empty'
+      iv_val  = 1 ).
+
+    try.
+      zcl_ajson=>create_from(
+        ii_source_json = lo_json
+        ii_mapper      = me ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx_err.
+      cl_abap_unit_assert=>assert_char_cp(
+        act = lx_err->get_text( )
+        exp = 'Renamed node name cannot be empty @/set_this_empty' ).
+    endtry.
 
   endmethod.
 
