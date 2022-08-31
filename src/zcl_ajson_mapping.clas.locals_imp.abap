@@ -271,3 +271,22 @@ class lcl_compound_mapper implementation.
   endmethod.
 
 endclass.
+
+class lcl_to_snake implementation.
+
+  method zif_ajson_mapping~rename_node.
+
+    replace all occurrences of regex `([a-z])([A-Z])` in cv_name with `$1_$2`. "#EC NOTEXT
+    cv_name = to_lower( cv_name ).
+
+  endmethod.
+
+  method zif_ajson_mapping~to_abap.
+
+  endmethod.
+
+  method zif_ajson_mapping~to_json.
+
+  endmethod.
+
+endclass.

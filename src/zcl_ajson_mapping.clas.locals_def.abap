@@ -99,3 +99,8 @@ class lcl_compound_mapper definition.
     data mt_queue type zif_ajson_mapping=>ty_table_of.
 
 endclass.
+
+class lcl_to_snake definition.
+  public section.
+    interfaces zif_ajson_mapping.
+endclass.

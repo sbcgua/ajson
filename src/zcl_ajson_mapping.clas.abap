@@ -54,6 +54,10 @@ class zcl_ajson_mapping definition
       returning
         value(ri_mapping) type ref to zif_ajson_mapping.
 
+    class-methods create_to_snake_case
+      returning
+        value(ri_mapping) type ref to zif_ajson_mapping.
+
   protected section.
 
   private section.
@@ -123,6 +127,10 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
         it_rename_map = it_rename_map
         iv_rename_by = iv_rename_by.
 
+  endmethod.
+
+  method create_to_snake_case.
+    create object ri_mapping type lcl_to_snake.
   endmethod.
 
 ENDCLASS.

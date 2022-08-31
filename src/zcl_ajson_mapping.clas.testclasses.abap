@@ -12,6 +12,7 @@ class ltcl_camel_case definition final for testing
       to_json_first_lower for testing raising zcx_ajson_error.
 
     methods:
+      to_snake for testing raising zcx_ajson_error,
       rename_by_attr for testing raising zcx_ajson_error,
       rename_by_path for testing raising zcx_ajson_error,
       rename_by_pattern for testing raising zcx_ajson_error,
@@ -250,6 +251,17 @@ class ltcl_camel_case implementation.
           ii_mapper2 = zcl_ajson_mapping=>create_upper_case( ) )
         )->stringify( )
       exp = '{"A":1,"B":{"X":2},"C":{"A":3}}' ).
+
+  endmethod.
+
+  method to_snake.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>create_from(
+        ii_source_json = zcl_ajson=>parse( '{"aB":1,"BbC":2,"cD":{"xY":3},"ZZ":4}' )
+        ii_mapper      = zcl_ajson_mapping=>create_to_snake_case( )
+        )->stringify( )
+      exp = '{"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}' ).
 
   endmethod.
 
