@@ -1341,6 +1341,9 @@ class ltcl_json_to_abap definition
     methods to_abap_struc
       for testing
       raising zcx_ajson_error.
+    methods to_abap_timestamp_initial
+      for testing
+      raising zcx_ajson_error.
     methods to_abap_value
       for testing
       raising zcx_ajson_error.
@@ -1418,6 +1421,28 @@ class ltcl_json_to_abap implementation.
     cl_abap_unit_assert=>assert_equals(
       act = ls_mock
       exp = ls_exp ).
+
+  endmethod.
+
+  method to_abap_timestamp_initial.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lv_mock type timestamp.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |str    |0000-00-00T00:00:00Z| ' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lv_mock ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_mock
+      exp = 0 ).
 
   endmethod.
 
@@ -3391,6 +3416,8 @@ class ltcl_abap_to_json definition
     methods set_value_true for testing raising zcx_ajson_error.
     methods set_value_false for testing raising zcx_ajson_error.
     methods set_value_xsdboolean for testing raising zcx_ajson_error.
+    methods set_value_timestamp for testing raising zcx_ajson_error.
+    methods set_value_timestamp_initial for testing raising zcx_ajson_error.
     methods set_null for testing raising zcx_ajson_error.
     methods set_obj for testing raising zcx_ajson_error.
     methods set_array for testing raising zcx_ajson_error.
@@ -3522,6 +3549,43 @@ class ltcl_abap_to_json implementation.
     lo_nodes_exp->add( '       |      |null |null ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lv_null_ref ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = lo_nodes_exp->mt_nodes ).
+
+  endmethod.
+
+  method set_value_timestamp.
+
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
+
+    data lv_timestamp type timestamp.
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |str |2022-08-31T00:00:00Z||' ).
+
+    convert date '20220831' time '000000'
+      into time stamp lv_timestamp time zone ''.
+    lt_nodes = lcl_abap_to_json=>convert( lcl_abap_to_json=>format_timestamp( lv_timestamp ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = lo_nodes_exp->mt_nodes ).
+
+  endmethod.
+
+  method set_value_timestamp_initial.
+
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zif_ajson=>ty_nodes_tt.
+
+    data lv_timestamp type timestamp.
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |str |0000-00-00T00:00:00Z||' ).
+
+    lv_timestamp = 0.
+    lt_nodes = lcl_abap_to_json=>convert( lcl_abap_to_json=>format_timestamp( lv_timestamp ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
