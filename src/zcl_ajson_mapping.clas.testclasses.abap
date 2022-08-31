@@ -12,8 +12,9 @@ class ltcl_camel_case definition final for testing
       to_json_first_lower for testing raising zcx_ajson_error.
 
     methods:
-      rename for testing raising zcx_ajson_error,
-      rename_path for testing raising zcx_ajson_error,
+      rename_by_attr for testing raising zcx_ajson_error,
+      rename_by_path for testing raising zcx_ajson_error,
+      rename_by_pattern for testing raising zcx_ajson_error,
       to_upper for testing raising zcx_ajson_error,
       to_lower for testing raising zcx_ajson_error.
 
@@ -196,7 +197,7 @@ class ltcl_camel_case implementation.
 
   endmethod.
 
-  method rename.
+  method rename_by_attr.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>create_from(
@@ -210,15 +211,29 @@ class ltcl_camel_case implementation.
 
   endmethod.
 
-  method rename_path.
+  method rename_by_path.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>create_from(
         ii_source_json = zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}' )
-        ii_mapper      = zcl_ajson_mapping=>create_rename_path( value #(
-          ( from = '/b/a' to = 'x' ) )
+        ii_mapper      = zcl_ajson_mapping=>create_rename(
+          it_rename_map = value #( ( from = '/b/a' to = 'x' ) )
+          iv_rename_by  = zcl_ajson_mapping=>rename_by-full_path
         ) )->stringify( )
       exp = '{"a":1,"b":{"x":2},"c":{"a":3}}' ).
+
+  endmethod.
+
+  method rename_by_pattern.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>create_from(
+        ii_source_json = zcl_ajson=>parse( '{"andthisnot":1,"b":{"thisone":2},"c":{"a":3}}' )
+        ii_mapper      = zcl_ajson_mapping=>create_rename(
+          it_rename_map = value #( ( from = '/*/this*' to = 'x' ) )
+          iv_rename_by  = zcl_ajson_mapping=>rename_by-pattern
+        ) )->stringify( )
+      exp = '{"andthisnot":1,"b":{"x":2},"c":{"a":3}}' ).
 
   endmethod.
 

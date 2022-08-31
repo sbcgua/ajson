@@ -4,6 +4,15 @@ class zcl_ajson_mapping definition
   create public.
 
   public section.
+
+    constants:
+      begin of rename_by,
+        attr_name type i value 0,
+        full_path type i value 1,
+        pattern type i value 2,
+        " regex type i value 3, " TODO add if needed in future
+      end of rename_by.
+
     class-methods create_camel_case
       importing
         it_mapping_fields   type zif_ajson_mapping=>ty_mapping_fields optional
@@ -32,12 +41,7 @@ class zcl_ajson_mapping definition
     class-methods create_rename
       importing
         it_rename_map type zif_ajson_mapping=>tty_rename_map
-      returning
-        value(ri_mapping) type ref to zif_ajson_mapping.
-
-    class-methods create_rename_path
-      importing
-        it_rename_map type zif_ajson_mapping=>tty_rename_map
+        iv_rename_by type i default rename_by-attr_name
       returning
         value(ri_mapping) type ref to zif_ajson_mapping.
 
@@ -92,15 +96,8 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
 
     create object ri_mapping type lcl_rename
       exporting
-        it_rename_map = it_rename_map.
-
-  endmethod.
-
-  method create_rename_path.
-
-    create object ri_mapping type lcl_rename_path
-      exporting
-        it_rename_map = it_rename_map.
+        it_rename_map = it_rename_map
+        iv_rename_by  = iv_rename_by.
 
   endmethod.
 

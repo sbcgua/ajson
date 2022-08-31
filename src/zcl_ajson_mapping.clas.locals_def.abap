@@ -21,31 +21,16 @@ class lcl_rename definition.
 
     methods constructor
       importing
-        it_rename_map type zif_ajson_mapping~tty_rename_map.
+        it_rename_map type zif_ajson_mapping~tty_rename_map
+        iv_rename_by type i.
 
   protected section.
 
   private section.
     data mt_rename_map type zif_ajson_mapping~tty_rename_map.
+    data mv_rename_by type i.
 
 endclass.
-
-class lcl_rename_path definition.
-
-  public section.
-    interfaces zif_ajson_mapping.
-
-    methods constructor
-      importing
-        it_rename_map type zif_ajson_mapping~tty_rename_map.
-
-  protected section.
-
-  private section.
-    data mt_rename_map type zif_ajson_mapping~tty_rename_map.
-
-endclass.
-
 
 class lcl_mapping_to_upper definition.
 

@@ -51,31 +51,7 @@ class lcl_rename implementation.
 
   method constructor.
     mt_rename_map = it_rename_map.
-  endmethod.
-
-  method zif_ajson_mapping~to_abap.
-  endmethod.
-
-  method zif_ajson_mapping~to_json.
-  endmethod.
-
-  method zif_ajson_mapping~rename_node.
-
-    field-symbols <r> like line of mt_rename_map.
-
-    read table mt_rename_map assigning <r> with table key by_name components from = cv_name.
-    if sy-subrc = 0.
-      cv_name = <r>-to.
-    endif.
-
-  endmethod.
-
-endclass.
-
-class lcl_rename_path implementation.
-
-  method constructor.
-    mt_rename_map = it_rename_map.
+    mv_rename_by = iv_rename_by.
   endmethod.
 
   method zif_ajson_mapping~to_abap.
@@ -87,19 +63,36 @@ class lcl_rename_path implementation.
   method zif_ajson_mapping~rename_node.
 
     data lv_full_path type string.
+    data lv_pair_found type abap_bool.
     field-symbols <r> like line of mt_rename_map.
 
-    lv_full_path = is_node-path && cv_name.
+    case mv_rename_by.
+      when zcl_ajson_mapping=>rename_by-attr_name.
+        read table mt_rename_map assigning <r> with table key by_name components from = cv_name.
+        lv_pair_found = boolc( sy-subrc = 0 ).
+      when zcl_ajson_mapping=>rename_by-full_path.
+        lv_full_path = is_node-path && cv_name.
+        read table mt_rename_map assigning <r> with table key by_name components from = lv_full_path.
+        lv_pair_found = boolc( sy-subrc = 0 ).
+      when zcl_ajson_mapping=>rename_by-pattern.
+        lv_full_path = is_node-path && cv_name.
+        loop at mt_rename_map assigning <r>.
+          if lv_full_path cp <r>-from.
+            lv_pair_found = abap_true.
+            exit.
+          endif.
+        endloop.
+      when others.
+        sy-subrc = 4. " No rename
+    endcase.
 
-    read table mt_rename_map assigning <r> with table key by_name components from = lv_full_path.
-    if sy-subrc = 0.
+    if lv_pair_found = abap_true.
       cv_name = <r>-to.
     endif.
 
   endmethod.
 
 endclass.
-
 
 class lcl_mapping_to_upper implementation.
 
