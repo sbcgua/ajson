@@ -423,7 +423,7 @@ Can be mapped to following structure:
 
 ## Mapping (field renaming)
 
-You can rename json field named with a mapper. Typical example for this is making all field names upper/lower case or converting camel-snake naming styles (e.g. `helloWorld -> hello_world`). Although you can create your mapper.
+You can rename json attribute (node) names with a mapper. Typical example for this is making all attribute names upper/lower case or converting camel-snake naming styles (e.g. `helloWorld -> hello_world`). Also you can create your mapper.
 
 ```abap
   lo_orig_json = zcl_ajson=>parse( '{"ab":1,"bc":2}' ).
@@ -437,7 +437,7 @@ where `li_mapper` would be an instance of `zif_ajson_mapping`. AJSON implements 
 - to camel case (`camelCase`)
 - to snake case (`snake_case`)
 
-You can also implement you custom mapper. To do this you have to implement `zif_ajson_mapping->rename_field()`. It accepts the json nodes item-by-item and is able to change name via `cv_name` parameter. E.g.
+You can also implement you custom mapper. To do this you have to implement `zif_ajson_mapping->rename_node()`. It accepts the json nodes item-by-item and may change name via `cv_name` parameter. E.g.
 
 ```abap
   method zif_ajson_mapping~rename_field.
@@ -461,8 +461,9 @@ A realistic use case would be converting an external API result, which are often
     ii_source_json = lo_orig_json
     ii_mapper      = zcl_ajson_mapping=>camel_to_snake( ) ).
   lo_new_json->to_abap( importing ev_container = ls_api_response )
-
-  " OR just
+```
+... or simpler ...
+```abap
   zcl_ajson=>create_from(
     ii_source_json = zcl_ajson=>parse( lv_api_response_string )
     ii_mapper      = zcl_ajson_mapping=>camel_to_snake( )
