@@ -4204,3 +4204,143 @@ class ltcl_mapper_test implementation.
   endmethod.
 
 endclass.
+
+**********************************************************************
+* CLONING TEST
+**********************************************************************
+
+class ltcl_cloning_test definition final
+  for testing
+  duration short
+  risk level harmless.
+
+  public section.
+    interfaces zif_ajson_mapping.
+    interfaces zif_ajson_filter.
+
+  private section.
+
+    methods clone_test for testing raising zcx_ajson_error.
+    methods filter_test for testing raising zcx_ajson_error.
+    methods mapper_test for testing raising zcx_ajson_error.
+
+endclass.
+
+class ltcl_cloning_test implementation.
+
+  method clone_test.
+
+    data li_json type ref to zif_ajson.
+    data li_json_new type ref to zif_ajson.
+    data lx_err type ref to zcx_ajson_error.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    li_json = zcl_ajson=>create_empty( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 2 ).
+
+    li_json_new = li_json->clone( ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |2' ).
+    lo_nodes_exp->add( '/      |ab    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |xy    |num    |2    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+    " ensure disconnection
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 5 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json->get_integer( '/ab' )
+      exp = 5 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->get_integer( '/ab' )
+      exp = 1 ).
+
+  endmethod.
+
+  method filter_test.
+
+    data li_json type ref to zif_ajson.
+    data li_json_new type ref to zif_ajson.
+    data lx_err type ref to zcx_ajson_error.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    li_json = zcl_ajson=>create_empty( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 2 ).
+
+    li_json_new = li_json->filter( me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |1' ).
+    lo_nodes_exp->add( '/      |ab    |num    |1    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method mapper_test.
+
+    data li_json type ref to zif_ajson.
+    data li_json_new type ref to zif_ajson.
+    data lx_err type ref to zcx_ajson_error.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    li_json = zcl_ajson=>create_empty( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 2 ).
+
+    li_json_new = li_json->map( me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |2' ).
+    lo_nodes_exp->add( '/      |AB    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |xy    |num    |2    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method zif_ajson_mapping~rename_node.
+    if cv_name+0(1) = 'a'.
+      cv_name = to_upper( cv_name ).
+    endif.
+  endmethod.
+
+  method zif_ajson_mapping~to_abap.
+
+  endmethod.
+
+  method zif_ajson_mapping~to_json.
+
+  endmethod.
+
+  method zif_ajson_filter~keep_node.
+    rv_keep = boolc( is_node-name is initial or is_node-name+0(1) <> 'x' ).
+  endmethod.
+
+endclass.

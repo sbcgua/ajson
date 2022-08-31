@@ -58,7 +58,7 @@ class zcl_ajson definition
         value(ro_instance) type ref to zcl_ajson.
 
     " Experimental ! May change
-    class-methods create_from
+    class-methods create_from " TODO, rename to 'from' ?
       importing
         !ii_source_json type ref to zif_ajson
         !ii_filter type ref to zif_ajson_filter optional
@@ -832,4 +832,21 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         c_container = ev_container ).
 
   endmethod.
+
+  method zif_ajson~clone.
+    ri_json = zcl_ajson=>create_from( me ).
+  endmethod.
+
+  method zif_ajson~filter.
+    ri_json = zcl_ajson=>create_from(
+      ii_source_json = me
+      ii_filter      = ii_filter ).
+  endmethod.
+
+  method zif_ajson~map.
+    ri_json = zcl_ajson=>create_from(
+      ii_source_json = me
+      ii_mapper      = ii_mapper ).
+  endmethod.
+
 ENDCLASS.
