@@ -37,6 +37,12 @@ interface zif_ajson
       path type string,
       name type string,
     end of ty_path_name.
+  types:
+    begin of ty_opts,
+      read_only type abap_bool,
+      keep_item_order type abap_bool,
+      format_datetime type abap_bool,
+    end of ty_opts.
 
   " DATA
 
@@ -53,6 +59,9 @@ interface zif_ajson
       iv_use_iso type abap_bool default abap_true
     returning
       value(ri_json) type ref to zif_ajson.
+  methods opts
+    returning
+      value(rs_opts) type ty_opts.
 
   " METHODS ex.reader
 
