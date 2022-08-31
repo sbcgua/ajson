@@ -77,6 +77,7 @@ class zcl_ajson definition
     data mi_custom_mapping type ref to zif_ajson_mapping.
     data mv_keep_item_order type abap_bool.
     data mv_format_datetime type abap_bool.
+    " TODO restructure into zif_ajson=>ty_opts
 
     methods get_item
       importing
@@ -106,6 +107,11 @@ ENDCLASS.
 
 CLASS ZCL_AJSON IMPLEMENTATION.
 
+  method zif_ajson~opts.
+    rs_opts-read_only       = mv_read_only.
+    rs_opts-format_datetime = mv_format_datetime.
+    rs_opts-keep_item_order = mv_keep_item_order.
+  endmethod.
 
   method constructor.
     format_datetime( abap_true ).

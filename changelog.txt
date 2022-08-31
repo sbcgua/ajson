@@ -11,7 +11,9 @@ Legend
 v1.1.7, 2022-??
 -----------------
 * Fixed keep order when overwriteiung existing node values (#113)
+* Use ":" as timestamp time separator (#122, @jrodriguez-rc)
 + Support ENUM types (#116, @christianguenter2)
++ Added zif_ajson->opts methods, to get current instance behavior parameters
 
 v1.1.6, 2022-07-15
 ------------------

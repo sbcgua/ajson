@@ -18,7 +18,7 @@ Features:
 - filtering. Create a json skipping empty values, predefined paths, or your custom filter. *EXPERIMENTAL, interface may change*
 - utility to calculate difference between 2 jsons
 
-Installed using [abapGit](https://github.com/larshp/abapGit)
+Installed using [abapGit](https://github.com/abapGit/abapGit)
 
 ## Examples and documentation
 
@@ -756,6 +756,12 @@ You can see a more complex example in the test class of `zcl_ajson_utilities`.
     iv_json_a = '{"a":1,"b":2}'
     iv_json_b = '{"a":1,"b":2,"c":3}' ). " Return abap_false
 ```
+
+## Other
+
+### Checking current instance behavior options
+
+Behavior options like `read_only` or `keep_item_order` are accessible via `opts()` method (returns `zif_ajson=>ty_opts`).
 
 ## Known issues
 
