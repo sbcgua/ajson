@@ -2,7 +2,7 @@ interface zif_ajson_mapping
   public.
 
   types:
-    begin of ty_mapping_field,
+    begin of ty_mapping_field, " deprecated, will be removed
       abap type string,
       json type string,
     end of ty_mapping_field,
@@ -18,21 +18,21 @@ interface zif_ajson_mapping
     tty_rename_map type standard table of ty_rename
       with unique sorted key by_name components from.
 
-  methods to_abap
+  methods to_abap " deprecated, will be removed
     importing
       !iv_path         type string
       !iv_name         type string
     returning
       value(rv_result) type string.
 
-  methods to_json
+  methods to_json " deprecated, will be removed
     importing
       !iv_path         type string
       !iv_name         type string
     returning
       value(rv_result) type string.
 
-  methods rename_field
+  methods rename_node
     importing
       !is_node type zif_ajson=>ty_node
     changing

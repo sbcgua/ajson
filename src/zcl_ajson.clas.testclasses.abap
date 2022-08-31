@@ -4021,7 +4021,7 @@ endclass.
 
 class ltcl_mapper_test implementation.
 
-  method zif_ajson_mapping~rename_field.
+  method zif_ajson_mapping~rename_node.
     if cv_name+0(1) = 'a'.
       cv_name = to_upper( cv_name ).
     endif.

@@ -41,7 +41,7 @@ class lcl_mapping_fields implementation.
 
   endmethod.
 
-  method zif_ajson_mapping~rename_field.
+  method zif_ajson_mapping~rename_node.
 
   endmethod.
 
@@ -59,7 +59,7 @@ class lcl_rename implementation.
   method zif_ajson_mapping~to_json.
   endmethod.
 
-  method zif_ajson_mapping~rename_field.
+  method zif_ajson_mapping~rename_node.
 
     field-symbols <r> like line of mt_rename_map.
 
@@ -84,7 +84,7 @@ class lcl_rename_path implementation.
   method zif_ajson_mapping~to_json.
   endmethod.
 
-  method zif_ajson_mapping~rename_field.
+  method zif_ajson_mapping~rename_node.
 
     data lv_full_path type string.
     field-symbols <r> like line of mt_rename_map.
@@ -130,7 +130,7 @@ class lcl_mapping_to_upper implementation.
 
   endmethod.
 
-  method zif_ajson_mapping~rename_field.
+  method zif_ajson_mapping~rename_node.
 
     cv_name = to_upper( cv_name ).
 
@@ -168,7 +168,7 @@ class lcl_mapping_to_lower implementation.
 
   endmethod.
 
-  method zif_ajson_mapping~rename_field.
+  method zif_ajson_mapping~rename_node.
 
     cv_name = to_lower( cv_name ).
 
@@ -239,7 +239,7 @@ class lcl_mapping_camel implementation.
 
   endmethod.
 
-  method zif_ajson_mapping~rename_field.
+  method zif_ajson_mapping~rename_node.
 
   endmethod.
 

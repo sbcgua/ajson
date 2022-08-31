@@ -1877,7 +1877,7 @@ class lcl_mapper_runner implementation.
       ls_renamed_node = <item>.
       if iv_node_type <> zif_ajson=>node_type-array.
         " don't rename array item names -> they are numeric index
-        mi_mapper->rename_field(
+        mi_mapper->rename_node(
           exporting
             is_node = <item>
           changing
