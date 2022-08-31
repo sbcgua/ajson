@@ -15,7 +15,7 @@ class ltcl_camel_case definition final for testing
       rename_by_attr for testing raising zcx_ajson_error,
       rename_by_path for testing raising zcx_ajson_error,
       rename_by_pattern for testing raising zcx_ajson_error,
-      compund_mapper for testing raising zcx_ajson_error,
+      compound_mapper for testing raising zcx_ajson_error,
       to_upper for testing raising zcx_ajson_error,
       to_lower for testing raising zcx_ajson_error.
 
@@ -238,7 +238,7 @@ class ltcl_camel_case implementation.
 
   endmethod.
 
-  method compund_mapper.
+  method compound_mapper.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>create_from(
