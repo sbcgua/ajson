@@ -248,7 +248,6 @@ class lcl_mapping_queue implementation.
 
     data ls_node like is_node.
     data li_mapper like line of mt_queue.
-    data lv_node_name_buf like ls_node-name.
 
     ls_node = is_node.
 

@@ -834,17 +834,17 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
   method zif_ajson~clone.
-    ri_json = zcl_ajson=>create_from( me ).
+    ri_json = create_from( me ).
   endmethod.
 
   method zif_ajson~filter.
-    ri_json = zcl_ajson=>create_from(
+    ri_json = create_from(
       ii_source_json = me
       ii_filter      = ii_filter ).
   endmethod.
 
   method zif_ajson~map.
-    ri_json = zcl_ajson=>create_from(
+    ri_json = create_from(
       ii_source_json = me
       ii_mapper      = ii_mapper ).
   endmethod.

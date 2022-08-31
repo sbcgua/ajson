@@ -90,8 +90,6 @@ endmethod.
 
 method raise.
 
-  data ls_msg type ty_message_parts.
-  data lv_tmp type string.
   data lx type ref to zcx_ajson_error.
 
   create object lx exporting message = iv_msg.

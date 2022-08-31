@@ -4232,7 +4232,6 @@ class ltcl_cloning_test implementation.
 
     data li_json type ref to zif_ajson.
     data li_json_new type ref to zif_ajson.
-    data lx_err type ref to zcx_ajson_error.
     data lo_nodes_exp type ref to lcl_nodes_helper.
 
     li_json = zcl_ajson=>create_empty( ).
@@ -4274,7 +4273,6 @@ class ltcl_cloning_test implementation.
 
     data li_json type ref to zif_ajson.
     data li_json_new type ref to zif_ajson.
-    data lx_err type ref to zcx_ajson_error.
     data lo_nodes_exp type ref to lcl_nodes_helper.
 
     li_json = zcl_ajson=>create_empty( ).
@@ -4301,7 +4299,6 @@ class ltcl_cloning_test implementation.
 
     data li_json type ref to zif_ajson.
     data li_json_new type ref to zif_ajson.
-    data lx_err type ref to zcx_ajson_error.
     data lo_nodes_exp type ref to lcl_nodes_helper.
 
     li_json = zcl_ajson=>create_empty( ).
