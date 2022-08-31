@@ -757,6 +757,12 @@ You can see a more complex example in the test class of `zcl_ajson_utilities`.
     iv_json_b = '{"a":1,"b":2,"c":3}' ). " Return abap_false
 ```
 
+## Other
+
+### Checking current instance behavior options
+
+Behavior options like `read_only` or `keep_item_order` are accessible via `opts()` method (returns `zif_ajson=>ty_opts`).
+
 ## Known issues
 
 - removing an array item in the middle of array will not renumber the items
