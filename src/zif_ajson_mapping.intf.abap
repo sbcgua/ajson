@@ -18,6 +18,9 @@ interface zif_ajson_mapping
     tty_rename_map type standard table of ty_rename
       with unique sorted key by_name components from.
 
+  types:
+    ty_table_of type standard table of ref to zif_ajson_mapping.
+
   methods to_abap " deprecated, will be removed
     importing
       !iv_path         type string

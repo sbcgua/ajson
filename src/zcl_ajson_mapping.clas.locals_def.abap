@@ -83,3 +83,19 @@ class lcl_mapping_camel definition.
     data mi_mapping_fields type ref to zif_ajson_mapping.
 
 endclass.
+
+class lcl_mapping_queue definition.
+
+  public section.
+    interfaces zif_ajson_mapping.
+
+    methods constructor
+      importing
+        it_queue type zif_ajson_mapping=>ty_table_of.
+
+  protected section.
+
+  private section.
+    data mt_queue type zif_ajson_mapping=>ty_table_of.
+
+endclass.

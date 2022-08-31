@@ -237,3 +237,38 @@ class lcl_mapping_camel implementation.
   endmethod.
 
 endclass.
+
+class lcl_mapping_queue implementation.
+
+  method constructor.
+    mt_queue = it_queue.
+  endmethod.
+
+  method zif_ajson_mapping~rename_node.
+
+    data ls_node like is_node.
+    data li_mapper like line of mt_queue.
+    data lv_node_name_buf like ls_node-name.
+
+    ls_node = is_node.
+
+    loop at mt_queue into li_mapper.
+      li_mapper->rename_node(
+        exporting
+          is_node = ls_node
+        changing
+          cv_name = cv_name ).
+      ls_node-name = cv_name.
+    endloop.
+
+  endmethod.
+
+  method zif_ajson_mapping~to_abap.
+
+  endmethod.
+
+  method zif_ajson_mapping~to_json.
+
+  endmethod.
+
+endclass.
