@@ -634,7 +634,7 @@ This feature allows creating a json from existing one skipping some nodes. E.g. 
 
 ### Predefined filters
 
-Remove empty values
+- Remove empty values
 ```abap
   " li_json_source: { "a":1, "b":0, "c":{ "d":"" } }
   li_json_filtered = zcl_ajson=>create_from(
@@ -643,7 +643,7 @@ Remove empty values
   " li_json_filtered: { "a":1 }
 ```
 
-Remove predefined paths
+- Remove predefined paths
 ```abap
   " li_json_source: { "a":1, "b":0, "c":{ "d":"" } }
   li_json_filtered = zcl_ajson=>create_from(
@@ -657,8 +657,14 @@ Remove predefined paths
   zcl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/b,/c' ).
   ...
 ```
+... works also with patterns (e.g. to remove meta data attrs)
+```abap
+  zcl_ajson_filter_lib=>create_path_filter( 
+    iv_skip_paths = '*/@*'
+    iv_pattern_search = abap_true ).
+```
 
-"AND" filter
+- compound ("and") filter
 ```abap
   ...
   zcl_ajson_filter_lib=>create_and_filter( value #(

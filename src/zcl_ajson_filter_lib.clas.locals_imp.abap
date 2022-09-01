@@ -29,21 +29,35 @@ class lcl_paths_filter definition final.
       importing
         it_skip_paths type string_table optional
         iv_skip_paths type string optional
+        iv_pattern_search type abap_bool
       raising
         zcx_ajson_error.
   private section.
     data mt_skip_paths type hashed table of string with unique key table_line.
+    data mv_pattern_search type abap_bool.
 endclass.
 
 class lcl_paths_filter implementation.
 
   method zif_ajson_filter~keep_node.
 
-    data lv_path type string.
+    data lv_full_path type string.
+    field-symbols <p> like line of mt_skip_paths.
 
-    lv_path = is_node-path && is_node-name.
-    read table mt_skip_paths with key table_line = lv_path transporting no fields.
-    rv_keep = boolc( sy-subrc <> 0 ).
+    lv_full_path = is_node-path && is_node-name.
+
+    if mv_pattern_search = abap_true.
+      rv_keep = abap_true.
+      loop at mt_skip_paths assigning <p>.
+        if lv_full_path cp <p>.
+          rv_keep = abap_false.
+          exit.
+        endif.
+      endloop.
+    else.
+      read table mt_skip_paths with key table_line = lv_full_path transporting no fields.
+      rv_keep = boolc( sy-subrc <> 0 ).
+    endif.
 
   endmethod.
 
@@ -77,6 +91,7 @@ class lcl_paths_filter implementation.
     delete adjacent duplicates from lt_tab.
 
     mt_skip_paths = lt_tab.
+    mv_pattern_search = iv_pattern_search.
 
   endmethod.
 

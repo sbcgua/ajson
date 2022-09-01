@@ -14,6 +14,7 @@ class ZCL_AJSON_FILTER_LIB definition
       importing
         !it_skip_paths type string_table optional
         !iv_skip_paths type string optional
+        !iv_pattern_search type abap_bool default abap_false
       returning
         value(ri_filter) type ref to zif_ajson_filter
       raising
@@ -50,6 +51,7 @@ CLASS ZCL_AJSON_FILTER_LIB IMPLEMENTATION.
   method create_path_filter.
     create object ri_filter type lcl_paths_filter
       exporting
+        iv_pattern_search = iv_pattern_search
         it_skip_paths = it_skip_paths
         iv_skip_paths = iv_skip_paths.
   endmethod.
