@@ -13,6 +13,8 @@ class ltcl_camel_case definition final for testing
 
     methods:
       to_snake for testing raising zcx_ajson_error,
+      to_camel for testing raising zcx_ajson_error,
+      to_camel_1st_upper for testing raising zcx_ajson_error,
       rename_by_attr for testing raising zcx_ajson_error,
       rename_by_path for testing raising zcx_ajson_error,
       rename_by_pattern for testing raising zcx_ajson_error,
@@ -262,6 +264,36 @@ class ltcl_camel_case implementation.
         ii_mapper      = zcl_ajson_mapping=>create_to_snake_case( )
         )->stringify( )
       exp = '{"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}' ).
+
+  endmethod.
+
+  method to_camel.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>create_from(
+        ii_source_json = zcl_ajson=>parse( '{"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}' )
+        ii_mapper      = zcl_ajson_mapping=>create_to_camel_case( )
+        )->stringify( )
+      exp = '{"aB":1,"bbC":2,"cD":{"xY":3},"zz":4}' ).
+
+    " Forced underscore
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>create_from(
+        ii_source_json = zcl_ajson=>parse( '{"a__b":1}' )
+        ii_mapper      = zcl_ajson_mapping=>create_to_camel_case( )
+        )->stringify( )
+      exp = '{"a_b":1}' ).
+
+  endmethod.
+
+  method to_camel_1st_upper.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>create_from(
+        ii_source_json = zcl_ajson=>parse( '{"aj_bc":1,"bb_c":2,"c_d":{"xq_yq":3},"zz":4}' )
+        ii_mapper      = zcl_ajson_mapping=>create_to_camel_case( iv_first_json_upper = abap_true )
+        )->stringify( )
+      exp = '{"AjBc":1,"BbC":2,"CD":{"XqYq":3},"Zz":4}' ).
 
   endmethod.
 

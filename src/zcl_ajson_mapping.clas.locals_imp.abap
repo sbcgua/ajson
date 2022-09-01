@@ -290,3 +290,46 @@ class lcl_to_snake implementation.
   endmethod.
 
 endclass.
+
+class lcl_to_camel implementation.
+
+  method constructor.
+    mv_first_json_upper = iv_first_json_upper.
+  endmethod.
+
+  method zif_ajson_mapping~rename_node.
+
+    types lty_token type c length 255.
+    constants lc_forced_underscore_marker type c length 1 value cl_abap_char_utilities=>horizontal_tab.
+
+    data lt_tokens type standard table of lty_token.
+    data lv_from type i.
+    field-symbols <token> like line of lt_tokens.
+
+    if mv_first_json_upper = abap_true.
+      lv_from = 1.
+    else.
+      lv_from = 2.
+    endif.
+    replace all occurrences of `__` in cv_name with lc_forced_underscore_marker. " Force underscore
+
+    split cv_name at `_` into table lt_tokens.
+    delete lt_tokens where table_line is initial.
+    loop at lt_tokens assigning <token> from lv_from.
+      translate <token>+0(1) to upper case.
+    endloop.
+
+    concatenate lines of lt_tokens into cv_name.
+    replace all occurrences of lc_forced_underscore_marker in cv_name with `_`.
+
+  endmethod.
+
+  method zif_ajson_mapping~to_abap.
+
+  endmethod.
+
+  method zif_ajson_mapping~to_json.
+
+  endmethod.
+
+endclass.

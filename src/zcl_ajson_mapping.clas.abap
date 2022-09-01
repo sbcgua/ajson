@@ -58,6 +58,12 @@ class zcl_ajson_mapping definition
       returning
         value(ri_mapping) type ref to zif_ajson_mapping.
 
+    class-methods create_to_camel_case
+      importing
+        iv_first_json_upper type abap_bool default abap_false
+      returning
+        value(ri_mapping) type ref to zif_ajson_mapping.
+
   protected section.
 
   private section.
@@ -131,6 +137,12 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
 
   method create_to_snake_case.
     create object ri_mapping type lcl_to_snake.
+  endmethod.
+
+  method create_to_camel_case.
+    create object ri_mapping type lcl_to_camel
+      exporting
+        iv_first_json_upper = iv_first_json_upper.
   endmethod.
 
 ENDCLASS.

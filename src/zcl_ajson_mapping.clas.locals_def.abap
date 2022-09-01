@@ -104,3 +104,13 @@ class lcl_to_snake definition.
   public section.
     interfaces zif_ajson_mapping.
 endclass.
+
+class lcl_to_camel definition.
+  public section.
+    interfaces zif_ajson_mapping.
+    methods constructor
+      importing
+        iv_first_json_upper type abap_bool.
+  private section.
+    data mv_first_json_upper type abap_bool.
+endclass.
