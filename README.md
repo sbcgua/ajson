@@ -480,7 +480,7 @@ A realistic use case would be converting an external API result, which are often
     ii_mapper      = zcl_ajson_mapping=>camel_to_snake( )
   )->to_abap( importing ev_container = ls_api_response ).
 ```
-... or even (combined with filter) ...
+... or even chained (combined with filter) ...
 ```abap
   zcl_ajson=>parse( lv_api_response_string
     )->filter( zcl_ajson_filter_lib=>create_path_filter(
@@ -492,23 +492,110 @@ A realistic use case would be converting an external API result, which are often
 
 ### "Boxed-in" mappers
 
-TODO
+Several typical mappers were implemented within `zcl_ajson_mapping` class:
 
-- upper_case
-- lower_case
-- rename (+w path, +w patterns)
-- queue (or chain ? or compound?)
-- to_snake_case
-- to_camel_case
+- upper case node names
+```abap
+zcl_ajson=>create_from(
+  ii_source_json = zcl_ajson=>parse( '{"a":1,"b":{"c":2}}' )
+  ii_mapper      = zcl_ajson_mapping=>create_upper_case( ) ).
+  " {"A":1,"B":{"C":2}}
+```
 
-The interface `zif_ajson_mapping` allows to create custom mapping for ABAP and JSON fields.
+- lower case node names
+```abap
+zcl_ajson=>create_from(
+  ii_source_json = zcl_ajson=>parse( '{"A":1,"B":{"C":2}}' )
+  ii_mapper      = zcl_ajson_mapping=>create_lower_case( ) ).
+  " {"a":1,"b":{"c":2}}
+```
+
+- rename nodes
+```abap
+" Purely by name
+zcl_ajson=>create_from(
+  ii_source_json = zcl_ajson=>parse( '{"a":1,"b":{"c":2},"d":{"e":3}}' )
+  ii_mapper      = zcl_ajson_mapping=>create_rename( value #(
+    ( from = 'a' to = 'x' )
+    ( from = 'c' to = 'y' )
+    ( from = 'd' to = 'z' ) )
+  ) ).
+  " {"b":{"y":2},"x":1,"z":{"e":3}}
+
+" Or by full path
+zcl_ajson=>create_from(
+  ii_source_json = zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}' )
+  ii_mapper      = zcl_ajson_mapping=>create_rename(
+    it_rename_map = value #( ( from = '/b/a' to = 'x' ) )
+    iv_rename_by  = zcl_ajson_mapping=>rename_by-full_path
+  ) ).
+  " {"a":1,"b":{"x":2},"c":{"a":3}}
+
+" Or by pattern
+zcl_ajson=>create_from(
+  ii_source_json = zcl_ajson=>parse( '{"andthisnot":1,"b":{"thisone":2},"c":{"a":3}}' )
+  ii_mapper      = zcl_ajson_mapping=>create_rename(
+    it_rename_map = value #( ( from = '/*/this*' to = 'x' ) )
+    iv_rename_by  = zcl_ajson_mapping=>rename_by-pattern
+  ) ).
+  " {"andthisnot":1,"b":{"x":2},"c":{"a":3}}
+```
+- combine several arbitrary mappers together
+```abap
+zcl_ajson=>create_from(
+  ii_source_json = zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}' )
+  ii_mapper      = zcl_ajson_mapping=>create_compound_mapper(
+    ii_mapper1 = zcl_ajson_mapping=>create_rename(
+      it_rename_map = value #( ( from = '/b/a' to = 'x' ) )
+      iv_rename_by  = zcl_ajson_mapping=>rename_by-full_path )
+    ii_mapper2 = zcl_ajson_mapping=>create_upper_case( ) )
+  ).
+  " {"A":1,"B":{"X":2},"C":{"A":3}}'
+```
+
+- convert node names to snake case
+```abap
+zcl_ajson=>create_from(
+  ii_source_json = zcl_ajson=>parse( '{"aB":1,"BbC":2,"cD":{"xY":3},"ZZ":4}' )
+  ii_mapper      = zcl_ajson_mapping=>create_to_snake_case( )
+  ).
+  " {"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}
+```
+
+- convert node names to camel case
+```abap
+zcl_ajson=>create_from(
+  ii_source_json = zcl_ajson=>parse( '{"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}' )
+  ii_mapper      = zcl_ajson_mapping=>create_to_camel_case( )
+  ).
+  " {"aB":1,"bbC":2,"cD":{"xY":3},"zz":4}
+
+  " Optionally upper case first letter too
+zcl_ajson=>create_from(
+  ii_source_json = zcl_ajson=>parse( '{"aj_bc":1' )
+  ii_mapper      = zcl_ajson_mapping=>create_to_camel_case( iv_first_json_upper = abap_true )
+  ).
+  " {"AjBc":1}
+```
+
+All the above examples will also work with `map()` method of ajson instance as well.
+```abap
+zcl_ajson=>parse( '{"aj_bc":1' )->map( zcl_ajson_mapping=>create_to_camel_case( ) ).
+" {"ajBc":1}
+```
+
+### Mapping via to_abap and to_json (deprecated)
+
+**This approach is depreciated and will be removed in future versions, please use `rename_field` approach described above**
+
+The interface `zif_ajson_mapping` allows to create custom mapping for ABAP and JSON fields via implementing `to_abap` and `to_json` methods.
 
 Some mappings are provided by default:
 - ABAP <=> JSON mapping fields
 - JSON formatting to Camel Case
 - JSON formatting to UPPER/lower case
 
-### Example: JSON => ABAP mapping fields
+#### Example: JSON => ABAP mapping fields
 
 JSON Input
 ```json
@@ -541,7 +628,7 @@ Example code snippet
   lo_ajson->to_abap( importing ev_container = ls_result ).
 ```
 
-### Example: ABAP => JSON mapping fields
+#### Example: ABAP => JSON mapping fields
 
 Example code snippet
 ```abap
@@ -576,7 +663,7 @@ JSON Output
 {"field":"value","json.field":"field_value"}
 ```
 
-### Example: Camel Case - To JSON (first letter lower case)
+#### Example: Camel Case - To JSON (first letter lower case)
 
 Example code snippet
 ```abap
@@ -602,7 +689,7 @@ JSON Output
 {"fieldData":"field_value"}
 ```
 
-### Example: Camel Case - To JSON (first letter upper case)
+#### Example: Camel Case - To JSON (first letter upper case)
 
 Example code snippet
 ```abap
@@ -628,7 +715,7 @@ JSON Output
 {"FieldData":"field_value"}
 ```
 
-### Example: Camel Case - To ABAP
+#### Example: Camel Case - To ABAP
 
 JSON Input
 ```json
@@ -652,7 +739,7 @@ Example code snippet
   lo_ajson->to_abap( importing ev_container = ls_result ).
 ```
 
-### Example: Lower Case - To JSON
+#### Example: Lower Case - To JSON
 
 Example code snippet
 ```abap
@@ -678,7 +765,7 @@ JSON Output
 {"field_data":"field_value"}
 ```
 
-### Example: Upper Case - To JSON
+#### Example: Upper Case - To JSON
 
 Example code snippet
 ```abap
