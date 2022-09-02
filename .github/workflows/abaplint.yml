@@ -19,4 +19,4 @@ jobs:
       - name: Run abaplint
         run: |
           npm -g install @abaplint/cli
-          abaplint
+          abaplint --format codeframe
