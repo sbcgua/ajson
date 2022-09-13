@@ -13,6 +13,7 @@ v1.1.7, 2022-??
 * Fixed keep order when overwriteiung existing node values (#113)
 * Use ":" as timestamp time separator (#122, @jrodriguez-rc)
 * Fixed proper initial timestamp formatting (#120, @jrodriguez-rc)
+* Fix warning related to timestamp rounding (#129, @mbtools)
 + Support ENUM types (#116, @christianguenter2)
 + Added zif_ajson->opts methods, to get current instance behavior parameters
 + Added possibility to filter path by pattern (cp-like)
