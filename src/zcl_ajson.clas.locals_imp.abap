@@ -1026,7 +1026,10 @@ class lcl_json_to_abap implementation.
       zcx_ajson_error=>raise( 'Unexpected error calculating timestamp' ).
     endtry.
 
-    rv_result = lv_timestamp.
+    if lv_timestamp is not initial.
+      " move_to_short fails with initial value
+      rv_result = cl_abap_tstmp=>move_to_short( lv_timestamp ).
+    endif.
 
   endmethod.
 
