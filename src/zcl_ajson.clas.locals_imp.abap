@@ -1354,7 +1354,7 @@ class lcl_abap_to_json implementation.
     rv_str =
       lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
       'T' &&
-      lv_time+0(2) && '-' && lv_time+2(2) && '-' && lv_time+4(2) &&
+      lv_time+0(2) && ':' && lv_time+2(2) && ':' && lv_time+4(2) &&
       'Z'.
 
   endmethod.
