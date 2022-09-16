@@ -2292,7 +2292,7 @@ class ltcl_writer_test implementation.
     lo_nodes->add( '/     |d_empty |str    |           ||0' ).
     lo_nodes->add( '/     |t       |str    |20:01:03   ||0' ).
     lo_nodes->add( '/     |t_empty |str    |           ||0' ).
-    lo_nodes->add( '/     |ts      |str    |2022-04-01T20-01-03Z ||0' ).
+    lo_nodes->add( '/     |ts      |str    |2022-04-01T20:01:03Z ||0' ).
     lo_nodes->add( '/     |p       |num    |123.45     ||0' ).
 
     li_writer->set(
@@ -2843,7 +2843,7 @@ class ltcl_writer_test implementation.
     li_writer = lo_cut.
     create object lo_nodes_exp.
     lo_nodes_exp->add( '        |      |object |                     ||1' ).
-    lo_nodes_exp->add( '/       |a     |str    |2021-05-05T12-00-00Z ||0' ).
+    lo_nodes_exp->add( '/       |a     |str    |2021-05-05T12:00:00Z ||0' ).
 
     lv_timestamp = '20210505120000'.
     li_writer->set_timestamp(
