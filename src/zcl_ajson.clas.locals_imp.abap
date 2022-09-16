@@ -1041,8 +1041,11 @@ class lcl_json_to_abap implementation.
     endtry.
 
     if lv_timestamp is not initial.
-      " move_to_short fails with initial value
-      rv_result = cl_abap_tstmp=>move_to_short( lv_timestamp ).
+      cl_abap_tstmp=>move(
+        exporting
+          tstmp_src = lv_timestamp
+        importing
+          tstmp_tgt = rv_result ).
     endif.
 
   endmethod.

@@ -3628,13 +3628,14 @@ class ltcl_abap_to_json implementation.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
     data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lv_timezone type tzonref-tzone value ''.
 
     data lv_timestamp type timestamp.
     create object lo_nodes_exp.
     lo_nodes_exp->add( '        |      |str |2022-08-31T00:00:00Z||' ).
 
     convert date '20220831' time '000000'
-      into time stamp lv_timestamp time zone ''.
+      into time stamp lv_timestamp time zone lv_timezone.
     lt_nodes = lcl_abap_to_json=>convert( lcl_abap_to_json=>format_timestamp( lv_timestamp ) ).
 
     cl_abap_unit_assert=>assert_equals(
