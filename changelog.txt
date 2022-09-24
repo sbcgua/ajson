@@ -18,6 +18,7 @@ v1.1.7, 2022-??
 + Added zif_ajson->opts methods, to get current instance behavior parameters
 + Added possibility to filter path by pattern (cp-like)
 + Added possibility to acqure only corresponding fields to abap structure (#125, #8, @postavka)
+* fixes in UTs to be compatible with 7.02 (#134, @schneidermic0)
 
 v1.1.6, 2022-07-15
 ------------------
