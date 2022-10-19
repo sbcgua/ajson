@@ -405,7 +405,7 @@ class ltcl_serializer_test definition final
     methods item_order for testing raising zcx_ajson_error.
     methods simple_indented for testing raising zcx_ajson_error.
     methods empty_set for testing raising zcx_ajson_error.
-    methods escape for testing raising zcx_ajson_error.
+    methods escape_value for testing raising zcx_ajson_error.
     methods empty for testing raising zcx_ajson_error.
 
 endclass.
@@ -684,7 +684,7 @@ class ltcl_serializer_test implementation.
 
   endmethod.
 
-  method escape.
+  method escape_value.
 
     data lv_act type string.
     data lv_exp type string.
