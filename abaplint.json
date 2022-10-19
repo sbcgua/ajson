@@ -71,7 +71,7 @@
     "many_parentheses": true,
     "max_one_method_parameter_per_line": true,
     "method_implemented_twice": true,
-    "method_overwrites_builtin": false,
+    "method_overwrites_builtin": true,
     "modify_only_own_db_tables": true,
     "names_no_dash": true,
     "no_aliases": false,
