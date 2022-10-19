@@ -41,7 +41,7 @@
     "slow_parameter_passing": true,
     "static_call_via_instance": true,
     "superfluous_value": true,
-    "sy_modification": false,
+    "sy_modification": true,
     "uncaught_exception": true,
     "unnecessary_chaining": false,
     "unnecessary_pragma": true,
