@@ -889,12 +889,12 @@ class lcl_json_to_abap implementation.
         if is_parent_type-tab_item_buf is bound. " Indirect hint that table was sorted/hashed, see get_node_type.
           try.
             insert <tab_item> into table <parent_anytab>.
+            if sy-subrc <> 0.
+              zcx_ajson_error=>raise( 'Duplicate insertion' ).
+            endif.
           catch cx_sy_itab_duplicate_key.
-            sy-subrc = 4.
-          endtry.
-          if sy-subrc <> 0.
             zcx_ajson_error=>raise( 'Duplicate insertion' ).
-          endif.
+          endtry.
         endif.
 
       endloop.
