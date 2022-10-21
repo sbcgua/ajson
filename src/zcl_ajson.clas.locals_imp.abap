@@ -382,7 +382,7 @@ class lcl_json_serializer definition final create private.
     data mv_indent_step type i.
     data mv_level type i.
 
-    class-methods escape_value
+    class-methods escape_string
       importing
         iv_unescaped type string
       returning
@@ -552,7 +552,7 @@ class lcl_json_serializer implementation.
 
   endmethod.
 
-  method escape_value.
+  method escape_string.
 
     rv_escaped = iv_unescaped.
     if rv_escaped ca |"\\\t\n\r|.
