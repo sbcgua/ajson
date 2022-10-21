@@ -382,7 +382,7 @@ class lcl_json_serializer definition final create private.
     data mv_indent_step type i.
     data mv_level type i.
 
-    class-methods escape
+    class-methods escape_string
       importing
         iv_unescaped type string
       returning
@@ -467,7 +467,7 @@ class lcl_json_serializer implementation.
       when zif_ajson=>node_type-object.
         lv_item = lv_item && '{'.
       when zif_ajson=>node_type-string.
-        lv_item = lv_item && |"{ escape( is_node-value ) }"|.
+        lv_item = lv_item && |"{ escape_string( is_node-value ) }"|.
       when zif_ajson=>node_type-boolean or zif_ajson=>node_type-number.
         lv_item = lv_item && is_node-value.
       when zif_ajson=>node_type-null.
@@ -552,7 +552,7 @@ class lcl_json_serializer implementation.
 
   endmethod.
 
-  method escape.
+  method escape_string.
 
     rv_escaped = iv_unescaped.
     if rv_escaped ca |"\\\t\n\r|.
