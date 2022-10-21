@@ -467,7 +467,7 @@ class lcl_json_serializer implementation.
       when zif_ajson=>node_type-object.
         lv_item = lv_item && '{'.
       when zif_ajson=>node_type-string.
-        lv_item = lv_item && |"{ escape_value( is_node-value ) }"|.
+        lv_item = lv_item && |"{ escape_string( is_node-value ) }"|.
       when zif_ajson=>node_type-boolean or zif_ajson=>node_type-number.
         lv_item = lv_item && is_node-value.
       when zif_ajson=>node_type-null.
