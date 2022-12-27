@@ -215,13 +215,23 @@ class ltcl_camel_case implementation.
 
   method rename_by_attr.
 
+    data lt_map type zif_ajson_mapping=>tty_rename_map.
+    field-symbols <i> like line of lt_map.
+
+    append initial line to lt_map assigning <i>.
+    <i>-from = 'a'.
+    <i>-to   = 'x'.
+    append initial line to lt_map assigning <i>.
+    <i>-from = 'c'.
+    <i>-to   = 'y'.
+    append initial line to lt_map assigning <i>.
+    <i>-from = 'd'.
+    <i>-to   = 'z'.
+
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>create_from(
         ii_source_json = zcl_ajson=>parse( '{"a":1,"b":{"c":2},"d":{"e":3}}' )
-        ii_mapper      = zcl_ajson_mapping=>create_rename( value #(
-          ( from = 'a' to = 'x' )
-          ( from = 'c' to = 'y' )
-          ( from = 'd' to = 'z' ) )
+        ii_mapper      = zcl_ajson_mapping=>create_rename( lt_map
         ) )->stringify( )
       exp = '{"b":{"y":2},"x":1,"z":{"e":3}}' ).
 
@@ -229,11 +239,18 @@ class ltcl_camel_case implementation.
 
   method rename_by_path.
 
+    data lt_map type zif_ajson_mapping=>tty_rename_map.
+    field-symbols <i> like line of lt_map.
+
+    append initial line to lt_map assigning <i>.
+    <i>-from = '/b/a'.
+    <i>-to   = 'x'.
+
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>create_from(
         ii_source_json = zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}' )
         ii_mapper      = zcl_ajson_mapping=>create_rename(
-          it_rename_map = value #( ( from = '/b/a' to = 'x' ) )
+          it_rename_map = lt_map
           iv_rename_by  = zcl_ajson_mapping=>rename_by-full_path
         ) )->stringify( )
       exp = '{"a":1,"b":{"x":2},"c":{"a":3}}' ).
@@ -242,11 +259,18 @@ class ltcl_camel_case implementation.
 
   method rename_by_pattern.
 
+    data lt_map type zif_ajson_mapping=>tty_rename_map.
+    field-symbols <i> like line of lt_map.
+
+    append initial line to lt_map assigning <i>.
+    <i>-from = '/*/this*'.
+    <i>-to   = 'x'.
+
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>create_from(
         ii_source_json = zcl_ajson=>parse( '{"andthisnot":1,"b":{"thisone":2},"c":{"a":3}}' )
         ii_mapper      = zcl_ajson_mapping=>create_rename(
-          it_rename_map = value #( ( from = '/*/this*' to = 'x' ) )
+          it_rename_map = lt_map
           iv_rename_by  = zcl_ajson_mapping=>rename_by-pattern
         ) )->stringify( )
       exp = '{"andthisnot":1,"b":{"x":2},"c":{"a":3}}' ).
@@ -255,12 +279,19 @@ class ltcl_camel_case implementation.
 
   method compound_mapper.
 
+    data lt_map type zif_ajson_mapping=>tty_rename_map.
+    field-symbols <i> like line of lt_map.
+
+    append initial line to lt_map assigning <i>.
+    <i>-from = '/b/a'.
+    <i>-to   = 'x'.
+
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>create_from(
         ii_source_json = zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}' )
         ii_mapper      = zcl_ajson_mapping=>create_compound_mapper(
           ii_mapper1 = zcl_ajson_mapping=>create_rename(
-            it_rename_map = value #( ( from = '/b/a' to = 'x' ) )
+            it_rename_map = lt_map
             iv_rename_by  = zcl_ajson_mapping=>rename_by-full_path )
           ii_mapper2 = zcl_ajson_mapping=>create_upper_case( ) )
         )->stringify( )
