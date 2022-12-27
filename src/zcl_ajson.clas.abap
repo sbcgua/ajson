@@ -36,6 +36,11 @@ class zcl_ajson definition
       stringify for zif_ajson~stringify.
 
     aliases:
+      clone for zif_ajson~clone,
+      filter for zif_ajson~filter,
+      map for zif_ajson~map.
+
+    aliases:
       mt_json_tree for zif_ajson~mt_json_tree,
       keep_item_order for zif_ajson~keep_item_order,
       format_datetime for zif_ajson~format_datetime,
