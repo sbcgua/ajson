@@ -189,6 +189,12 @@ class ltcl_camel_case implementation.
         ii_mapper      = zcl_ajson_mapping=>create_upper_case( ) )->stringify( )
       exp = '{"A":1,"B":{"C":2}}' ).
 
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>parse( '{"a":1,"b":{"c":2}}'
+        )->map( zcl_ajson_mapping=>create_upper_case( )
+        )->stringify( )
+      exp = '{"A":1,"B":{"C":2}}' ).
+
   endmethod.
 
   method to_lower.
@@ -197,6 +203,12 @@ class ltcl_camel_case implementation.
       act = zcl_ajson=>create_from(
         ii_source_json = zcl_ajson=>parse( '{"A":1,"B":{"C":2}}' )
         ii_mapper      = zcl_ajson_mapping=>create_lower_case( ) )->stringify( )
+      exp = '{"a":1,"b":{"c":2}}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>parse( '{"A":1,"B":{"C":2}}'
+        )->map( zcl_ajson_mapping=>create_lower_case( )
+        )->stringify( )
       exp = '{"a":1,"b":{"c":2}}' ).
 
   endmethod.
