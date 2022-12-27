@@ -48,6 +48,27 @@ interface zif_ajson
 
   data mt_json_tree type ty_nodes_ts read-only.
 
+  " CLONING
+  methods clone
+    returning
+      value(ri_json) type ref to zif_ajson
+    raising
+      zcx_ajson_error.
+  methods filter
+    importing
+      ii_filter type ref to zif_ajson_filter
+    returning
+      value(ri_json) type ref to zif_ajson
+    raising
+      zcx_ajson_error.
+  methods map
+    importing
+      ii_mapper type ref to zif_ajson_mapping
+    returning
+      value(ri_json) type ref to zif_ajson
+    raising
+      zcx_ajson_error.
+
   " METHODS
 
   methods freeze.

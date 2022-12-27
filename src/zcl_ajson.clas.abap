@@ -1,6 +1,6 @@
 class zcl_ajson definition
   public
-  create private .
+  create public .
 
   public section.
 
@@ -36,6 +36,11 @@ class zcl_ajson definition
       stringify for zif_ajson~stringify.
 
     aliases:
+      clone for zif_ajson~clone,
+      filter for zif_ajson~filter,
+      map for zif_ajson~map.
+
+    aliases:
       mt_json_tree for zif_ajson~mt_json_tree,
       keep_item_order for zif_ajson~keep_item_order,
       format_datetime for zif_ajson~format_datetime,
@@ -51,23 +56,35 @@ class zcl_ajson definition
       raising
         zcx_ajson_error .
 
-    class-methods create_empty
+    class-methods create_empty " Might be deprecated, prefer using new( ) or create object
       importing
         !ii_custom_mapping type ref to zif_ajson_mapping optional
+        iv_keep_item_order type abap_bool default abap_false
+        iv_format_datetime type abap_bool default abap_true
       returning
         value(ro_instance) type ref to zcl_ajson.
 
     " Experimental ! May change
-    class-methods create_from
+    class-methods create_from " TODO, rename to 'from' ?
       importing
         !ii_source_json type ref to zif_ajson
-        !ii_filter type ref to zif_ajson_filter optional
+        !ii_filter type ref to zif_ajson_filter optional " Might be deprecated, use filter() instead
+        !ii_mapper type ref to zif_ajson_mapping optional " Might be deprecated, use map() instead
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
         zcx_ajson_error .
 
-    methods constructor.
+    methods constructor
+      importing
+        iv_keep_item_order type abap_bool default abap_false
+        iv_format_datetime type abap_bool default abap_true.
+    class-methods new
+      importing
+        iv_keep_item_order type abap_bool default abap_false
+        iv_format_datetime type abap_bool default abap_true
+      returning
+        value(ro_instance) type ref to zcl_ajson.
 
   protected section.
 
@@ -107,44 +124,51 @@ ENDCLASS.
 
 CLASS ZCL_AJSON IMPLEMENTATION.
 
-  method zif_ajson~opts.
-    rs_opts-read_only       = mv_read_only.
-    rs_opts-format_datetime = mv_format_datetime.
-    rs_opts-keep_item_order = mv_keep_item_order.
-  endmethod.
 
   method constructor.
-    format_datetime( abap_true ).
+    mv_keep_item_order = iv_keep_item_order.
+    format_datetime( iv_format_datetime ).
   endmethod.
 
 
   method create_empty.
-    create object ro_instance.
+    create object ro_instance
+      exporting
+        iv_format_datetime = iv_format_datetime
+        iv_keep_item_order = iv_keep_item_order.
     ro_instance->mi_custom_mapping = ii_custom_mapping.
   endmethod.
 
 
   method create_from.
 
-    data lo_filter_runner type ref to lcl_filter_runner.
+    data lo_mutator_queue type ref to lcl_mutator_queue.
 
     if ii_source_json is not bound.
       zcx_ajson_error=>raise( 'Source not bound' ).
     endif.
 
-    create object ro_instance.
+    create object ro_instance
+      exporting
+        iv_format_datetime = ii_source_json->opts( )-format_datetime
+        iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
 
-    if ii_filter is bound.
-      create object lo_filter_runner.
-      lo_filter_runner->run(
-        exporting
-          ii_filter = ii_filter
-          it_source_tree = ii_source_json->mt_json_tree
-        changing
-          ct_dest_tree = ro_instance->mt_json_tree ).
-    else.
+    if ii_filter is not bound and ii_mapper is not bound.
       ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
-      " Copy keep order and custom mapping ???
+    else.
+      create object lo_mutator_queue.
+      if ii_mapper is bound.
+        " Mapping goes first. But maybe it should be a freely definable queue of processors ?
+        lo_mutator_queue->add( lcl_mapper_runner=>new( ii_mapper ) ).
+      endif.
+      if ii_filter is bound.
+        lo_mutator_queue->add( lcl_filter_runner=>new( ii_filter ) ).
+      endif.
+      lo_mutator_queue->lif_mutator_runner~run(
+        exporting
+          it_source_tree = ii_source_json->mt_json_tree
+        importing
+          et_dest_tree = ro_instance->mt_json_tree ).
     endif.
 
   endmethod.
@@ -198,6 +222,14 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       get reference of <item> into rv_item.
     endif.
 
+  endmethod.
+
+
+  method new.
+    create object ro_instance
+      exporting
+        iv_format_datetime = iv_format_datetime
+        iv_keep_item_order = iv_keep_item_order.
   endmethod.
 
 
@@ -313,6 +345,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson~clone.
+    ri_json = create_from( me ).
+  endmethod.
+
+
   method zif_ajson~delete.
 
     read_only_watchdog( ).
@@ -331,6 +368,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~exists.
     rv_exists = boolc( get_item( iv_path ) is not initial ).
+  endmethod.
+
+
+  method zif_ajson~filter.
+    ri_json = create_from(
+      ii_source_json = me
+      ii_filter      = ii_filter ).
   endmethod.
 
 
@@ -467,6 +511,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson~map.
+    ri_json = create_from(
+      ii_source_json = me
+      ii_mapper      = ii_mapper ).
+  endmethod.
+
+
   method zif_ajson~members.
 
     data lv_normalized_path type string.
@@ -478,6 +529,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       append <item>-name to rt_members.
     endloop.
 
+  endmethod.
+
+
+  method zif_ajson~opts.
+    rs_opts-read_only       = mv_read_only.
+    rs_opts-format_datetime = mv_format_datetime.
+    rs_opts-keep_item_order = mv_keep_item_order.
   endmethod.
 
 

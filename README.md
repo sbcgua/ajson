@@ -8,7 +8,13 @@ Yet another json parser/serializer for ABAP. It works with release 7.02 or highe
 **BREAKING CHANGES in v1.1**
 - `zif_ajson_reader` and `zif_ajson_writer` interface removed. Use `zif_ajson`. The last version with those interfaces is *v1.0.4*.
 
-Features:
+**DEPRECATION NOTES**
+- since v1.1.7
+  - there are changes in mapper interface, see [Mapping (field renaming)](#mapping-field-renaming) section below. In essence, implement `rename_node` method if needed, `to_json` and `to_abap` will be deprecated. As well as `create_field_mapping` and `create_camel_case` mappers
+  - potentially `create_empty` static method may be deprecated. It is considered to use `new` instead (and/or direct creation `create object`). Under consideration, post an issue if you have an opinion on this subject.
+  - also `create_from` is potentially suboptimal, so prefer `clone`, `filter` and `map` instead.
+
+## Features
 - parse into a flexible form, not fixed to any predefined data structure, allowing to modify the parsed data, selectively access its parts and slice subsections of it
   - slicing can be particularly useful for REST header separation e.g. `{ "success": 1, "error": "", "payload": {...} }` where 1st level attrs are processed in one layer of your application and payload in another (and can differ from request to request)
 - allows conversion to fixed abap structures/tables (`to_abap`)
@@ -421,16 +427,168 @@ Can be mapped to following structure:
   lo_ajson->to_abap( IMPORTING ev_container = json_timestamp ).
 ```
 
-## Mapping / Formatting JSON
+## Cloning
 
-The interface `zif_ajson_mapping` allows to create custom mapping for ABAP and JSON fields.
+```abap
+  lo_new_json = lo_orig_json->clone( ). " results in new independent json copy
+  " OR ... (but prefer the former)
+  lo_new_json = zcl_ajson=>create_from(
+    ii_source_json = lo_orig_json ).
+```
+
+## Mapping (field renaming)
+
+You can rename json attribute (node) names with a mapper. Typical example for this is making all attribute names upper/lower case or converting camel-snake naming styles (e.g. `helloWorld -> hello_world`).
+
+```abap
+  lo_orig_json = zcl_ajson=>parse( '{"ab":1,"bc":2}' ).
+  lo_new_json = lo_orig_json->map( li_mapper ). -> " E.g. '{"AB":1,"BC":2}'
+  " OR ... (but prefer the former)
+  lo_new_json = zcl_ajson=>create_from(
+    ii_source_json = lo_orig_json
+    ii_mapper      = li_mapper ). 
+```
+
+where `li_mapper` would be an instance of `zif_ajson_mapping`.
+
+AJSON implements a couple of frequent convertors in `zcl_ajson_mapping` class, in particular:
+- upper/lower case
+- to camel case (`camelCase`)
+- to snake case (`snake_case`)
+
+You can also implement you custom mapper. To do this you have to implement `zif_ajson_mapping->rename_node()`. It accepts the json nodes item-by-item and may change name via `cv_name` parameter. E.g.
+
+```abap
+  method zif_ajson_mapping~rename_field.
+    if cv_name+0(1) = 'a'. " Upper case all fields that start with "a"
+      cv_name = to_upper( cv_name ).
+    endif.
+  endmethod.
+```
+
+A realistic use case would be converting an external API result, which are often camel-cased (as this is very common in java script world), and then converting it into abap structure:
+
+```abap
+  data:
+    begin of ls_api_response,
+      error_code type string,
+      ...
+    end of ls_api_response.
+
+  lo_orig_json = zcl_ajson=>parse( lv_api_response_string ). " { "errorCode": 0, ... }
+  lo_new_json = zcl_ajson=>create_from(
+    ii_source_json = lo_orig_json
+    ii_mapper      = zcl_ajson_mapping=>camel_to_snake( ) ).
+  lo_new_json->to_abap( importing ev_container = ls_api_response )
+```
+... or simpler and chained (combined with filter) ...
+```abap
+  zcl_ajson=>parse( lv_api_response_string
+    )->filter( zcl_ajson_filter_lib=>create_path_filter(
+      iv_skip_paths = '*/@*' " remove meta attributes
+      iv_pattern_search = abap_true ) )
+    )->map( zcl_ajson_mapping=>camel_to_snake( )
+    )->to_abap( importing ev_container = ls_api_response ).
+```
+
+### "Boxed-in" mappers
+
+Several typical mappers were implemented within `zcl_ajson_mapping` class:
+
+- upper case node names
+```abap
+zcl_ajson=>parse( '{"a":1,"b":{"c":2}}'
+  )->map( zcl_ajson_mapping=>create_upper_case( ) ).
+  " {"A":1,"B":{"C":2}}
+```
+
+- lower case node names
+```abap
+zcl_ajson=>parse( '{"A":1,"B":{"C":2}}'
+  )->map( zcl_ajson_mapping=>create_lower_case( ) ).
+  " {"a":1,"b":{"c":2}}
+```
+
+- rename nodes
+```abap
+" Purely by name
+zcl_ajson=>parse( '{"a":1,"b":{"c":2},"d":{"e":3}}'
+  )->map( zcl_ajson_mapping=>create_rename( value #(
+    ( from = 'a' to = 'x' )
+    ( from = 'c' to = 'y' )
+    ( from = 'd' to = 'z' ) )
+  ) ).
+  " {"b":{"y":2},"x":1,"z":{"e":3}}
+
+" Or by full path
+zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}'
+  )->map( zcl_ajson_mapping=>create_rename(
+    it_rename_map = value #( ( from = '/b/a' to = 'x' ) )
+    iv_rename_by  = zcl_ajson_mapping=>rename_by-full_path
+  ) ).
+  " {"a":1,"b":{"x":2},"c":{"a":3}}
+
+" Or by pattern
+zcl_ajson=>parse( '{"andthisnot":1,"b":{"thisone":2},"c":{"a":3}}'
+  )->map( zcl_ajson_mapping=>create_rename(
+    it_rename_map = value #( ( from = '/*/this*' to = 'x' ) )
+    iv_rename_by  = zcl_ajson_mapping=>rename_by-pattern
+  ) ).
+  " {"andthisnot":1,"b":{"x":2},"c":{"a":3}}
+```
+- combine several arbitrary mappers together
+```abap
+zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}'
+  )->map( zcl_ajson_mapping=>create_compound_mapper(
+    ii_mapper1 = zcl_ajson_mapping=>create_rename(
+      it_rename_map = value #( ( from = '/b/a' to = 'x' ) )
+      iv_rename_by  = zcl_ajson_mapping=>rename_by-full_path )
+    ii_mapper2 = zcl_ajson_mapping=>create_upper_case( ) )
+  ).
+  " {"A":1,"B":{"X":2},"C":{"A":3}}'
+```
+
+- convert node names to snake case
+```abap
+zcl_ajson=>parse( '{"aB":1,"BbC":2,"cD":{"xY":3},"ZZ":4}'
+  )->map( zcl_ajson_mapping=>create_to_snake_case( ) ).
+  " {"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}
+```
+
+- convert node names to camel case
+```abap
+zcl_ajson=>parse( '{"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}'
+  )->map( zcl_ajson_mapping=>create_to_camel_case( ) ).
+  " {"aB":1,"bbC":2,"cD":{"xY":3},"zz":4}
+
+" Optionally upper case first letter too
+zcl_ajson=>parse( '{"aj_bc":1}'
+  )->map( zcl_ajson_mapping=>create_to_camel_case(
+    iv_first_json_upper = abap_true ) ).
+  " {"AjBc":1}
+```
+
+All the above examples will also work with static `create_from()` method (but don't prefer it, might be deprecated).
+```abap
+zcl_ajson=>create_from(
+  ii_source_json = zcl_ajson=>parse( '{"aj_bc":1}' )
+  ii_mapper = zcl_ajson_mapping=>create_to_camel_case( )
+).
+  " {"ajBc":1}
+```
+
+### Mapping via to_abap and to_json (DEPRECATED)
+
+**This approach is depreciated and will be removed in future versions, please use `rename_field` approach described above**
+
+The interface `zif_ajson_mapping` allows to create custom mapping for ABAP and JSON fields via implementing `to_abap` and `to_json` methods.
 
 Some mappings are provided by default:
 - ABAP <=> JSON mapping fields
 - JSON formatting to Camel Case
 - JSON formatting to UPPER/lower case
 
-### Example: JSON => ABAP mapping fields
+#### Example: JSON => ABAP mapping fields
 
 JSON Input
 ```json
@@ -463,7 +621,7 @@ Example code snippet
   lo_ajson->to_abap( importing ev_container = ls_result ).
 ```
 
-### Example: ABAP => JSON mapping fields
+#### Example: ABAP => JSON mapping fields
 
 Example code snippet
 ```abap
@@ -498,7 +656,7 @@ JSON Output
 {"field":"value","json.field":"field_value"}
 ```
 
-### Example: Camel Case - To JSON (first letter lower case)
+#### Example: Camel Case - To JSON (first letter lower case)
 
 Example code snippet
 ```abap
@@ -524,7 +682,7 @@ JSON Output
 {"fieldData":"field_value"}
 ```
 
-### Example: Camel Case - To JSON (first letter upper case)
+#### Example: Camel Case - To JSON (first letter upper case)
 
 Example code snippet
 ```abap
@@ -550,7 +708,7 @@ JSON Output
 {"FieldData":"field_value"}
 ```
 
-### Example: Camel Case - To ABAP
+#### Example: Camel Case - To ABAP
 
 JSON Input
 ```json
@@ -574,7 +732,7 @@ Example code snippet
   lo_ajson->to_abap( importing ev_container = ls_result ).
 ```
 
-### Example: Lower Case - To JSON
+#### Example: Lower Case - To JSON
 
 Example code snippet
 ```abap
@@ -600,7 +758,7 @@ JSON Output
 {"field_data":"field_value"}
 ```
 
-### Example: Upper Case - To JSON
+#### Example: Upper Case - To JSON
 
 Example code snippet
 ```abap
@@ -628,7 +786,8 @@ JSON Output
 
 ## Filtering
 
-*This is an experimental feature, the interface may change*
+*This is an experimental feature, the interface may change.*
+*`filter()` method looks more favorable option*
 
 This feature allows creating a json from existing one skipping some nodes. E.g. empty values, predefined paths or using your custom filter.
 
@@ -637,22 +796,24 @@ This feature allows creating a json from existing one skipping some nodes. E.g. 
 - Remove empty values
 ```abap
   " li_json_source: { "a":1, "b":0, "c":{ "d":"" } }
+  li_json_filtered = li_json_source->filter( zcl_ajson_filter_lib=>create_empty_filter( ) ).
+  " li_json_filtered: { "a":1 }
+  " OR ... (but prefer the former)
   li_json_filtered = zcl_ajson=>create_from(
     ii_source_json = li_json_source
     ii_filter = zcl_ajson_filter_lib=>create_empty_filter( ) ).
-  " li_json_filtered: { "a":1 }
 ```
 
 - Remove predefined paths
 ```abap
   " li_json_source: { "a":1, "b":0, "c":{ "d":"" } }
-  li_json_filtered = zcl_ajson=>create_from(
-    ii_source_json = li_json_source
-    ii_filter = zcl_ajson_filter_lib=>create_path_filter( 
-      it_skip_paths = value #( ( '/b' ) ( '/c' ) ) ) ).
+  li_json_filtered = li_json_source->filter( 
+    zcl_ajson_filter_lib=>create_path_filter(
+      it_skip_paths = value #( ( '/b' ) ( '/c' ) )
+  ) ).
   " li_json_filtered: { "a":1 }
   
-  " OR
+  " OR also
   ...
   zcl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/b,/c' ).
   ...
@@ -677,6 +838,13 @@ This feature allows creating a json from existing one skipping some nodes. E.g. 
 ### Custom filters
 
 In order to apply a custom filter you have to implement a class with `zif_ajson_filter` interface. The interface has one method `keep_node` which receives `is_node` - json tree node of `zif_ajson=>ty_node` type and also the `iv_visit` param. `iv_visit` will be `zif_ajson_filter=>visit_type-value` for all final leafs (str,num,bool,null) and will get `visit_type-open` or `visit_type-close` values for objects and arrays. So the objects and arrays will be called twice - before and after filtering - this allows examining their children number before and after the current filtering. For example of implementation see local implementations of `zcl_ajson_filter_lib` class.
+
+```abap
+  method zif_ajson_filter~keep_node.
+    " remove all nodes starting with 'x'
+    rv_keep = boolc( is_node-name is initial or is_node-name+0(1) <> 'x' ).
+  endmethod.
+```
 
 ## Utilities
 

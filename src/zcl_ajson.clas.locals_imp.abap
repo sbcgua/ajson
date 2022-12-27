@@ -1682,19 +1682,34 @@ class lcl_abap_to_json implementation.
 endclass.
 
 **********************************************************************
+* MUTATOR INTERFACE
+**********************************************************************
+
+interface lif_mutator_runner.
+  methods run
+    importing
+      it_source_tree type zif_ajson=>ty_nodes_ts
+    exporting
+      et_dest_tree type zif_ajson=>ty_nodes_ts
+    raising
+      zcx_ajson_error.
+endinterface.
+
+**********************************************************************
 * FILTER RUNNER
 **********************************************************************
 
 class lcl_filter_runner definition final.
   public section.
-    methods run
+    interfaces lif_mutator_runner.
+    class-methods new
       importing
         ii_filter type ref to zif_ajson_filter
-        it_source_tree type zif_ajson=>ty_nodes_ts
-      changing
-        ct_dest_tree type zif_ajson=>ty_nodes_ts
-      raising
-        zcx_ajson_error.
+      returning
+        value(ro_instance) type ref to lcl_filter_runner.
+    methods constructor
+      importing
+        ii_filter type ref to zif_ajson_filter.
 
   private section.
     data mi_filter type ref to zif_ajson_filter.
@@ -1713,14 +1728,20 @@ endclass.
 
 class lcl_filter_runner implementation.
 
-  method run.
+  method new.
+    create object ro_instance exporting ii_filter = ii_filter.
+  endmethod.
 
+  method constructor.
     assert ii_filter is bound.
     mi_filter = ii_filter.
-    clear ct_dest_tree.
+  endmethod.
 
+  method lif_mutator_runner~run.
+
+    clear et_dest_tree.
     get reference of it_source_tree into mr_source_tree.
-    get reference of ct_dest_tree into mr_dest_tree.
+    get reference of et_dest_tree into mr_dest_tree.
 
     walk( iv_path = '' ).
 
@@ -1775,6 +1796,190 @@ class lcl_filter_runner implementation.
       endif.
       insert ls_node into table mr_dest_tree->*.
 
+    endloop.
+
+  endmethod.
+
+endclass.
+
+**********************************************************************
+* MAPPER RUNNER
+**********************************************************************
+
+class lcl_mapper_runner definition final.
+  public section.
+    interfaces lif_mutator_runner.
+    class-methods new
+      importing
+        ii_mapper type ref to zif_ajson_mapping
+      returning
+        value(ro_instance) type ref to lcl_mapper_runner.
+    methods constructor
+      importing
+        ii_mapper type ref to zif_ajson_mapping.
+
+  private section.
+    data mi_mapper type ref to zif_ajson_mapping.
+    data mr_source_tree type ref to zif_ajson=>ty_nodes_ts.
+    data mr_dest_tree type ref to zif_ajson=>ty_nodes_ts.
+
+    methods process_deep_node
+      importing
+        iv_path         type string
+        iv_renamed_path type string
+        iv_node_type    type zif_ajson=>ty_node-type
+      raising
+        zcx_ajson_error.
+
+endclass.
+
+class lcl_mapper_runner implementation.
+
+  method new.
+    create object ro_instance exporting ii_mapper = ii_mapper.
+  endmethod.
+
+  method constructor.
+    assert ii_mapper is bound.
+    mi_mapper = ii_mapper.
+  endmethod.
+
+  method lif_mutator_runner~run.
+
+    field-symbols <root> like line of it_source_tree.
+
+    read table it_source_tree with key path = `` name = `` assigning <root>.
+    if sy-subrc <> 0 or not ( <root>-type = zif_ajson=>node_type-array or <root>-type = zif_ajson=>node_type-object ).
+      " empty or one-value-only tree
+      et_dest_tree = it_source_tree.
+      return.
+    endif.
+
+    clear et_dest_tree.
+    get reference of it_source_tree into mr_source_tree.
+    get reference of et_dest_tree into mr_dest_tree.
+    insert <root> into table et_dest_tree.
+
+    process_deep_node(
+      iv_path         = `/`
+      iv_renamed_path = `/`
+      iv_node_type    = <root>-type ).
+
+  endmethod.
+
+  method process_deep_node.
+
+
+    field-symbols <item> like line of mr_source_tree->*.
+    data ls_renamed_node like <item>.
+
+    loop at mr_source_tree->* assigning <item> where path = iv_path.
+      ls_renamed_node = <item>.
+      if iv_node_type <> zif_ajson=>node_type-array.
+        " don't rename array item names -> they are numeric index
+        mi_mapper->rename_node(
+          exporting
+            is_node = <item>
+          changing
+            cv_name = ls_renamed_node-name ).
+        if ls_renamed_node-name is initial.
+          zcx_ajson_error=>raise(
+            iv_msg  = 'Renamed node name cannot be empty'
+            is_node = <item> ).
+        endif.
+      endif.
+      ls_renamed_node-path = iv_renamed_path.
+
+      insert ls_renamed_node into table mr_dest_tree->*.
+      if sy-subrc <> 0. " = 4 ?
+        zcx_ajson_error=>raise(
+          iv_msg  = 'Renamed node has a duplicate'
+          is_node = ls_renamed_node ).
+      endif.
+
+      " maybe also catch CX_SY_ITAB_DUPLICATE_KEY but secondary keys are not changed here, so not for now
+
+      if <item>-type = zif_ajson=>node_type-array or <item>-type = zif_ajson=>node_type-object.
+        process_deep_node(
+          iv_path         = iv_path && <item>-name && `/`
+          iv_renamed_path = iv_renamed_path && ls_renamed_node-name && `/`
+          iv_node_type    = <item>-type ).
+      endif.
+
+    endloop.
+
+  endmethod.
+
+endclass.
+
+**********************************************************************
+* MUTATOR QUEUE
+**********************************************************************
+
+class lcl_mutator_queue definition final.
+  public section.
+    interfaces lif_mutator_runner.
+    class-methods new
+      returning
+        value(ro_instance) type ref to lcl_mutator_queue.
+    methods add
+      importing
+        ii_mutator type ref to lif_mutator_runner
+      returning
+        value(ro_self) type ref to lcl_mutator_queue.
+
+  private section.
+    data mt_queue type standard table of ref to lif_mutator_runner.
+
+endclass.
+
+class lcl_mutator_queue implementation.
+
+  method add.
+    if ii_mutator is bound.
+      append ii_mutator to mt_queue.
+    endif.
+    ro_self = me.
+  endmethod.
+
+  method new.
+    create object ro_instance.
+  endmethod.
+
+  method lif_mutator_runner~run.
+
+    data li_mutator type ref to lif_mutator_runner.
+    data lv_qsize type i.
+    field-symbols <from> like it_source_tree.
+    field-symbols <to> like it_source_tree.
+    data lr_buf type ref to zif_ajson=>ty_nodes_ts.
+
+    lv_qsize = lines( mt_queue ).
+
+    if lv_qsize = 0.
+      et_dest_tree = it_source_tree.
+      return.
+    endif.
+
+    loop at mt_queue into li_mutator.
+      if sy-tabix = 1.
+        assign it_source_tree to <from>.
+      else.
+        assign lr_buf->* to <from>.
+      endif.
+
+      if sy-tabix = lv_qsize.
+        assign et_dest_tree to <to>.
+      else.
+        create data lr_buf.
+        assign lr_buf->* to <to>.
+      endif.
+
+      li_mutator->run(
+        exporting
+          it_source_tree = <from>
+        importing
+          et_dest_tree = <to> ).
     endloop.
 
   endmethod.

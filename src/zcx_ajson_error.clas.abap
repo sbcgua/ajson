@@ -43,11 +43,14 @@ public section.
     importing
       !IV_MSG type STRING
       !IV_LOCATION type STRING optional
+      !IS_NODE type zif_ajson=>ty_node optional
     raising
       ZCX_AJSON_ERROR .
   methods set_location
     importing
-      iv_location type string.
+      !IV_LOCATION type string optional
+      !IS_NODE type zif_ajson=>ty_node optional
+      preferred parameter IV_LOCATION.
 protected section.
 private section.
   types:
@@ -87,41 +90,37 @@ endmethod.
 
 method raise.
 
-  data ls_msg type ty_message_parts.
-  data lv_tmp type string.
+  data lx type ref to zcx_ajson_error.
 
-  if iv_location is initial.
-    lv_tmp = iv_msg.
-  else.
-    lv_tmp = iv_msg && | @{ iv_location }|.
-  endif.
-  ls_msg = lv_tmp.
-
-  raise exception type zcx_ajson_error
-    exporting
-      textid   = zcx_ajson_error
-      message  = iv_msg
-      location = iv_location
-      a1       = ls_msg-a1
-      a2       = ls_msg-a2
-      a3       = ls_msg-a3
-      a4       = ls_msg-a4.
+  create object lx exporting message = iv_msg.
+  lx->set_location(
+    iv_location = iv_location
+    is_node     = is_node ).
+  raise exception lx.
 
 endmethod.
 
 method set_location.
 
   data ls_msg type ty_message_parts.
+  data lv_location type string.
   data lv_tmp type string.
 
-  if iv_location is initial.
-    lv_tmp = message.
-  else.
-    lv_tmp = message && | @{ iv_location }|.
+  if iv_location is not initial.
+    lv_location = iv_location.
+  elseif is_node is not initial.
+    lv_location = is_node-path && is_node-name.
   endif.
+
+  if lv_location is not initial.
+    lv_tmp = message && | @{ lv_location }|.
+  else.
+    lv_tmp = message.
+  endif.
+
   ls_msg = lv_tmp.
 
-  location = iv_location.
+  location = lv_location.
   a1       = ls_msg-a1.
   a2       = ls_msg-a2.
   a3       = ls_msg-a3.

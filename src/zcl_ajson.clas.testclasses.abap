@@ -3997,3 +3997,400 @@ class ltcl_filter_test implementation.
   endmethod.
 
 endclass.
+
+**********************************************************************
+* MAPPER TEST
+**********************************************************************
+
+class ltcl_mapper_test definition final
+  for testing
+  duration short
+  risk level harmless.
+
+  public section.
+    interfaces zif_ajson_mapping.
+
+  private section.
+
+    methods simple_test for testing raising zcx_ajson_error.
+    methods array_test for testing raising zcx_ajson_error.
+    methods duplication_test for testing raising zcx_ajson_error.
+    methods empty_name_test for testing raising zcx_ajson_error.
+    methods trivial for testing raising zcx_ajson_error.
+
+endclass.
+
+class ltcl_mapper_test implementation.
+
+  method zif_ajson_mapping~rename_node.
+    if cv_name+0(1) = 'a'.
+      cv_name = to_upper( cv_name ).
+    endif.
+    if cv_name = 'set_this_empty'.
+      clear cv_name.
+    endif.
+    " watch dog for array
+    if is_node-index <> 0.
+      cl_abap_unit_assert=>fail( 'rename must not be called for direct array items' ).
+    endif.
+  endmethod.
+
+  method zif_ajson_mapping~to_abap.
+  endmethod.
+
+  method zif_ajson_mapping~to_json.
+  endmethod.
+
+  method simple_test.
+
+    data lo_json type ref to zcl_ajson.
+    data lo_json_filtered type ref to zcl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    lo_json = zcl_ajson=>create_empty( ).
+    lo_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    lo_json->set(
+      iv_path = '/bc'
+      iv_val  = 2 ).
+    lo_json->set(
+      iv_path = '/c/ax'
+      iv_val  = 3 ).
+    lo_json->set(
+      iv_path = '/c/by'
+      iv_val  = 4 ).
+    lo_json->set(
+      iv_path = '/a/ax'
+      iv_val  = 5 ).
+    lo_json->set(
+      iv_path = '/a/by'
+      iv_val  = 6 ).
+
+    lo_json_filtered = zcl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_mapper      = me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |4' ).
+    lo_nodes_exp->add( '/      |AB    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |bc    |num    |2    | |0' ).
+    lo_nodes_exp->add( '/      |c     |object |     | |2' ).
+    lo_nodes_exp->add( '/c/    |AX    |num    |3    | |0' ).
+    lo_nodes_exp->add( '/c/    |by    |num    |4    | |0' ).
+    lo_nodes_exp->add( '/      |A     |object |     | |2' ).
+    lo_nodes_exp->add( '/A/    |AX    |num    |5    | |0' ).
+    lo_nodes_exp->add( '/A/    |by    |num    |6    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_json_filtered->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method array_test.
+
+    data lo_json type ref to zcl_ajson.
+    data lo_json_filtered type ref to zcl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    lo_json = zcl_ajson=>create_empty( ).
+    lo_json->touch_array( iv_path = '/' ).
+    lo_json->set(
+      iv_path = '/1/ab'
+      iv_val  = 1 ).
+    lo_json->set(
+      iv_path = '/1/bc'
+      iv_val  = 2 ).
+    lo_json->set(
+      iv_path = '/2/ax'
+      iv_val  = 3 ).
+    lo_json->set(
+      iv_path = '/2/by'
+      iv_val  = 4 ).
+
+    lo_json_filtered = zcl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_mapper      = me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |array  |     | |2' ).
+    lo_nodes_exp->add( '/      |1     |object |     |1|2' ).
+    lo_nodes_exp->add( '/      |2     |object |     |2|2' ).
+    lo_nodes_exp->add( '/1/    |AB    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/1/    |bc    |num    |2    | |0' ).
+    lo_nodes_exp->add( '/2/    |AX    |num    |3    | |0' ).
+    lo_nodes_exp->add( '/2/    |by    |num    |4    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_json_filtered->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+  endmethod.
+
+  method duplication_test.
+
+    data lo_json type ref to zcl_ajson.
+    data lx_err type ref to zcx_ajson_error.
+
+    lo_json = zcl_ajson=>create_empty( ).
+    lo_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    lo_json->set(
+      iv_path = '/AB'
+      iv_val  = 2 ).
+
+    try.
+      zcl_ajson=>create_from(
+        ii_source_json = lo_json
+        ii_mapper      = me ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx_err.
+      cl_abap_unit_assert=>assert_char_cp(
+        act = lx_err->get_text( )
+        exp = 'Renamed node has a duplicate @/AB' ).
+    endtry.
+
+  endmethod.
+
+  method trivial.
+
+    data lo_json type ref to zcl_ajson.
+    data lo_json_filtered type ref to zcl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    lo_json = zcl_ajson=>create_empty( ).
+    lo_json_filtered = zcl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_mapper      = me ).
+    cl_abap_unit_assert=>assert_initial( lo_json_filtered->mt_json_tree ).
+
+    lo_json->set(
+      iv_path = '/'
+      iv_val  = 1 ).
+    lo_json_filtered = zcl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_mapper      = me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |num    |1    | |0' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_json_filtered->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method empty_name_test.
+
+    data lo_json type ref to zcl_ajson.
+    data lx_err type ref to zcx_ajson_error.
+
+    lo_json = zcl_ajson=>create_empty( ).
+    lo_json->set(
+      iv_path = '/set_this_empty'
+      iv_val  = 1 ).
+
+    try.
+      zcl_ajson=>create_from(
+        ii_source_json = lo_json
+        ii_mapper      = me ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx_err.
+      cl_abap_unit_assert=>assert_char_cp(
+        act = lx_err->get_text( )
+        exp = 'Renamed node name cannot be empty @/set_this_empty' ).
+    endtry.
+
+  endmethod.
+
+endclass.
+
+**********************************************************************
+* CLONING TEST
+**********************************************************************
+
+class ltcl_cloning_test definition final
+  for testing
+  duration short
+  risk level harmless.
+
+  public section.
+    interfaces zif_ajson_mapping.
+    interfaces zif_ajson_filter.
+
+  private section.
+
+    methods clone_test for testing raising zcx_ajson_error.
+    methods filter_test for testing raising zcx_ajson_error.
+    methods mapper_test for testing raising zcx_ajson_error.
+    methods mapper_and_filter for testing raising zcx_ajson_error.
+    methods opts_copying for testing raising zcx_ajson_error.
+
+endclass.
+
+class ltcl_cloning_test implementation.
+
+  method clone_test.
+
+    data li_json type ref to zif_ajson.
+    data li_json_new type ref to zif_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    li_json = zcl_ajson=>create_empty( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 2 ).
+
+    li_json_new = li_json->clone( ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |2' ).
+    lo_nodes_exp->add( '/      |ab    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |xy    |num    |2    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+    " ensure disconnection
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 5 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json->get_integer( '/ab' )
+      exp = 5 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->get_integer( '/ab' )
+      exp = 1 ).
+
+  endmethod.
+
+  method filter_test.
+
+    data li_json type ref to zif_ajson.
+    data li_json_new type ref to zif_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    li_json = zcl_ajson=>create_empty( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 2 ).
+
+    li_json_new = li_json->filter( me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |1' ).
+    lo_nodes_exp->add( '/      |ab    |num    |1    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method mapper_test.
+
+    data li_json type ref to zif_ajson.
+    data li_json_new type ref to zif_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    li_json = zcl_ajson=>create_empty( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 2 ).
+
+    li_json_new = li_json->map( me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |2' ).
+    lo_nodes_exp->add( '/      |AB    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |xy    |num    |2    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method zif_ajson_mapping~rename_node.
+    if cv_name+0(1) = 'a'.
+      cv_name = to_upper( cv_name ).
+    endif.
+  endmethod.
+
+  method zif_ajson_mapping~to_abap.
+
+  endmethod.
+
+  method zif_ajson_mapping~to_json.
+
+  endmethod.
+
+  method zif_ajson_filter~keep_node.
+    rv_keep = boolc( is_node-name is initial or is_node-name+0(1) <> 'x' ).
+  endmethod.
+
+  method mapper_and_filter.
+
+    data li_json type ref to zif_ajson.
+    data li_json_new type ref to zif_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    li_json = zcl_ajson=>new( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/bc'
+      iv_val  = 2 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 3 ).
+
+    li_json_new = zcl_ajson=>create_from(
+      ii_source_json = li_json
+      ii_filter = me
+      ii_mapper = me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |2' ).
+    lo_nodes_exp->add( '/      |AB    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |bc    |num    |2    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method opts_copying.
+
+    data li_json type ref to zif_ajson.
+    data li_json_new type ref to zif_ajson.
+
+    li_json = zcl_ajson=>new( )->keep_item_order( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+
+    li_json_new = li_json->clone( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->opts( )-keep_item_order
+      exp = abap_true ).
+
+  endmethod.
+
+endclass.

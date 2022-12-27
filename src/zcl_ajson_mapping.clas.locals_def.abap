@@ -3,9 +3,6 @@ class lcl_mapping_fields definition.
   public section.
     interfaces zif_ajson_mapping.
 
-    aliases to_abap for zif_ajson_mapping~to_abap.
-    aliases to_json for zif_ajson_mapping~to_json.
-
     methods constructor
       importing
         it_mapping_fields type zif_ajson_mapping~ty_mapping_fields optional.
@@ -17,6 +14,23 @@ class lcl_mapping_fields definition.
 
 endclass.
 
+class lcl_rename definition.
+
+  public section.
+    interfaces zif_ajson_mapping.
+
+    methods constructor
+      importing
+        it_rename_map type zif_ajson_mapping~tty_rename_map
+        iv_rename_by type i.
+
+  protected section.
+
+  private section.
+    data mt_rename_map type zif_ajson_mapping~tty_rename_map.
+    data mv_rename_by type i.
+
+endclass.
 
 class lcl_mapping_to_upper definition.
 
@@ -68,4 +82,35 @@ class lcl_mapping_camel definition.
     data mv_first_json_upper type abap_bool.
     data mi_mapping_fields type ref to zif_ajson_mapping.
 
+endclass.
+
+class lcl_compound_mapper definition.
+
+  public section.
+    interfaces zif_ajson_mapping.
+
+    methods constructor
+      importing
+        it_queue type zif_ajson_mapping=>ty_table_of.
+
+  protected section.
+
+  private section.
+    data mt_queue type zif_ajson_mapping=>ty_table_of.
+
+endclass.
+
+class lcl_to_snake definition.
+  public section.
+    interfaces zif_ajson_mapping.
+endclass.
+
+class lcl_to_camel definition.
+  public section.
+    interfaces zif_ajson_mapping.
+    methods constructor
+      importing
+        iv_first_json_upper type abap_bool.
+  private section.
+    data mv_first_json_upper type abap_bool.
 endclass.
