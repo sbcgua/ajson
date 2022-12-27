@@ -83,7 +83,7 @@ class lcl_rename implementation.
           endif.
         endloop.
       when others.
-        sy-subrc = 4. " No rename
+        lv_pair_found = abap_false. " No rename
     endcase.
 
     if lv_pair_found = abap_true.

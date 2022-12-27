@@ -26,7 +26,7 @@
     "check_subrc": false,
     "classic_exceptions_overlap": true,
     "constant_classes": true,
-    "cyclic_oo": true,
+    "cyclic_oo": false,
     "cyclomatic_complexity": false,
     "dangerous_statement": true,
     "db_operation_in_loop": true,
@@ -226,7 +226,7 @@
     "message_exists": true,
     "method_length": {
       "statements": 100,
-      "errorWhenEmpty": true,
+      "errorWhenEmpty": false,
       "checkForms": true,
       "ignoreTestClasses": false
     },
@@ -310,7 +310,7 @@
     },
     "parser_error": true,
     "prefer_inline": true,
-    "prefer_returning_to_exporting": true,
+    "prefer_returning_to_exporting": false,
     "preferred_compare_operator": {
       "exclude": [],
       "badOperators": [
@@ -366,7 +366,7 @@
     "type_form_parameters": true,
     "types_naming": {
       "exclude": [],
-      "pattern": "^(TY|T.{1,2})_.+$"
+      "pattern": "^(TY|T.{1,2}|LTY)_.+$"
     },
     "unknown_types": true,
     "unreachable_code": true,
