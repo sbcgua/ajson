@@ -10,16 +10,20 @@ Legend
 
 v1.1.7, 2022-??
 -----------------
-* Fixed keep order when overwriteiung existing node values (#113)
+* Fixed keep order when overwriting existing node values (#113)
 * Use ":" as timestamp time separator (#122, @jrodriguez-rc)
 * Fixed proper initial timestamp formatting (#120, @jrodriguez-rc)
 * Fix warning related to timestamp rounding (#129, @mbtools)
+* Fixed keeping internal options (keep_order, date_format) while cloning an instance (#137)
 + Support ENUM types (#116, @christianguenter2)
 + Added zif_ajson->opts methods, to get current instance behavior parameters
 + Added possibility to filter path by pattern (cp-like)
 + Added possibility to acqure only corresponding fields to abap structure (#125, #8, @postavka)
 * fixes in UTs to be compatible with 7.02 (#134, @schneidermic0)
 * code cleanups (usage of syst #135, avoid built-in names #136, @mbtools)
++ added "new" method. As a replacement for "create_empty" (which might be DEPRECATED!)
++ New mapper approach, changed interface (rename_node method) and implementation. Old approach (to_abap/to_json) will be DEPRECATED!. (#117)
++ Added semantically better methods for cloning: clone, map, filter (#117)
 
 v1.1.6, 2022-07-15
 ------------------
