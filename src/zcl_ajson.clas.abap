@@ -90,11 +90,10 @@ class zcl_ajson definition
 
   private section.
 
-    data mv_read_only type abap_bool.
+    data ms_opts type zif_ajson=>ty_opts.
     data mi_custom_mapping type ref to zif_ajson_mapping.
     data mv_keep_item_order type abap_bool.
     data mv_format_datetime type abap_bool.
-    " TODO restructure into zif_ajson=>ty_opts
 
     methods get_item
       importing
@@ -126,7 +125,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method constructor.
-    mv_keep_item_order = iv_keep_item_order.
+    ms_opts-keep_item_order = iv_keep_item_order.
     format_datetime( iv_format_datetime ).
   endmethod.
 
@@ -292,7 +291,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method read_only_watchdog.
-    if mv_read_only = abap_true.
+    if ms_opts-read_only = abap_true.
       zcx_ajson_error=>raise( 'This json instance is read only' ).
     endif.
   endmethod.
@@ -379,13 +378,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method zif_ajson~format_datetime.
-    mv_format_datetime = iv_use_iso.
+    ms_opts-format_datetime = iv_use_iso.
     ri_json = me.
   endmethod.
 
 
   method zif_ajson~freeze.
-    mv_read_only = abap_true.
+    ms_opts-read_only = abap_true.
   endmethod.
 
 
@@ -506,7 +505,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method zif_ajson~keep_item_order.
-    mv_keep_item_order = abap_true.
+    ms_opts-keep_item_order = abap_true.
     ri_json = me.
   endmethod.
 
@@ -533,9 +532,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method zif_ajson~opts.
-    rs_opts-read_only       = mv_read_only.
-    rs_opts-format_datetime = mv_format_datetime.
-    rs_opts-keep_item_order = mv_keep_item_order.
+    rs_opts = ms_opts.
   endmethod.
 
 
@@ -789,7 +786,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     rv_json = lcl_json_serializer=>stringify(
       it_json_tree       = mt_json_tree
-      iv_keep_item_order = mv_keep_item_order
+      iv_keep_item_order = ms_opts-keep_item_order
       iv_indent          = iv_indent ).
 
   endmethod.
@@ -833,7 +830,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       ls_new_node-name = ls_split_path-name.
       ls_new_node-type = zif_ajson=>node_type-array.
 
-      if mv_keep_item_order = abap_true and ls_deleted_node is not initial.
+      if ms_opts-keep_item_order = abap_true and ls_deleted_node is not initial.
         ls_new_node-order = ls_deleted_node-order.
       endif.
 
