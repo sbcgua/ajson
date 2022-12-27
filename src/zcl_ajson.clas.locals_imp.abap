@@ -1911,3 +1911,77 @@ class lcl_mapper_runner implementation.
   endmethod.
 
 endclass.
+
+**********************************************************************
+* MUTATOR QUEUE
+**********************************************************************
+
+class lcl_mutator_queue definition final.
+  public section.
+    interfaces lif_mutator_runner.
+    class-methods new
+      returning
+        value(ro_instance) type ref to lcl_mutator_queue.
+    methods add
+      importing
+        ii_mutator type ref to lif_mutator_runner
+      returning
+        value(ro_self) type ref to lcl_mutator_queue.
+
+  private section.
+    data mt_queue type standard table of ref to lif_mutator_runner.
+
+endclass.
+
+class lcl_mutator_queue implementation.
+
+  method add.
+    if ii_mutator is bound.
+      append ii_mutator to mt_queue.
+    endif.
+    ro_self = me.
+  endmethod.
+
+  method new.
+    create object ro_instance.
+  endmethod.
+
+  method lif_mutator_runner~run.
+
+    data li_mutator type ref to lif_mutator_runner.
+    data lv_qsize type i.
+    field-symbols <from> like it_source_tree.
+    field-symbols <to> like it_source_tree.
+    data lr_buf type ref to zif_ajson=>ty_nodes_ts.
+
+    lv_qsize = lines( mt_queue ).
+
+    if lv_qsize = 0.
+      et_dest_tree = it_source_tree.
+      return.
+    endif.
+
+    loop at mt_queue into li_mutator.
+      if sy-tabix = 1.
+        assign it_source_tree to <from>.
+      else.
+        assign lr_buf->* to <from>.
+      endif.
+
+      if sy-tabix = lv_qsize.
+        assign et_dest_tree to <to>.
+      else.
+        create data lr_buf.
+        assign lr_buf->* to <to>.
+      endif.
+
+      li_mutator->run(
+        exporting
+          it_source_tree = <from>
+        importing
+          et_dest_tree = <to> ).
+    endloop.
+
+  endmethod.
+
+endclass.

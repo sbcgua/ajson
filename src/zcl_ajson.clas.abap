@@ -1,6 +1,6 @@
 class zcl_ajson definition
   public
-  create private .
+  create public .
 
   public section.
 
@@ -56,9 +56,11 @@ class zcl_ajson definition
       raising
         zcx_ajson_error .
 
-    class-methods create_empty
+    class-methods create_empty " Might be deprecated, prefer using new( ) or create object
       importing
         !ii_custom_mapping type ref to zif_ajson_mapping optional
+        iv_keep_item_order type abap_bool default abap_false
+        iv_format_datetime type abap_bool default abap_true
       returning
         value(ro_instance) type ref to zcl_ajson.
 
@@ -66,14 +68,23 @@ class zcl_ajson definition
     class-methods create_from " TODO, rename to 'from' ?
       importing
         !ii_source_json type ref to zif_ajson
-        !ii_filter type ref to zif_ajson_filter optional
-        !ii_mapper type ref to zif_ajson_mapping optional
+        !ii_filter type ref to zif_ajson_filter optional " Might be deprecated, use filter() instead
+        !ii_mapper type ref to zif_ajson_mapping optional " Might be deprecated, use map() instead
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
         zcx_ajson_error .
 
-    methods constructor.
+    methods constructor
+      importing
+        iv_keep_item_order type abap_bool default abap_false
+        iv_format_datetime type abap_bool default abap_true.
+    class-methods new
+      importing
+        iv_keep_item_order type abap_bool default abap_false
+        iv_format_datetime type abap_bool default abap_true
+      returning
+        value(ro_instance) type ref to zcl_ajson.
 
   protected section.
 
@@ -120,63 +131,50 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
   method constructor.
-    format_datetime( abap_true ).
+    mv_keep_item_order = iv_keep_item_order.
+    format_datetime( iv_format_datetime ).
   endmethod.
 
 
   method create_empty.
-    create object ro_instance.
+    create object ro_instance
+      exporting
+        iv_format_datetime = iv_format_datetime
+        iv_keep_item_order = iv_keep_item_order.
     ro_instance->mi_custom_mapping = ii_custom_mapping.
   endmethod.
 
 
   method create_from.
 
-    data lt_buf like ii_source_json->mt_json_tree.
-    field-symbols <from> like ii_source_json->mt_json_tree.
-    field-symbols <to> like ii_source_json->mt_json_tree.
+    data lo_mutator_queue type ref to lcl_mutator_queue.
 
     if ii_source_json is not bound.
       zcx_ajson_error=>raise( 'Source not bound' ).
     endif.
 
-    create object ro_instance.
+    create object ro_instance
+      exporting
+        iv_format_datetime = ii_source_json->opts( )-format_datetime
+        iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
 
     if ii_filter is not bound and ii_mapper is not bound.
       ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
     else.
-      assign ii_source_json->mt_json_tree to <from>.
-
-      " Mapping goes first. But maybe it should be a freely definable queue of processors ?
+      create object lo_mutator_queue.
       if ii_mapper is bound.
-        if ii_filter is bound.
-          assign lt_buf to <to>.
-        else.
-          assign ro_instance->mt_json_tree to <to>.
-        endif.
-
-        lcl_mapper_runner=>new( ii_mapper )->lif_mutator_runner~run(
-          exporting
-            it_source_tree = <from>
-          importing
-            et_dest_tree = <to> ).
-
-        assign lt_buf to <from>.
+        " Mapping goes first. But maybe it should be a freely definable queue of processors ?
+        lo_mutator_queue->add( lcl_mapper_runner=>new( ii_mapper ) ).
       endif.
-
-      assign ro_instance->mt_json_tree to <to>.
-
       if ii_filter is bound.
-        lcl_filter_runner=>new( ii_filter )->lif_mutator_runner~run(
-          exporting
-            it_source_tree = <from>
-          importing
-            et_dest_tree = <to> ).
+        lo_mutator_queue->add( lcl_filter_runner=>new( ii_filter ) ).
       endif.
+      lo_mutator_queue->lif_mutator_runner~run(
+        exporting
+          it_source_tree = ii_source_json->mt_json_tree
+        importing
+          et_dest_tree = ro_instance->mt_json_tree ).
     endif.
-
-    ro_instance->mv_format_datetime = ii_source_json->opts( )-format_datetime.
-    ro_instance->mv_keep_item_order = ii_source_json->opts( )-keep_item_order.
 
   endmethod.
 
@@ -231,6 +229,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   endmethod.
 
+
+  method new.
+    create object ro_instance
+      exporting
+        iv_format_datetime = iv_format_datetime
+        iv_keep_item_order = iv_keep_item_order.
+  endmethod.
 
   method parse.
 

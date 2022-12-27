@@ -4223,6 +4223,8 @@ class ltcl_cloning_test definition final
     methods clone_test for testing raising zcx_ajson_error.
     methods filter_test for testing raising zcx_ajson_error.
     methods mapper_test for testing raising zcx_ajson_error.
+    methods mapper_and_filter for testing raising zcx_ajson_error.
+    methods opts_copying for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -4338,6 +4340,57 @@ class ltcl_cloning_test implementation.
 
   method zif_ajson_filter~keep_node.
     rv_keep = boolc( is_node-name is initial or is_node-name+0(1) <> 'x' ).
+  endmethod.
+
+  method mapper_and_filter.
+
+    data li_json type ref to zif_ajson.
+    data li_json_new type ref to zif_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+
+    li_json = zcl_ajson=>new( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/bc'
+      iv_val  = 2 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 3 ).
+
+    li_json_new = zcl_ajson=>create_from(
+      ii_source_json = li_json
+      ii_filter = me
+      ii_mapper = me ).
+
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |2' ).
+    lo_nodes_exp->add( '/      |AB    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |bc    |num    |2    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method opts_copying.
+
+    data li_json type ref to zif_ajson.
+    data li_json_new type ref to zif_ajson.
+
+    li_json = zcl_ajson=>new( )->keep_item_order( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+
+    li_json_new = li_json->clone( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->opts( )-keep_item_order
+      exp = abap_true ).
+
   endmethod.
 
 endclass.
