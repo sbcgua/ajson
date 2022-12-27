@@ -1,4 +1,4 @@
-class lcl_mapping_fields implementation.
+class lcl_mapping_fields implementation. "DEPRECATED
 
 
   method constructor.
@@ -170,7 +170,7 @@ class lcl_mapping_to_lower implementation.
 endclass.
 
 
-class lcl_mapping_camel implementation.
+class lcl_mapping_camel implementation. "DEPRECATED
 
 
   method constructor.

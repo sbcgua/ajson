@@ -13,7 +13,7 @@ class zcl_ajson_mapping definition
         " regex type i value 3, " TODO add if needed in future
       end of rename_by.
 
-    class-methods create_camel_case
+    class-methods create_camel_case " DEPRECATED
       importing
         it_mapping_fields   type zif_ajson_mapping=>ty_mapping_fields optional
         iv_first_json_upper type abap_bool default abap_true
@@ -32,7 +32,7 @@ class zcl_ajson_mapping definition
       returning
         value(ri_mapping) type ref to zif_ajson_mapping.
 
-    class-methods create_field_mapping
+    class-methods create_field_mapping " DEPRECATED
       importing
         it_mapping_fields type zif_ajson_mapping=>ty_mapping_fields
       returning
@@ -136,13 +136,17 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
   endmethod.
 
   method create_to_snake_case.
+
     create object ri_mapping type lcl_to_snake.
+
   endmethod.
 
   method create_to_camel_case.
+
     create object ri_mapping type lcl_to_camel
       exporting
         iv_first_json_upper = iv_first_json_upper.
+
   endmethod.
 
 ENDCLASS.
