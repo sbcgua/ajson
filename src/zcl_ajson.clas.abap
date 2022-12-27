@@ -124,11 +124,6 @@ ENDCLASS.
 
 CLASS ZCL_AJSON IMPLEMENTATION.
 
-  method zif_ajson~opts.
-    rs_opts-read_only       = mv_read_only.
-    rs_opts-format_datetime = mv_format_datetime.
-    rs_opts-keep_item_order = mv_keep_item_order.
-  endmethod.
 
   method constructor.
     mv_keep_item_order = iv_keep_item_order.
@@ -236,6 +231,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         iv_format_datetime = iv_format_datetime
         iv_keep_item_order = iv_keep_item_order.
   endmethod.
+
 
   method parse.
 
@@ -349,6 +345,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson~clone.
+    ri_json = create_from( me ).
+  endmethod.
+
+
   method zif_ajson~delete.
 
     read_only_watchdog( ).
@@ -367,6 +368,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~exists.
     rv_exists = boolc( get_item( iv_path ) is not initial ).
+  endmethod.
+
+
+  method zif_ajson~filter.
+    ri_json = create_from(
+      ii_source_json = me
+      ii_filter      = ii_filter ).
   endmethod.
 
 
@@ -503,6 +511,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson~map.
+    ri_json = create_from(
+      ii_source_json = me
+      ii_mapper      = ii_mapper ).
+  endmethod.
+
+
   method zif_ajson~members.
 
     data lv_normalized_path type string.
@@ -514,6 +529,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       append <item>-name to rt_members.
     endloop.
 
+  endmethod.
+
+
+  method zif_ajson~opts.
+    rs_opts-read_only       = mv_read_only.
+    rs_opts-format_datetime = mv_format_datetime.
+    rs_opts-keep_item_order = mv_keep_item_order.
   endmethod.
 
 
@@ -842,21 +864,4 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         c_container = ev_container ).
 
   endmethod.
-
-  method zif_ajson~clone.
-    ri_json = create_from( me ).
-  endmethod.
-
-  method zif_ajson~filter.
-    ri_json = create_from(
-      ii_source_json = me
-      ii_filter      = ii_filter ).
-  endmethod.
-
-  method zif_ajson~map.
-    ri_json = create_from(
-      ii_source_json = me
-      ii_mapper      = ii_mapper ).
-  endmethod.
-
 ENDCLASS.
