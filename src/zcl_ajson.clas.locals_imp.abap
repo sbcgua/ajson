@@ -1065,8 +1065,7 @@ class lcl_abap_to_json definition final.
         is_prefix          type zif_ajson=>ty_path_name optional
         iv_array_index     type i default 0
         ii_custom_mapping  type ref to zif_ajson_mapping optional
-        iv_keep_item_order type abap_bool default abap_false
-        iv_format_datetime type abap_bool default abap_false
+        is_opts            type zif_ajson=>ty_opts optional
         iv_item_order      type i default 0
       returning
         value(rt_nodes)   type zif_ajson=>ty_nodes_tt
@@ -1080,8 +1079,7 @@ class lcl_abap_to_json definition final.
         is_prefix          type zif_ajson=>ty_path_name optional
         iv_array_index     type i default 0
         ii_custom_mapping  type ref to zif_ajson_mapping optional
-        iv_keep_item_order type abap_bool default abap_false
-        iv_format_datetime type abap_bool default abap_false
+        is_opts            type zif_ajson=>ty_opts optional
         iv_item_order      type i default 0
       returning
         value(rt_nodes)   type zif_ajson=>ty_nodes_tt
@@ -1218,8 +1216,8 @@ class lcl_abap_to_json implementation.
 
     create object lo_converter.
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
-    lo_converter->mv_keep_item_order = iv_keep_item_order.
-    lo_converter->mv_format_datetime = iv_format_datetime.
+    lo_converter->mv_keep_item_order = is_opts-keep_item_order.
+    lo_converter->mv_format_datetime = is_opts-format_datetime.
 
     lo_converter->convert_any(
       exporting
@@ -1615,8 +1613,8 @@ class lcl_abap_to_json implementation.
 
     create object lo_converter.
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
-    lo_converter->mv_keep_item_order = iv_keep_item_order.
-    lo_converter->mv_format_datetime = iv_format_datetime.
+    lo_converter->mv_keep_item_order = is_opts-keep_item_order.
+    lo_converter->mv_format_datetime = is_opts-format_datetime.
 
     lo_converter->insert_value_with_type(
       exporting
