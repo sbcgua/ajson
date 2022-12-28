@@ -91,9 +91,7 @@ class zcl_ajson definition
   private section.
 
     data ms_opts type zif_ajson=>ty_opts.
-    data mi_custom_mapping type ref to zif_ajson_mapping.
-    data mv_keep_item_order type abap_bool.
-    data mv_format_datetime type abap_bool.
+    data mi_custom_mapping type ref to zif_ajson_mapping. " DEPRECATED, will be removed
 
     methods get_item
       importing
@@ -562,7 +560,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     ls_new_path-name = |{ lv_new_index }|.
 
     lt_new_nodes = lcl_abap_to_json=>convert(
-      iv_keep_item_order = mv_keep_item_order
+      is_opts            = ms_opts
       iv_data   = iv_val
       is_prefix = ls_new_path ).
     read table lt_new_nodes index 1 reference into lr_new_node. " assume first record is the array item - not ideal !
@@ -602,16 +600,14 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     if ls_split_path is initial. " Assign root, exceptional processing
       if iv_node_type is not initial.
         mt_json_tree = lcl_abap_to_json=>insert_with_type(
-          iv_format_datetime = mv_format_datetime
-          iv_keep_item_order = mv_keep_item_order
+          is_opts            = ms_opts
           iv_data            = iv_val
           iv_type            = iv_node_type
           is_prefix          = ls_split_path
           ii_custom_mapping  = mi_custom_mapping ).
       else.
         mt_json_tree = lcl_abap_to_json=>convert(
-          iv_format_datetime = mv_format_datetime
-          iv_keep_item_order = mv_keep_item_order
+          is_opts            = ms_opts
           iv_data            = iv_val
           is_prefix          = ls_split_path
           ii_custom_mapping  = mi_custom_mapping ).
@@ -641,8 +637,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     if iv_node_type is not initial.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
-        iv_format_datetime = mv_format_datetime
-        iv_keep_item_order = mv_keep_item_order
+        is_opts            = ms_opts
         iv_item_order      = ls_deleted_node-order
         iv_data            = iv_val
         iv_type            = iv_node_type
@@ -651,8 +646,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         ii_custom_mapping  = mi_custom_mapping ).
     else.
       lt_new_nodes = lcl_abap_to_json=>convert(
-        iv_format_datetime = mv_format_datetime
-        iv_keep_item_order = mv_keep_item_order
+        is_opts            = ms_opts
         iv_item_order      = ls_deleted_node-order
         iv_data            = iv_val
         iv_array_index     = lv_array_index
