@@ -43,14 +43,14 @@ public section.
     importing
       !IV_MSG type STRING
       !IV_LOCATION type STRING optional
-      !IS_NODE type zif_ajson=>ty_node optional
+      !IS_NODE type ANY optional
     raising
       ZCX_AJSON_ERROR .
-  methods set_location
+  methods SET_LOCATION
     importing
-      !IV_LOCATION type string optional
-      !IS_NODE type zif_ajson=>ty_node optional
-      preferred parameter IV_LOCATION.
+      !IV_LOCATION type STRING optional
+      !IS_NODE type ANY optional
+    preferred parameter IV_LOCATION .
 protected section.
 private section.
   types:
@@ -67,7 +67,7 @@ ENDCLASS.
 CLASS ZCX_AJSON_ERROR IMPLEMENTATION.
 
 
-method CONSTRUCTOR.
+  method CONSTRUCTOR.
 CALL METHOD SUPER->CONSTRUCTOR
 EXPORTING
 PREVIOUS = PREVIOUS
@@ -85,7 +85,7 @@ if textid is initial.
 else.
   IF_T100_MESSAGE~T100KEY = TEXTID.
 endif.
-endmethod.
+  endmethod.
 
 
 method raise.
@@ -100,16 +100,23 @@ method raise.
 
 endmethod.
 
+
 method set_location.
 
   data ls_msg type ty_message_parts.
   data lv_location type string.
   data lv_tmp type string.
+  field-symbols <path> type string.
+  field-symbols <name> type string.
 
   if iv_location is not initial.
     lv_location = iv_location.
   elseif is_node is not initial.
-    lv_location = is_node-path && is_node-name.
+    assign component 'PATH' of structure is_node to <path>.
+    assign component 'NAME' of structure is_node to <name>.
+    if <path> is assigned and <name> is assigned.
+      lv_location = <path> && <name>.
+    endif.
   endif.
 
   if lv_location is not initial.
@@ -127,5 +134,4 @@ method set_location.
   a4       = ls_msg-a4.
 
 endmethod.
-
 ENDCLASS.
