@@ -187,6 +187,14 @@ interface zif_ajson
     raising
       zcx_ajson_error.
 
+  methods setx
+    importing
+      iv_param type string
+    returning
+      value(ri_json) type ref to zif_ajson
+    raising
+      zcx_ajson_error.
+
   methods set_boolean
     importing
       iv_path type string

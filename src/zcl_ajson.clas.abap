@@ -24,6 +24,7 @@ class zcl_ajson definition
     aliases:
       clear for zif_ajson~clear,
       set for zif_ajson~set,
+      setx for zif_ajson~setx,
       set_boolean for zif_ajson~set_boolean,
       set_string for zif_ajson~set_string,
       set_integer for zif_ajson~set_integer,
@@ -659,6 +660,13 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       lr_parent->children = lr_parent->children + 1.
       insert lines of lt_new_nodes into table mt_json_tree.
     endif.
+
+  endmethod.
+
+
+  method zif_ajson~setx.
+
+    ri_json = me.
 
   endmethod.
 
