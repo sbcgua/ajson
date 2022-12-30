@@ -1975,6 +1975,7 @@ class ltcl_writer_test definition final
     methods overwrite_w_keep_order_touch for testing raising zcx_ajson_error.
     methods overwrite_w_keep_order_set for testing raising zcx_ajson_error.
     methods setx for testing raising zcx_ajson_error.
+    methods setx_float for testing raising zcx_ajson_error.
     methods setx_complex for testing raising zcx_ajson_error.
 
     methods set_with_type_slice
@@ -3094,10 +3095,6 @@ class ltcl_writer_test implementation.
       exp = '{"a":1}' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = zcl_ajson=>new( )->setx( '/a:1.123' )->stringify( )
-      exp = '{"a":1.123}' ).
-
-    cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>new( )->setx( '/a:"1"' )->stringify( )
       exp = '{"a":"1"}' ).
 
@@ -3133,6 +3130,32 @@ class ltcl_writer_test implementation.
       act = zcl_ajson=>new( )->setx( ':1' )->stringify( )
       exp = '1' ). " Hmmm ?
 
+    " TODO some negative tests like "/a:", ""
+
+  endmethod.
+
+  method setx_float.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>new( )->setx( '/a:1.123' )->stringify( )
+      exp = '{"a":1.123}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>new( )->setx( '/a:00.123' )->stringify( )
+      exp = '{"a":0.123}' ). " hmmm
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>new( )->setx( '/a:.123' )->stringify( )
+      exp = '{"a":".123"}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>new( )->setx( '/a:123.' )->stringify( )
+      exp = '{"a":"123."}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>new( )->setx( '/a:1..123' )->stringify( )
+      exp = '{"a":"1..123"}' ).
+
   endmethod.
 
   method setx_complex.
@@ -3142,8 +3165,28 @@ class ltcl_writer_test implementation.
       exp = '{"a":{"b":1}}' ).
 
     cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>new( )->setx( '/a:{}' )->stringify( )
+      exp = '{"a":{}}' ).
+
+    cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>new( )->setx( '/a:[1, 2]' )->stringify( )
       exp = '{"a":[1,2]}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zcl_ajson=>new( )->setx( '/a:[]' )->stringify( )
+      exp = '{"a":[]}' ).
+
+    try.
+      zcl_ajson=>new( )->setx( '/a:{"b" : 1' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error.
+    endtry.
+
+    try.
+      zcl_ajson=>new( )->setx( '/a:[1, 2' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error.
+    endtry.
 
   endmethod.
 
