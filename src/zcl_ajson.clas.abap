@@ -714,7 +714,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       "Expect object/array, but no further checks, parser will catch errors
       zif_ajson~set(
         iv_path = lv_path
-        iv_val  = zcl_ajson=>parse( lv_val ) ).
+        iv_val  = parse( lv_val ) ).
     else. " string
       lv_last = strlen( lv_val ) - 1.
       if lv_val+0(1) = '"' and lv_val+lv_last(1) = '"'.
