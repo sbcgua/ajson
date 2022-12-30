@@ -91,9 +91,10 @@ class zcl_ajson definition
 
   private section.
 
+    class-data go_float_regex type ref to cl_abap_regex.
+
     data ms_opts type zif_ajson=>ty_opts.
     data mi_custom_mapping type ref to zif_ajson_mapping. " DEPRECATED, will be removed
-    data go_float_regex type ref to cl_abap_regex.
 
     methods get_item
       importing
