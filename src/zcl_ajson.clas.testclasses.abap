@@ -3142,7 +3142,7 @@ class ltcl_writer_test implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>new( )->setx( '/a:00.123' )->stringify( )
-      exp = '{"a":0.123}' ). " hmmm
+      exp = '{"a":"00.123"}' ). " hmmm
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>new( )->setx( '/a:.123' )->stringify( )

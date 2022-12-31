@@ -687,7 +687,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     endif.
 
     if go_float_regex is not bound.
-      create object go_float_regex exporting pattern = '^[0-9]+\.[0-9]+$'.
+      create object go_float_regex exporting pattern = '^([1-9][0-9]*|0)\.[0-9]+$'.
       " expects fractional, because ints are detected separately
     endif.
 
