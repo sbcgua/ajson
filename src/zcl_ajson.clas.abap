@@ -24,6 +24,7 @@ class zcl_ajson definition
     aliases:
       clear for zif_ajson~clear,
       set for zif_ajson~set,
+      setx for zif_ajson~setx,
       set_boolean for zif_ajson~set_boolean,
       set_string for zif_ajson~set_string,
       set_integer for zif_ajson~set_integer,
@@ -89,6 +90,8 @@ class zcl_ajson definition
   protected section.
 
   private section.
+
+    class-data go_float_regex type ref to cl_abap_regex.
 
     data ms_opts type zif_ajson=>ty_opts.
     data mi_custom_mapping type ref to zif_ajson_mapping. " DEPRECATED, will be removed
@@ -659,6 +662,74 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       lr_parent->children = lr_parent->children + 1.
       insert lines of lt_new_nodes into table mt_json_tree.
     endif.
+
+  endmethod.
+
+
+  method zif_ajson~setx.
+
+    data lv_path type string.
+    data lv_val type string.
+    data lv_int type i.
+    data lv_dec type decfloat34.
+    data lv_last type i.
+
+    if iv_param is initial.
+      return.
+    endif.
+
+    split iv_param at ':' into lv_path lv_val.
+    condense lv_path.
+    condense lv_val.
+
+    if lv_val is initial.
+      return. " Hmm ? or empty string ? or null ?
+    endif.
+
+    if go_float_regex is not bound.
+      create object go_float_regex exporting pattern = '^([1-9][0-9]*|0)\.[0-9]+$'.
+      " expects fractional, because ints are detected separately
+    endif.
+
+    if lv_val = 'null'.
+      zif_ajson~set_null( lv_path ).
+    elseif lv_val = 'true'.
+      zif_ajson~set_boolean(
+        iv_path = lv_path
+        iv_val  = abap_true ).
+    elseif lv_val = 'false'.
+      zif_ajson~set_boolean(
+        iv_path = lv_path
+        iv_val  = abap_false ).
+    elseif lv_val co '0123456789'.
+      lv_int = lv_val.
+      zif_ajson~set_integer(
+        iv_path = lv_path
+        iv_val  = lv_int ).
+    elseif lv_val co '0123456789.' and go_float_regex->create_matcher( text = lv_val )->match( ) = abap_true.
+      lv_dec = lv_val.
+      zif_ajson~set(
+        iv_path = lv_path
+        iv_val  = lv_dec ).
+    elseif lv_val+0(1) = '{' or lv_val+0(1) = '['.
+      "Expect object/array, but no further checks, parser will catch errors
+      zif_ajson~set(
+        iv_path = lv_path
+        iv_val  = parse( lv_val ) ).
+    else. " string
+      lv_last = strlen( lv_val ) - 1.
+      if lv_val+0(1) = '"' and lv_val+lv_last(1) = '"'.
+        lv_val = substring(
+          val = lv_val
+          off = 1
+          len = lv_last - 1 ).
+      endif.
+      zif_ajson~set_string(
+        iv_path = lv_path
+        iv_val  = lv_val ).
+    endif.
+
+    ri_json = me.
 
   endmethod.
 

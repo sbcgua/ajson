@@ -19,6 +19,7 @@ Yet another json parser/serializer for ABAP. It works with release 7.02 or highe
   - slicing can be particularly useful for REST header separation e.g. `{ "success": 1, "error": "", "payload": {...} }` where 1st level attrs are processed in one layer of your application and payload in another (and can differ from request to request)
 - allows conversion to fixed abap structures/tables (`to_abap`)
 - convenient interface to manipulate the data - `set( value )`, `set( structure )`, `set( table )`, `set( another_instance_of_ajson )`, also typed e.g. `set_date`
+  - also `setx` for text-based value setting like `setx( '/a/b:123' )` (useful e.g. for constants in APIs or in unit-tests)
 - seralization to string
 - freezing (read only) instance content
 - filtering. Create a json skipping empty values, predefined paths, or your custom filter. *EXPERIMENTAL, interface may change*
@@ -225,6 +226,34 @@ w->set_timestamp(
 w->set_null(
   iv_path = '/a' ). " => "a": null
 
+```
+
+### Text-based set
+
+The method `setx` is a shortcut for full-scale `set`, it attempts to parse a string and detect both path and value from it. Although it is less performant (!) but it is more readable which can be beneficial for some cases where it is not critical e.g. setting constants in APIs or unit tests.  
+**Format**: path and value are separated by `':'`, space around path and around value is trimmed.  
+
+
+```abap
+j->setx( '/a: 1' ).     " { "a": 1 }
+j->setx( '/a: 1.123' ). " { "a": 1.123 }
+j->setx( '/a: abc' ).   " { "a": "abc" }
+j->setx( '/a: "abc"' ). " { "a": "abc" }
+j->setx( '/a: "123"' ). " { "a": "123" } - force string
+j->setx( '/a: null' ).  " { "a": null }
+j->setx( '/a: true' ).  " { "a": true }
+j->setx( '/a: false' ). " { "a": false }
+
+" deep path are supported
+j->setx( '/a/b/c: 1' ).
+
+" and also arrays and objects
+" Note, the object must be in complete json format, with ""
+j->setx( '/a: { "b": "abc" }' ). 
+j->setx( '/a: [1,2,3]' ). 
+
+" The method is chainable
+j->setx( '/a: 1' )->setx( '/b: 2' ).
 ```
 
 #### Deletion and rewriting

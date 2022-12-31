@@ -24,6 +24,7 @@ v1.1.7, 2022-??
 + added "new" method. As a replacement for "create_empty" (which might be DEPRECATED!)
 + New mapper approach, changed interface (rename_node method) and implementation. Old approach (to_abap/to_json) will be DEPRECATED!. (#117)
 + Added semantically better methods for cloning: clone, map, filter (#117)
++ Added setx method for simple text-based value setting (#142)
 
 v1.1.6, 2022-07-15
 ------------------
