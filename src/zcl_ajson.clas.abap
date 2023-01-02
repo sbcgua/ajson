@@ -675,6 +675,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lv_last type i.
 
     if iv_param is initial.
+      ri_json = me.
       return.
     endif.
 
@@ -683,6 +684,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     condense lv_val.
 
     if lv_val is initial.
+      ri_json = me.
       return. " Hmm ? or empty string ? or null ?
     endif.
 
