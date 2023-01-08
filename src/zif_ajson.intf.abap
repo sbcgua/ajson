@@ -6,16 +6,22 @@ interface zif_ajson
   constants license type string value 'MIT'. "#EC NOTEXT
 
   types:
-    ty_node_type type string.
+    ty_node_type type c length 1.
 
   constants:
     begin of node_type,
-      boolean type ty_node_type value 'bool',
-      string  type ty_node_type value 'str',
-      number  type ty_node_type value 'num',
-      null    type ty_node_type value 'null',
-      array   type ty_node_type value 'array',
-      object  type ty_node_type value 'object',
+      boolean type ty_node_type value 'b',
+      string  type ty_node_type value 's',
+      number  type ty_node_type value 'n',
+      null    type ty_node_type value '0',
+      array   type ty_node_type value 'a',
+      object  type ty_node_type value 'o',
+*      boolean type ty_node_type value 'bool',
+*      string  type ty_node_type value 'str',
+*      number  type ty_node_type value 'num',
+*      null    type ty_node_type value 'null',
+*      array   type ty_node_type value 'array',
+*      object  type ty_node_type value 'object',
     end of node_type.
 
   types:
