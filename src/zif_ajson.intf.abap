@@ -13,7 +13,7 @@ interface zif_ajson
       boolean type ty_node_type value 'b',
       string  type ty_node_type value 's',
       number  type ty_node_type value 'n',
-      null    type ty_node_type value '0',
+      null    type ty_node_type value 'u',
       array   type ty_node_type value 'a',
       object  type ty_node_type value 'o',
 *      boolean type ty_node_type value 'bool',
