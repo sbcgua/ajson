@@ -259,22 +259,16 @@ class lcl_json_parser implementation.
 
   method translate_type.
 
-    case iv_parser_type.
-      when 'str'.
-        rv_node_type = zif_ajson=>node_type-string.
-      when 'num'.
-        rv_node_type = zif_ajson=>node_type-number.
-      when 'object'.
-        rv_node_type = zif_ajson=>node_type-object.
-      when 'array'.
-        rv_node_type = zif_ajson=>node_type-array.
-      when 'bool'.
-        rv_node_type = zif_ajson=>node_type-boolean.
-      when 'null'.
-        rv_node_type = zif_ajson=>node_type-null.
-      when others.
-        raise( |Unexpected parser type: { iv_parser_type }| ).
-    endcase.
+    if iv_parser_type is initial.
+      raise( |Unexpected parser type: { iv_parser_type }| ).
+    endif.
+    rv_node_type = iv_parser_type+0(1).
+    if iv_parser_type = 'null'. " num and null starts from n
+      rv_node_type = zif_ajson=>node_type-null.
+    endif.
+    if not rv_node_type ca zif_ajson=>node_type.
+      raise( |Unexpected parser type: { iv_parser_type }| ).
+    endif.
 
   endmethod.
 
