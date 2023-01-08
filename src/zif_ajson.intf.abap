@@ -115,7 +115,7 @@ interface zif_ajson
     importing
       iv_path type string
     returning
-      value(rv_node_type) type string.
+      value(rv_node_type) type ty_node_type.
 
   methods get_boolean
     importing
@@ -184,7 +184,7 @@ interface zif_ajson
       iv_path type string
       iv_val type any
       iv_ignore_empty type abap_bool default abap_true
-      iv_node_type type string optional
+      iv_node_type type ty_node_type optional
     returning
       value(ri_json) type ref to zif_ajson
     raising
