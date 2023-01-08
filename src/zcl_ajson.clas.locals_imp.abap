@@ -280,14 +280,14 @@ class lcl_json_parser implementation.
 
           append initial line to rt_json_tree assigning <item>.
 
-          <item>-type = to_lower( lo_open->qname-name ).
+          <item>-type = lo_open->qname-name.
 
           read table mt_stack index 1 into lr_stack_top.
           if sy-subrc = 0.
             <item>-path = join_path( mt_stack ).
             lr_stack_top->children = lr_stack_top->children + 1.
 
-            if lr_stack_top->type = zif_ajson=>node_type-array.
+            if lr_stack_top->type = `array`. " This is parser type not ajson type
               <item>-name = |{ lr_stack_top->children }|.
               <item>-index = lr_stack_top->children.
             else.
