@@ -1075,7 +1075,7 @@ class lcl_abap_to_json definition final.
     class-methods insert_with_type
       importing
         iv_data            type any
-        iv_type            type string
+        iv_type            type zif_ajson=>ty_node_type
         is_prefix          type zif_ajson=>ty_path_name optional
         iv_array_index     type i default 0
         ii_custom_mapping  type ref to zif_ajson_mapping optional
@@ -1184,7 +1184,7 @@ class lcl_abap_to_json definition final.
     methods insert_value_with_type
       importing
         iv_data type any
-        iv_type type string
+        iv_type type zif_ajson=>ty_node_type
         io_type type ref to cl_abap_typedescr
         is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
