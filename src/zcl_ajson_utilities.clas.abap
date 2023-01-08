@@ -102,7 +102,7 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
       if iv_keep_empty_arrays = abap_false.
         loop at io_json->mt_json_tree into ls_json_tree
-          where type = 'array' and children = 0.
+          where type = zif_ajson=>node_type-array and children = 0.
 
           io_json->delete( ls_json_tree-path && ls_json_tree-name ).
 
@@ -113,7 +113,7 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
       endif.
 
       loop at io_json->mt_json_tree into ls_json_tree
-        where type = 'object' and children = 0.
+        where type = zif_ajson=>node_type-object and children = 0.
 
         io_json->delete( ls_json_tree-path && ls_json_tree-name ).
 
@@ -184,12 +184,12 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
         if <node_a>-type = <node_b>-type.
           case <node_a>-type.
-            when 'array'.
+            when zif_ajson=>node_type-array.
               mo_insert->touch_array( lv_path_a ).
               mo_change->touch_array( lv_path_a ).
               mo_delete->touch_array( lv_path_a ).
               diff_a_b( lv_path_a ).
-            when 'object'.
+            when zif_ajson=>node_type-object.
               diff_a_b( lv_path_a ).
             when others.
               if <node_a>-value <> <node_b>-value.
@@ -203,10 +203,10 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
         else.
           " save changed type as delete + insert
           case <node_a>-type.
-            when 'array'.
+            when zif_ajson=>node_type-array.
               mo_delete->touch_array( lv_path_a ).
               diff_a_b( lv_path_a ).
-            when 'object'.
+            when zif_ajson=>node_type-object.
               diff_a_b( lv_path_a ).
             when others.
               mo_delete->set(
@@ -215,10 +215,10 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
                 iv_node_type = <node_a>-type ).
           endcase.
           case <node_b>-type.
-            when 'array'.
+            when zif_ajson=>node_type-array.
               mo_insert->touch_array( lv_path_b ).
               diff_b_a( lv_path_b ).
-            when 'object'.
+            when zif_ajson=>node_type-object.
               diff_b_a( lv_path_b ).
             when others.
               mo_insert->set(
@@ -230,10 +230,10 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
       else.
         " save as delete
         case <node_a>-type.
-          when 'array'.
+          when zif_ajson=>node_type-array.
             mo_delete->touch_array( lv_path_a ).
             diff_a_b( lv_path_a ).
-          when 'object'.
+          when zif_ajson=>node_type-object.
             diff_a_b( lv_path_a ).
           when others.
             mo_delete->set(
@@ -257,12 +257,12 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
       lv_path = <node_b>-path && <node_b>-name && '/'.
 
       case <node_b>-type.
-        when 'array'.
+        when zif_ajson=>node_type-array.
           mo_insert->touch_array( lv_path ).
           diff_b_a(
             iv_path  = lv_path
             iv_array = abap_true ).
-        when 'object'.
+        when zif_ajson=>node_type-object.
           diff_b_a( lv_path ).
         when others.
           if iv_array = abap_false.

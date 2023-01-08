@@ -1001,31 +1001,31 @@ class ltcl_reader_test implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/' )
-      exp = 'object' ).
+      exp = zif_ajson=>node_type-object ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/string' )
-      exp = 'str' ).
+      exp = zif_ajson=>node_type-string ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/number' )
-      exp = 'num' ).
+      exp = zif_ajson=>node_type-number ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/float' )
-      exp = 'num' ).
+      exp = zif_ajson=>node_type-number ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/boolean' )
-      exp = 'bool' ).
+      exp = zif_ajson=>node_type-boolean ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/false' )
-      exp = 'bool' ).
+      exp = zif_ajson=>node_type-boolean ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/null' )
-      exp = 'null' ).
+      exp = zif_ajson=>node_type-null ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/date' )
-      exp = 'str' ).
+      exp = zif_ajson=>node_type-string ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/issues' )
-      exp = 'array' ).
+      exp = zif_ajson=>node_type-array ).
 
   endmethod.
 
@@ -2985,12 +2985,12 @@ class ltcl_writer_test implementation.
     loop at io_json_in->mt_json_tree assigning <node> where path = iv_path.
       lv_path = <node>-path && <node>-name && '/'.
       case <node>-type.
-        when 'array'.
+        when zif_ajson=>node_type-array.
           io_json_out->touch_array( lv_path ).
           set_with_type_slice( io_json_in  = io_json_in
                                io_json_out = io_json_out
                                iv_path     = lv_path ).
-        when 'object'.
+        when zif_ajson=>node_type-object.
           set_with_type_slice( io_json_in  = io_json_in
                                io_json_out = io_json_out
                                iv_path     = lv_path ).

@@ -287,7 +287,7 @@ class lcl_json_parser implementation.
             <item>-path = join_path( mt_stack ).
             lr_stack_top->children = lr_stack_top->children + 1.
 
-            if lr_stack_top->type = 'array'.
+            if lr_stack_top->type = zif_ajson=>node_type-array.
               <item>-name = |{ lr_stack_top->children }|.
               <item>-index = lr_stack_top->children.
             else.

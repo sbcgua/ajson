@@ -22,7 +22,7 @@ interface zif_ajson
     begin of ty_node,
       path type string,
       name type string,
-      type type string,
+      type type ty_node_type,
       value type string,
       index type i,
       order type i,

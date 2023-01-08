@@ -872,7 +872,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     if ls_split_path is initial. " Assign root, exceptional processing
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
-      ls_new_node-type = 'array'.
+      ls_new_node-type = zif_ajson=>node_type-array.
       insert ls_new_node into table mt_json_tree.
       return.
     endif.
