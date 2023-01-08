@@ -5,14 +5,17 @@ interface zif_ajson
   constants origin type string value 'https://github.com/sbcgua/ajson'. "#EC NOTEXT
   constants license type string value 'MIT'. "#EC NOTEXT
 
+  types:
+    ty_node_type type string.
+
   constants:
     begin of node_type,
-      boolean type string value 'bool',
-      string  type string value 'str',
-      number  type string value 'num',
-      null    type string value 'null',
-      array   type string value 'array',
-      object  type string value 'object',
+      boolean type ty_node_type value 'bool',
+      string  type ty_node_type value 'str',
+      number  type ty_node_type value 'num',
+      null    type ty_node_type value 'null',
+      array   type ty_node_type value 'array',
+      object  type ty_node_type value 'object',
     end of node_type.
 
   types:
