@@ -164,6 +164,14 @@ class lcl_json_parser definition final.
       returning
         value(rv_path) type string.
 
+    methods translate_type
+      importing
+        iv_parser_type type string
+      returning
+        value(rv_node_type) type zif_ajson=>ty_node_type
+      raising
+        zcx_ajson_error.
+
     methods raise
       importing
         iv_error type string
@@ -249,6 +257,27 @@ class lcl_json_parser implementation.
 
   endmethod.
 
+  method translate_type.
+
+    case iv_parser_type.
+      when 'str'.
+        rv_node_type = zif_ajson=>node_type-string.
+      when 'num'.
+        rv_node_type = zif_ajson=>node_type-number.
+      when 'object'.
+        rv_node_type = zif_ajson=>node_type-object.
+      when 'array'.
+        rv_node_type = zif_ajson=>node_type-array.
+      when 'bool'.
+        rv_node_type = zif_ajson=>node_type-boolean.
+      when 'null'.
+        rv_node_type = zif_ajson=>node_type-null.
+      when others.
+        raise( |Unexpected parser type: { iv_parser_type }| ).
+    endcase.
+
+  endmethod.
+
   method _parse.
 
     data lo_reader type ref to if_sxml_reader.
@@ -280,7 +309,7 @@ class lcl_json_parser implementation.
 
           append initial line to rt_json_tree assigning <item>.
 
-          <item>-type = to_lower( lo_open->qname-name ).
+          <item>-type = translate_type( lo_open->qname-name ).
 
           read table mt_stack index 1 into lr_stack_top.
           if sy-subrc = 0.
@@ -312,7 +341,7 @@ class lcl_json_parser implementation.
 
           read table mt_stack index 1 into lr_stack_top.
           delete mt_stack index 1.
-          if lo_close->qname-name <> lr_stack_top->type.
+          if translate_type( lo_close->qname-name ) <> lr_stack_top->type.
             raise( 'Unexpected closing node type' ).
           endif.
 
