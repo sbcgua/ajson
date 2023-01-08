@@ -8,8 +8,8 @@ Legend
 + : added
 - : removed
 
-v1.1.7, 2022-??
------------------
+v1.1.7, 2023-01-08
+------------------
 * Fixed keep order when overwriting existing node values (#113)
 * Use ":" as timestamp time separator (#122, @jrodriguez-rc)
 * Fixed proper initial timestamp formatting (#120, @jrodriguez-rc)
