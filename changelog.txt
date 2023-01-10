@@ -8,6 +8,10 @@ Legend
 + : added
 - : removed
 
+v1.?.?, 2023-??-??
+------------------
+* Parser performance improvements (#143, @mbtools)
+
 v1.1.7, 2023-01-08
 ------------------
 * Fixed keep order when overwriting existing node values (#113)
