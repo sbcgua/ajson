@@ -157,12 +157,7 @@ class lcl_json_parser definition final.
       ty_stack_tt type standard table of ref to zif_ajson=>ty_node.
 
     data mt_stack type ty_stack_tt.
-
-    class-methods join_path
-      importing
-        it_stack type ty_stack_tt
-      returning
-        value(rv_path) type string.
+    data mv_stack_path type string.
 
     methods raise
       importing
@@ -257,6 +252,7 @@ class lcl_json_parser implementation.
     field-symbols <item> like line of rt_json_tree.
 
     clear mt_stack.
+    clear mv_stack_path.
     if iv_json is initial.
       return.
     endif.
@@ -284,7 +280,8 @@ class lcl_json_parser implementation.
 
           read table mt_stack index 1 into lr_stack_top.
           if sy-subrc = 0.
-            <item>-path = join_path( mt_stack ).
+            " Using string is faster than rebuilding path from stack
+            <item>-path = mv_stack_path.
             lr_stack_top->children = lr_stack_top->children + 1.
 
             if lr_stack_top->type = `array`. " This is parser type not ajson type
@@ -305,6 +302,8 @@ class lcl_json_parser implementation.
 
           get reference of <item> into lr_stack_top.
           insert lr_stack_top into mt_stack index 1.
+          " add path component
+          mv_stack_path = mv_stack_path && <item>-name && '/'.
 
         when if_sxml_node=>co_nt_element_close.
           data lo_close type ref to if_sxml_close_element.
@@ -316,6 +315,8 @@ class lcl_json_parser implementation.
             raise( 'Unexpected closing node type' ).
           endif.
 
+          " remove last path component
+          mv_stack_path = substring( val = mv_stack_path len = find( val = mv_stack_path sub = '/' occ = -2 ) + 1 ).
         when if_sxml_node=>co_nt_value.
           data lo_value type ref to if_sxml_value_node.
           lo_value ?= lo_node.
@@ -333,21 +334,11 @@ class lcl_json_parser implementation.
 
   endmethod.
 
-  method join_path.
-
-    field-symbols <ref> like line of it_stack.
-
-    loop at it_stack assigning <ref>.
-      rv_path = <ref>->name && '/' && rv_path.
-    endloop.
-
-  endmethod.
-
   method raise.
 
     zcx_ajson_error=>raise(
-      iv_location = join_path( mt_stack )
-      iv_msg      = |JSON PARSER: { iv_error } @ { join_path( mt_stack ) }| ).
+      iv_location = mv_stack_path
+      iv_msg      = |JSON PARSER: { iv_error } @ { mv_stack_path }| ).
 
   endmethod.
 
