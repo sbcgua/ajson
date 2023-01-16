@@ -5,14 +5,14 @@
 class lcl_nodes_helper definition final.
   public section.
 
-    data mt_nodes type zif_ajson=>ty_nodes_tt read-only.
+    data mt_nodes type zif_ajson_types=>ty_nodes_tt read-only.
 
     methods add
       importing
         iv_str type string.
     methods sorted
       returning
-        value(rt_nodes) type zif_ajson=>ty_nodes_ts.
+        value(rt_nodes) type zif_ajson_types=>ty_nodes_ts.
 
 endclass.
 
