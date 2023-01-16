@@ -1838,7 +1838,8 @@ class lcl_mapper_runner implementation.
     field-symbols <root> like line of it_source_tree.
 
     read table it_source_tree with key path = `` name = `` assigning <root>.
-    if sy-subrc <> 0 or not ( <root>-type = zif_ajson_types=>node_type-array or <root>-type = zif_ajson_types=>node_type-object ).
+    if sy-subrc <> 0
+      or not ( <root>-type = zif_ajson_types=>node_type-array or <root>-type = zif_ajson_types=>node_type-object ).
       " empty or one-value-only tree
       et_dest_tree = it_source_tree.
       return.
