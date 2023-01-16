@@ -13,7 +13,7 @@ interface zif_ajson_filter
 
   methods keep_node
     importing
-      is_node type zif_ajson=>ty_node
+      is_node type zif_ajson_types=>ty_node
       iv_visit type ty_visit_type default visit_type-value
     returning
       value(rv_keep) type abap_bool

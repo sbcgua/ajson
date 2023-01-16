@@ -37,8 +37,8 @@ interface zif_ajson_mapping
 
   methods rename_node
     importing
-      !is_node type zif_ajson=>ty_node
+      !is_node type zif_ajson_types=>ty_node
     changing
-      !cv_name type zif_ajson=>ty_node-name.
+      !cv_name type zif_ajson_types=>ty_node-name.
 
 endinterface.

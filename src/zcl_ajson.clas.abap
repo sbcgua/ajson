@@ -100,21 +100,21 @@ class zcl_ajson definition
       importing
         iv_path        type string
       returning
-        value(rv_item) type ref to zif_ajson=>ty_node.
+        value(rv_item) type ref to zif_ajson_types=>ty_node.
     methods prove_path_exists
       importing
         iv_path              type string
       returning
-        value(rr_end_node) type ref to zif_ajson=>ty_node
+        value(rr_end_node) type ref to zif_ajson_types=>ty_node
       raising
         zcx_ajson_error.
     methods delete_subtree
       importing
         iv_path           type string
         iv_name           type string
-        ir_parent         type ref to zif_ajson=>ty_node optional
+        ir_parent         type ref to zif_ajson_types=>ty_node optional
       returning
-        value(rs_top_node) type zif_ajson=>ty_node.
+        value(rs_top_node) type zif_ajson_types=>ty_node.
     methods read_only_watchdog
       raising
         zcx_ajson_error.
@@ -210,7 +210,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method get_item.
 
     field-symbols <item> like line of mt_json_tree.
-    data ls_path_name type zif_ajson=>ty_path_name.
+    data ls_path_name type zif_ajson_types=>ty_path_name.
     ls_path_name = lcl_utils=>split_path( iv_path ).
 
     read table mt_json_tree
@@ -270,7 +270,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         clear ls_new_node.
         if lr_node_parent is not initial. " if has parent
           lr_node_parent->children = lr_node_parent->children + 1.
-          if lr_node_parent->type = zif_ajson=>node_type-array.
+          if lr_node_parent->type = zif_ajson_types=>node_type-array.
             ls_new_node-index = lcl_utils=>validate_array_index(
               iv_path  = lv_cur_path
               iv_index = lv_cur_name ).
@@ -278,7 +278,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         endif.
         ls_new_node-path = lv_cur_path.
         ls_new_node-name = lv_cur_name.
-        ls_new_node-type = zif_ajson=>node_type-object.
+        ls_new_node-type = zif_ajson_types=>node_type-object.
         insert ls_new_node into table mt_json_tree reference into rr_end_node.
       endif.
       lv_cur_path = lv_cur_path && lv_cur_name && '/'.
@@ -301,7 +301,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method zif_ajson~array_to_string_table.
 
     data lv_normalized_path type string.
-    data lr_node type ref to zif_ajson=>ty_node.
+    data lr_node type ref to zif_ajson_types=>ty_node.
     field-symbols <item> like line of mt_json_tree.
 
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
@@ -310,17 +310,17 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     if lr_node is initial.
       zcx_ajson_error=>raise( |Path not found: { iv_path }| ).
     endif.
-    if lr_node->type <> zif_ajson=>node_type-array.
+    if lr_node->type <> zif_ajson_types=>node_type-array.
       zcx_ajson_error=>raise( |Array expected at: { iv_path }| ).
     endif.
 
     loop at mt_json_tree assigning <item> where path = lv_normalized_path.
       case <item>-type.
-        when zif_ajson=>node_type-number or zif_ajson=>node_type-string.
+        when zif_ajson_types=>node_type-number or zif_ajson_types=>node_type-string.
           append <item>-value to rt_string_table.
-        when zif_ajson=>node_type-null.
+        when zif_ajson_types=>node_type-null.
           append '' to rt_string_table.
-        when zif_ajson=>node_type-boolean.
+        when zif_ajson_types=>node_type-boolean.
           data lv_tmp type string.
           if <item>-value = 'true'.
             lv_tmp = abap_true.
@@ -354,7 +354,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     read_only_watchdog( ).
 
-    data ls_split_path type zif_ajson=>ty_path_name.
+    data ls_split_path type zif_ajson_types=>ty_path_name.
     ls_split_path = lcl_utils=>split_path( iv_path ).
 
     delete_subtree(
@@ -391,7 +391,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get.
 
-    data lr_item type ref to zif_ajson=>ty_node.
+    data lr_item type ref to zif_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
     if lr_item is not initial.
       rv_value = lr_item->value.
@@ -402,11 +402,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_boolean.
 
-    data lr_item type ref to zif_ajson=>ty_node.
+    data lr_item type ref to zif_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    if lr_item is initial or lr_item->type = zif_ajson=>node_type-null.
+    if lr_item is initial or lr_item->type = zif_ajson_types=>node_type-null.
       return.
-    elseif lr_item->type = zif_ajson=>node_type-boolean.
+    elseif lr_item->type = zif_ajson_types=>node_type-boolean.
       rv_value = boolc( lr_item->value = 'true' ).
     elseif lr_item->value is not initial.
       rv_value = abap_true.
@@ -417,14 +417,14 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_date.
 
-    data lr_item type ref to zif_ajson=>ty_node.
+    data lr_item type ref to zif_ajson_types=>ty_node.
     data lv_y type c length 4.
     data lv_m type c length 2.
     data lv_d type c length 2.
 
     lr_item = get_item( iv_path ).
 
-    if lr_item is not initial and lr_item->type = zif_ajson=>node_type-string.
+    if lr_item is not initial and lr_item->type = zif_ajson_types=>node_type-string.
       find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
         in lr_item->value
         submatches lv_y lv_m lv_d.
@@ -436,9 +436,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_integer.
 
-    data lr_item type ref to zif_ajson=>ty_node.
+    data lr_item type ref to zif_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    if lr_item is not initial and lr_item->type = zif_ajson=>node_type-number.
+    if lr_item is not initial and lr_item->type = zif_ajson_types=>node_type-number.
       rv_value = lr_item->value.
     endif.
 
@@ -447,7 +447,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_node_type.
 
-    data lr_item type ref to zif_ajson=>ty_node.
+    data lr_item type ref to zif_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
     if lr_item is not initial.
       rv_node_type = lr_item->type.
@@ -458,9 +458,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_number.
 
-    data lr_item type ref to zif_ajson=>ty_node.
+    data lr_item type ref to zif_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    if lr_item is not initial and lr_item->type = zif_ajson=>node_type-number.
+    if lr_item is not initial and lr_item->type = zif_ajson_types=>node_type-number.
       rv_value = lr_item->value.
     endif.
 
@@ -469,9 +469,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~get_string.
 
-    data lr_item type ref to zif_ajson=>ty_node.
+    data lr_item type ref to zif_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    if lr_item is not initial and lr_item->type <> zif_ajson=>node_type-null.
+    if lr_item is not initial and lr_item->type <> zif_ajson_types=>node_type-null.
       rv_value = lr_item->value.
     endif.
 
@@ -481,7 +481,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method zif_ajson~get_timestamp.
 
     data lo_to_abap type ref to lcl_json_to_abap.
-    data lr_item type ref to zif_ajson=>ty_node.
+    data lr_item type ref to zif_ajson_types=>ty_node.
 
     lr_item = get_item( iv_path ).
 
@@ -539,8 +539,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~push.
 
-    data lr_parent type ref to zif_ajson=>ty_node.
-    data lr_new_node type ref to zif_ajson=>ty_node.
+    data lr_parent type ref to zif_ajson_types=>ty_node.
+    data lr_new_node type ref to zif_ajson_types=>ty_node.
 
     read_only_watchdog( ).
 
@@ -550,12 +550,12 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       zcx_ajson_error=>raise( |Path [{ iv_path }] does not exist| ).
     endif.
 
-    if lr_parent->type <> zif_ajson=>node_type-array.
+    if lr_parent->type <> zif_ajson_types=>node_type-array.
       zcx_ajson_error=>raise( |Path [{ iv_path }] is not array| ).
     endif.
 
-    data lt_new_nodes type zif_ajson=>ty_nodes_tt.
-    data ls_new_path type zif_ajson=>ty_path_name.
+    data lt_new_nodes type zif_ajson_types=>ty_nodes_tt.
+    data ls_new_path type zif_ajson_types=>ty_path_name.
     data lv_new_index type i.
 
     lv_new_index     = lr_parent->children + 1.
@@ -581,9 +581,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~set.
 
-    data ls_split_path type zif_ajson=>ty_path_name.
-    data lr_parent type ref to zif_ajson=>ty_node.
-    data ls_deleted_node type zif_ajson=>ty_node.
+    data ls_split_path type zif_ajson_types=>ty_path_name.
+    data lr_parent type ref to zif_ajson_types=>ty_node.
+    data ls_deleted_node type zif_ajson_types=>ty_node.
 
     read_only_watchdog( ).
 
@@ -594,8 +594,8 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     endif.
 
     if iv_node_type is not initial
-      and iv_node_type <> zif_ajson=>node_type-boolean and iv_node_type <> zif_ajson=>node_type-null
-      and iv_node_type <> zif_ajson=>node_type-number and iv_node_type <> zif_ajson=>node_type-string.
+      and iv_node_type <> zif_ajson_types=>node_type-boolean and iv_node_type <> zif_ajson_types=>node_type-null
+      and iv_node_type <> zif_ajson_types=>node_type-number and iv_node_type <> zif_ajson_types=>node_type-string.
       zcx_ajson_error=>raise( |Unexpected type { iv_node_type }| ).
     endif.
 
@@ -629,10 +629,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       iv_name   = ls_split_path-name ).
 
     " convert to json
-    data lt_new_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_new_nodes type zif_ajson_types=>ty_nodes_tt.
     data lv_array_index type i.
 
-    if lr_parent->type = zif_ajson=>node_type-array.
+    if lr_parent->type = zif_ajson_types=>node_type-array.
       lv_array_index = lcl_utils=>validate_array_index(
         iv_path  = ls_split_path-path
         iv_index = ls_split_path-name ).
@@ -824,7 +824,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lo_section         type ref to zcl_ajson.
     data ls_item            like line of mt_json_tree.
     data lv_normalized_path type string.
-    data ls_path_parts      type zif_ajson=>ty_path_name.
+    data ls_path_parts      type zif_ajson_types=>ty_path_name.
     data lv_path_len        type i.
 
     create object lo_section.
@@ -861,10 +861,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~touch_array.
 
-    data lr_node type ref to zif_ajson=>ty_node.
-    data ls_deleted_node type zif_ajson=>ty_node.
+    data lr_node type ref to zif_ajson_types=>ty_node.
+    data ls_deleted_node type zif_ajson_types=>ty_node.
     data ls_new_node like line of mt_json_tree.
-    data ls_split_path type zif_ajson=>ty_path_name.
+    data ls_split_path type zif_ajson_types=>ty_path_name.
 
     read_only_watchdog( ).
 
@@ -872,7 +872,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     if ls_split_path is initial. " Assign root, exceptional processing
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
-      ls_new_node-type = zif_ajson=>node_type-array.
+      ls_new_node-type = zif_ajson_types=>node_type-array.
       insert ls_new_node into table mt_json_tree.
       return.
     endif.
@@ -887,7 +887,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     if lr_node is initial. " Or node was cleared
 
-      data lr_parent type ref to zif_ajson=>ty_node.
+      data lr_parent type ref to zif_ajson_types=>ty_node.
       lr_parent = prove_path_exists( ls_split_path-path ).
       assert lr_parent is not initial.
 
@@ -895,7 +895,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
-      ls_new_node-type = zif_ajson=>node_type-array.
+      ls_new_node-type = zif_ajson_types=>node_type-array.
 
       if ms_opts-keep_item_order = abap_true and ls_deleted_node is not initial.
         ls_new_node-order = ls_deleted_node-order.
@@ -903,7 +903,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
       insert ls_new_node into table mt_json_tree.
 
-    elseif lr_node->type <> zif_ajson=>node_type-array.
+    elseif lr_node->type <> zif_ajson_types=>node_type-array.
       zcx_ajson_error=>raise( |Path [{ iv_path }] already used and is not array| ).
     endif.
 

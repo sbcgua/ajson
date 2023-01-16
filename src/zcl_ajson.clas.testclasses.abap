@@ -4,14 +4,14 @@
 class lcl_nodes_helper definition final.
   public section.
 
-    data mt_nodes type zif_ajson=>ty_nodes_tt.
+    data mt_nodes type zif_ajson_types=>ty_nodes_tt.
     methods add
       importing
         iv_str type string.
     methods clear.
     methods sorted
       returning
-        value(rt_nodes) type zif_ajson=>ty_nodes_ts.
+        value(rt_nodes) type zif_ajson_types=>ty_nodes_ts.
 
 endclass.
 
@@ -98,7 +98,7 @@ class ltcl_parser_test implementation.
 
   method parse_bare_values.
 
-    data lt_act type zif_ajson=>ty_nodes_tt.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
 
     mo_nodes->add( ' | |str |abc | |0' ).
     lt_act = mo_cut->parse( '"abc"' ).
@@ -138,7 +138,7 @@ class ltcl_parser_test implementation.
 
   method parse_error.
 
-    data lt_act type zif_ajson=>ty_nodes_tt.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
     data lx_err type ref to zcx_ajson_error.
     try.
       lt_act = mo_cut->parse( 'abc' ).
@@ -173,7 +173,7 @@ class ltcl_parser_test implementation.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
 
-    data lt_act type zif_ajson=>ty_nodes_tt.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"string": "abc"}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -184,7 +184,7 @@ class ltcl_parser_test implementation.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |number   |num    |123                     |  |0' ).
 
-    data lt_act type zif_ajson=>ty_nodes_tt.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"number": 123}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -195,7 +195,7 @@ class ltcl_parser_test implementation.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
 
-    data lt_act type zif_ajson=>ty_nodes_tt.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
     create object mo_cut.
     lt_act = mo_cut->parse( '{"float": 123.45}' ).
     cl_abap_unit_assert=>assert_equals(
@@ -207,7 +207,7 @@ class ltcl_parser_test implementation.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
 
-    data lt_act type zif_ajson=>ty_nodes_tt.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"boolean": true}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -218,7 +218,7 @@ class ltcl_parser_test implementation.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
 
-    data lt_act type zif_ajson=>ty_nodes_tt.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"false": false}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -229,7 +229,7 @@ class ltcl_parser_test implementation.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |null     |null   |                        |  |0' ).
 
-    data lt_act type zif_ajson=>ty_nodes_tt.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"null": null}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -240,7 +240,7 @@ class ltcl_parser_test implementation.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
 
-    data lt_act type zif_ajson=>ty_nodes_tt.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"date": "2020-03-15"}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -295,7 +295,7 @@ class ltcl_parser_test implementation.
   method parse.
 
     data lo_cut type ref to lcl_json_parser.
-    data lt_act type zif_ajson=>ty_nodes_tt.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
     data lo_nodes type ref to lcl_nodes_helper.
 
     create object lo_nodes.
@@ -395,7 +395,7 @@ class ltcl_serializer_test definition final
         value(rv_json) type string.
     class-methods sample_nodes
       returning
-        value(rt_nodes) type zif_ajson=>ty_nodes_ts.
+        value(rt_nodes) type zif_ajson_types=>ty_nodes_ts.
 
   private section.
 
@@ -789,7 +789,7 @@ class ltcl_utils_test implementation.
 
   method split_path.
 
-    data ls_exp type zif_ajson=>ty_path_name.
+    data ls_exp type zif_ajson_types=>ty_path_name.
     data lv_path type string.
 
     lv_path     = ''. " alias to root
@@ -1001,31 +1001,31 @@ class ltcl_reader_test implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/' )
-      exp = zif_ajson=>node_type-object ).
+      exp = zif_ajson_types=>node_type-object ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/string' )
-      exp = zif_ajson=>node_type-string ).
+      exp = zif_ajson_types=>node_type-string ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/number' )
-      exp = zif_ajson=>node_type-number ).
+      exp = zif_ajson_types=>node_type-number ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/float' )
-      exp = zif_ajson=>node_type-number ).
+      exp = zif_ajson_types=>node_type-number ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/boolean' )
-      exp = zif_ajson=>node_type-boolean ).
+      exp = zif_ajson_types=>node_type-boolean ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/false' )
-      exp = zif_ajson=>node_type-boolean ).
+      exp = zif_ajson_types=>node_type-boolean ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/null' )
-      exp = zif_ajson=>node_type-null ).
+      exp = zif_ajson_types=>node_type-null ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/date' )
-      exp = zif_ajson=>node_type-string ).
+      exp = zif_ajson_types=>node_type-string ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/issues' )
-      exp = zif_ajson=>node_type-array ).
+      exp = zif_ajson_types=>node_type-array ).
 
   endmethod.
 
@@ -2980,17 +2980,17 @@ class ltcl_writer_test implementation.
 
     data lv_path type string.
 
-    field-symbols <node> type zif_ajson=>ty_node.
+    field-symbols <node> like line of io_json_in->mt_json_tree.
 
     loop at io_json_in->mt_json_tree assigning <node> where path = iv_path.
       lv_path = <node>-path && <node>-name && '/'.
       case <node>-type.
-        when zif_ajson=>node_type-array.
+        when zif_ajson_types=>node_type-array.
           io_json_out->touch_array( lv_path ).
           set_with_type_slice( io_json_in  = io_json_in
                                io_json_out = io_json_out
                                iv_path     = lv_path ).
-        when zif_ajson=>node_type-object.
+        when zif_ajson_types=>node_type-object.
           set_with_type_slice( io_json_in  = io_json_in
                                io_json_out = io_json_out
                                iv_path     = lv_path ).
@@ -3634,7 +3634,7 @@ class ltcl_abap_to_json implementation.
     lo_nodes->add( '/a/b/   |c     |object |     ||0' ).
     lo_src->mt_json_tree = lo_nodes->mt_nodes.
 
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lo_src ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -3646,7 +3646,7 @@ class ltcl_abap_to_json implementation.
   method set_value_number.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
 
     " number
     create object lo_nodes_exp.
@@ -3663,7 +3663,7 @@ class ltcl_abap_to_json implementation.
   method set_value_string.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
 
     " string
     create object lo_nodes_exp.
@@ -3680,7 +3680,7 @@ class ltcl_abap_to_json implementation.
   method set_value_true.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
 
     " true
     create object lo_nodes_exp.
@@ -3697,7 +3697,7 @@ class ltcl_abap_to_json implementation.
   method set_value_false.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
 
     " false
     create object lo_nodes_exp.
@@ -3714,7 +3714,7 @@ class ltcl_abap_to_json implementation.
   method set_value_xsdboolean.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
 
     data lv_xsdboolean type xsdboolean.
     create object lo_nodes_exp.
@@ -3732,7 +3732,7 @@ class ltcl_abap_to_json implementation.
   method set_null.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
     data lv_null_ref type ref to data.
 
     " null
@@ -3750,7 +3750,7 @@ class ltcl_abap_to_json implementation.
   method set_value_timestamp.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
     data lv_timezone type timezone value ''.
 
     data lv_timestamp type timestamp.
@@ -3770,7 +3770,7 @@ class ltcl_abap_to_json implementation.
   method set_value_timestamp_initial.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
 
     data lv_timestamp type timestamp.
     create object lo_nodes_exp.
@@ -3788,8 +3788,8 @@ class ltcl_abap_to_json implementation.
   method prefix.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
-    data ls_prefix type zif_ajson=>ty_path_name.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
+    data ls_prefix type zif_ajson_types=>ty_path_name.
 
     ls_prefix-path = '/a/'.
     ls_prefix-name = 'b'.
@@ -3810,7 +3810,7 @@ class ltcl_abap_to_json implementation.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
     data ls_struc type ty_struc.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
 
     ls_struc-a = 'abc'.
     ls_struc-b = 10.
@@ -3836,7 +3836,7 @@ class ltcl_abap_to_json implementation.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
     data ls_struc type ty_struc_complex.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
     field-symbols <i> like line of ls_struc-tab.
 
     ls_struc-a = 'abc'.
@@ -3896,7 +3896,7 @@ class ltcl_abap_to_json implementation.
   method set_array.
 
     data lo_nodes_exp type ref to lcl_nodes_helper.
-    data lt_nodes type zif_ajson=>ty_nodes_tt.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
 
     data lt_tab type table of ty_struc.
     field-symbols <s> like line of lt_tab.
