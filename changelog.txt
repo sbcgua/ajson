@@ -10,6 +10,7 @@ Legend
 
 v1.?.?, 2023-??-??
 ------------------
+! move most of types from zif_ajson to zif_ajson_types
 * Parser performance improvements (#143, @mbtools)
 
 v1.1.7, 2023-01-08
