@@ -154,7 +154,7 @@ class lcl_json_parser definition final.
   private section.
 
     types:
-      ty_stack_tt type standard table of ref to zif_ajson=>ty_node.
+      ty_stack_tt type standard table of ref to zif_ajson_types=>ty_node.
 
     data mt_stack type ty_stack_tt.
     data mv_stack_path type string.
