@@ -2980,7 +2980,7 @@ class ltcl_writer_test implementation.
 
     data lv_path type string.
 
-    field-symbols <node> type zif_ajson=>ty_node.
+    field-symbols <node> like line of io_json_in->mt_json_tree.
 
     loop at io_json_in->mt_json_tree assigning <node> where path = iv_path.
       lv_path = <node>-path && <node>-name && '/'.

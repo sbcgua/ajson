@@ -85,6 +85,23 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
   endmethod.
 
 
+  method create_compound_mapper.
+
+    data lt_queue type zif_ajson_mapping=>ty_table_of.
+
+    append ii_mapper1 to lt_queue.
+    append ii_mapper2 to lt_queue.
+    append ii_mapper3 to lt_queue.
+    append lines of it_more to lt_queue.
+    delete lt_queue where table_line is initial.
+
+    create object ri_mapping type lcl_compound_mapper
+      exporting
+        it_queue = lt_queue.
+
+  endmethod.
+
+
   method create_field_mapping.
 
     create object ri_mapping type lcl_mapping_fields
@@ -102,29 +119,6 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
 
   endmethod.
 
-  method create_compound_mapper.
-
-    data lt_queue type zif_ajson_mapping=>ty_table_of.
-
-    append ii_mapper1 to lt_queue.
-    append ii_mapper2 to lt_queue.
-    append ii_mapper3 to lt_queue.
-    append lines of it_more to lt_queue.
-    delete lt_queue where table_line is initial.
-
-    create object ri_mapping type lcl_compound_mapper
-      exporting
-        it_queue = lt_queue.
-
-  endmethod.
-
-  method create_upper_case.
-
-    create object ri_mapping type lcl_mapping_to_upper
-      exporting
-        it_mapping_fields = it_mapping_fields.
-
-  endmethod.
 
   method create_rename.
 
@@ -135,11 +129,6 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
 
   endmethod.
 
-  method create_to_snake_case.
-
-    create object ri_mapping type lcl_to_snake.
-
-  endmethod.
 
   method create_to_camel_case.
 
@@ -149,4 +138,19 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
 
   endmethod.
 
+
+  method create_to_snake_case.
+
+    create object ri_mapping type lcl_to_snake.
+
+  endmethod.
+
+
+  method create_upper_case.
+
+    create object ri_mapping type lcl_mapping_to_upper
+      exporting
+        it_mapping_fields = it_mapping_fields.
+
+  endmethod.
 ENDCLASS.

@@ -6,20 +6,6 @@ interface zif_ajson
   constants license type string value 'MIT'. "#EC NOTEXT
 
   types:
-    ty_node_type type string.
-
-  types:
-    begin of ty_node,
-      path type string,
-      name type string,
-      type type ty_node_type,
-      value type string,
-      index type i,
-      order type i,
-      children type i,
-    end of ty_node .
-
-  types:
     begin of ty_opts,
       read_only type abap_bool,
       keep_item_order type abap_bool,
@@ -31,6 +17,7 @@ interface zif_ajson
   data mt_json_tree type zif_ajson_types=>ty_nodes_ts read-only.
 
   " CLONING
+
   methods clone
     returning
       value(ri_json) type ref to zif_ajson

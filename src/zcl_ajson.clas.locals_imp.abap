@@ -387,7 +387,7 @@ class lcl_json_serializer definition final create private.
 
     methods stringify_node
       importing
-        is_node type zif_ajson=>ty_node
+        is_node type zif_ajson_types=>ty_node
       raising
         zcx_ajson_error.
 
@@ -604,7 +604,7 @@ class lcl_json_to_abap definition final.
 
     methods to_timestamp
       importing
-        iv_value         type zif_ajson=>ty_node-value
+        iv_value         type zif_ajson_types=>ty_node-value
       returning
         value(rv_result) type timestamp
       raising
@@ -612,7 +612,7 @@ class lcl_json_to_abap definition final.
 
     methods to_date
       importing
-        iv_value         type zif_ajson=>ty_node-value
+        iv_value         type zif_ajson_types=>ty_node-value
       returning
         value(rv_result) type d
       raising
@@ -644,7 +644,7 @@ class lcl_json_to_abap definition final.
 
     methods value_to_abap
       importing
-        is_node      type zif_ajson=>ty_node
+        is_node      type zif_ajson_types=>ty_node
         is_node_type type ty_type_cache
         i_container_ref type ref to data
       raising
@@ -653,7 +653,7 @@ class lcl_json_to_abap definition final.
 
     methods get_node_type
       importing
-        is_node            type zif_ajson=>ty_node optional " Empty for root
+        is_node            type zif_ajson_types=>ty_node optional " Empty for root
         is_parent_type     type ty_type_cache optional
         i_container_ref    type ref to data optional
       returning
@@ -770,7 +770,7 @@ class lcl_json_to_abap implementation.
     data lx_root type ref to cx_root.
     data lr_target_field type ref to data.
 
-    field-symbols <n> type zif_ajson=>ty_node.
+    field-symbols <n> type zif_ajson_types=>ty_node.
     field-symbols <parent_stdtab> type standard table.
     field-symbols <parent_anytab> type any table.
     field-symbols <parent_struc> type any.
@@ -1156,7 +1156,7 @@ class lcl_abap_to_json definition final.
         iv_item_order type i default 0
       changing
         ct_nodes type zif_ajson_types=>ty_nodes_tt
-        cs_root  type zif_ajson=>ty_node optional
+        cs_root  type zif_ajson_types=>ty_node optional
       raising
         zcx_ajson_error.
 
@@ -1709,7 +1709,7 @@ class lcl_filter_runner definition final.
       importing
         iv_path type string
       changing
-        cs_parent type zif_ajson=>ty_node optional
+        cs_parent type zif_ajson_types=>ty_node optional
       raising
         zcx_ajson_error.
 
@@ -1738,7 +1738,7 @@ class lcl_filter_runner implementation.
 
   method walk.
 
-    data ls_node type zif_ajson=>ty_node.
+    data ls_node type zif_ajson_types=>ty_node.
 
     loop at mr_source_tree->* into ls_node where path = iv_path.
       case ls_node-type.
@@ -1816,7 +1816,7 @@ class lcl_mapper_runner definition final.
       importing
         iv_path         type string
         iv_renamed_path type string
-        iv_node_type    type zif_ajson=>ty_node-type
+        iv_node_type    type zif_ajson_types=>ty_node-type
       raising
         zcx_ajson_error.
 
