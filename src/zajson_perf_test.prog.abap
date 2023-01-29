@@ -176,7 +176,7 @@ class lcl_app definition final inheriting from lcl_runner_base.
         number type i,
         float type f,
       end of ty_fragment,
-      tt_fragment type standard table of ty_fragment with default key,
+      ty_fragment_tab type standard table of ty_fragment with key string,
       begin of ty_plain.
         include type ty_fragment.
         types:
@@ -442,7 +442,7 @@ class lcl_app implementation.
 
   method to_abap_array.
 
-    data ls_target type tt_fragment.
+    data ls_target type ty_fragment_tab.
     mo_array->to_abap( importing ev_container = ls_target ).
 
   endmethod.

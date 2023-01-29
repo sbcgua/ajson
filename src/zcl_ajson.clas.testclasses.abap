@@ -2350,7 +2350,7 @@ class ltcl_writer_test implementation.
     data lo_nodes type ref to lcl_nodes_helper.
     data lo_cut type ref to zcl_ajson.
     data li_writer type ref to zif_ajson.
-    data lt_tab type hashed table of string with unique default key.
+    data lt_tab type hashed table of string with unique key table_line.
 
     lo_cut = zcl_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -2385,7 +2385,7 @@ class ltcl_writer_test implementation.
         include type ty_include.
     types: dat type xstring,
       end of ty_struct,
-      ty_tab type standard table of ty_struct with default key.
+      ty_tab type standard table of ty_struct with key str.
 
     data lo_nodes type ref to lcl_nodes_helper.
     data li_cut type ref to zif_ajson.
@@ -3235,7 +3235,7 @@ class ltcl_integrated definition
         start type ty_loc,
         end type ty_loc,
       end of ty_issue,
-      tt_issues type standard table of ty_issue with default key,
+      tt_issues type standard table of ty_issue with key message key,
       begin of ty_target,
         string type string,
         number type i,
@@ -3600,7 +3600,7 @@ class ltcl_abap_to_json definition
         c type abap_bool,
         d type xsdboolean,
       end of ty_struc,
-      tt_struc type standard table of ty_struc with default key,
+      tt_struc type standard table of ty_struc with key a,
       begin of ty_struc_complex.
         include type ty_struc.
     types:

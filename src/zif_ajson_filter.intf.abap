@@ -1,7 +1,7 @@
 interface zif_ajson_filter
   public.
 
-  types ty_filter_tab type standard table of ref to zif_ajson_filter with default key.
+  types ty_filter_tab type standard table of ref to zif_ajson_filter with key table_line.
   types ty_visit_type type i.
 
   constants:
