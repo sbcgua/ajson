@@ -1327,7 +1327,7 @@ class ltcl_json_to_abap definition
         a type string,
         b type i,
       end of ty_struc,
-      tty_struc type standard table of ty_struc with default key,
+      tty_struc type standard table of ty_struc with key a,
       tty_struc_sorted type sorted table of ty_struc with unique key a,
       tty_struc_hashed type hashed table of ty_struc with unique key a,
       begin of ty_complex,
