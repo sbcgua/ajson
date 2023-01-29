@@ -286,7 +286,7 @@
     },
     "global_class": true,
     "identical_conditions": true,
-    "identical_contents": true,
+    "identical_contents": false,
     "identical_descriptions": true,
     "identical_form_names": true,
     "if_in_if": true,
@@ -376,7 +376,7 @@
     "nesting": {
       "exclude": [],
       "severity": "Error",
-      "depth": 5
+      "depth": 6
     },
     "newline_between_methods": {
       "exclude": [],
