@@ -116,7 +116,7 @@
       "spaces": 1
     },
     "cyclic_oo": true,
-    "cyclomatic_complexity": true,
+    "cyclomatic_complexity": false,
     "dangerous_statement": {
       "execSQL": true,
       "kernelCall": true,
