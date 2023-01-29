@@ -737,12 +737,21 @@ class ltcl_utils_test definition final
     methods normalize_path for testing.
     methods split_path for testing.
     methods validate_array_index for testing raising zcx_ajson_error.
+    methods string_to_xstring_utf8 for testing.
 
 endclass.
 
 class zcl_ajson definition local friends ltcl_utils_test.
 
 class ltcl_utils_test implementation.
+
+  method string_to_xstring_utf8.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lcl_utils=>string_to_xstring_utf8( '123' )
+      exp = '313233' ).
+
+  endmethod.
 
   method validate_array_index.
 

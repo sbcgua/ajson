@@ -75,10 +75,43 @@ class lcl_utils definition final.
         value(rv_index) type i
       raising
         zcx_ajson_error.
+    class-methods string_to_xstring_utf8
+      importing
+        iv_str type string
+      returning
+        value(rv_xstr) type xstring.
 
 endclass.
 
 class lcl_utils implementation.
+
+  method string_to_xstring_utf8.
+
+    data lo_conv type ref to object.
+
+    try.
+      call method ('CL_ABAP_CONV_CODEPAGE')=>create_out
+        receiving
+          instance = lo_conv.
+      call method lo_conv->('IF_ABAP_CONV_OUT~CONVERT')
+        exporting
+          source = iv_str
+        receiving
+          result = rv_xstr.
+    catch cx_sy_dyn_call_illegal_class.
+      call method ('CL_ABAP_CONV_OUT_CE')=>create
+        exporting
+          encoding = 'UTF-8'
+        receiving
+          conv = lo_conv.
+      call method lo_conv->('CONVERT')
+        exporting
+          data = iv_str
+        importing
+          buffer = rv_xstr.
+    endtry.
+
+  endmethod.
 
   method validate_array_index.
 
@@ -256,7 +289,7 @@ class lcl_json_parser implementation.
     if iv_json is initial.
       return.
     endif.
-    lo_reader = cl_sxml_string_reader=>create( cl_abap_codepage=>convert_to( iv_json ) ).
+    lo_reader = cl_sxml_string_reader=>create( lcl_utils=>string_to_xstring_utf8( iv_json ) ).
 
     " TODO: self protection, check non-empty, check starting from object ...
 
