@@ -1,9 +1,6 @@
 {
   "global": {
-    "files": "/src/**/*.*",
-    "skipGeneratedGatewayClasses": true,
-    "skipGeneratedPersistentClasses": true,
-    "skipGeneratedFunctionGroups": true
+    "files": "/src/**/*.*"
   },
   "dependencies": [{
     "url": "https://github.com/abaplint/deps",
