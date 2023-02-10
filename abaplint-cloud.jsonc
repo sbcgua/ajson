@@ -510,7 +510,7 @@
       "pattern": "^(TY|T.{1,2}|LTY)_.+$"
     },
     "uncaught_exception": true,
-    "unknown_types": false, // Temp
+    "unknown_types": false,
     "unnecessary_chaining": false,
     "unreachable_code": true,
     "unsecure_fae": true,
