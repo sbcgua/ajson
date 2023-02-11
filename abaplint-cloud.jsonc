@@ -3,10 +3,10 @@
     "files": "/src/**/*.*"
   },
   "dependencies": [
-    // {
-    //   "url": "https://github.com/abapedia/steampunk-2202-api",
-    //   "files": "/src/**/*.*"
-    // }
+    {
+     "url": "https://github.com/abapedia/steampunk-2202-api",
+     "files": "/src/**/*.*"
+    }
   ],
   "syntax": {
     "version": "Cloud",
