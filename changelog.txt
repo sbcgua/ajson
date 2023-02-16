@@ -8,8 +8,9 @@ Legend
 + : added
 - : removed
 
-v1.?.?, 2023-??-??
+v1.1.8, 2023-02-16
 ------------------
+! Change package structure (core, libs, perf) #146
 ! move most of types from zif_ajson to zif_ajson_types
 * Parser performance improvements (#143, @mbtools)
 * Cloud compatibility (#147)
