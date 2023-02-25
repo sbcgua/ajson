@@ -1,6 +1,6 @@
 <!-- markdownlint-disable first-line-heading -->
 ![abaplint](https://github.com/sbcgua/ajson/workflows/abaplint/badge.svg)
-![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/sbcgua/ajson/src/zif_ajson.intf.abap)
+![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/sbcgua/ajson/src/core/zif_ajson.intf.abap)
 
 # abap json (ajson)
 
