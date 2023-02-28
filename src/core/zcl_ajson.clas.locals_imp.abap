@@ -204,7 +204,7 @@ class lcl_json_parser definition final.
       returning
         value(rt_json_tree) type zif_ajson_types=>ty_nodes_tt
       raising
-        zcx_ajson_error cx_sxml_error.
+        zcx_ajson_error cx_dynamic_check. " cx_sxml_error is not released on Steampunk #153
 
     methods _get_location
       importing
@@ -219,7 +219,7 @@ class lcl_json_parser implementation.
 
   method parse.
     data lx_sxml_parse type ref to cx_sxml_parse_error.
-    data lx_sxml type ref to cx_sxml_error.
+    data lx_sxml type ref to cx_dynamic_check.
     data lv_location type string.
     try.
       " TODO sane JSON check:
@@ -233,7 +233,7 @@ class lcl_json_parser implementation.
       zcx_ajson_error=>raise(
         iv_msg      = |Json parsing error (SXML): { lx_sxml_parse->get_text( ) }|
         iv_location = lv_location ).
-    catch cx_sxml_error into lx_sxml.
+    catch cx_dynamic_check into lx_sxml. " cx_sxml_error
       zcx_ajson_error=>raise(
         iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
         iv_location = '@PARSER' ).
