@@ -8,6 +8,10 @@ Legend
 + : added
 - : removed
 
+v1.1.?, 2023-??
+------------------
+! use cx_dynamic_check instead of cx_sxml_error (#153)
+
 v1.1.8, 2023-02-16
 ------------------
 ! Change package structure (core, libs, perf) #146
