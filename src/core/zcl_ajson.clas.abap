@@ -844,7 +844,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     lv_path_pattern = lv_normalized_path && `*`.
 
-    loop at mt_json_tree into ls_item where path CP lv_path_pattern.
+    loop at mt_json_tree into ls_item where path cp lv_path_pattern.
 
       ls_item-path = substring( val = ls_item-path off = lv_path_len - 1 ). " less closing '/'
       insert ls_item into table lo_section->mt_json_tree.
