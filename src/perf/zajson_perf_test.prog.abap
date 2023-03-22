@@ -127,10 +127,13 @@ class lcl_app definition final inheriting from lcl_runner_base.
     methods set_overwrite raising cx_static_check.
     methods delete_tree raising cx_static_check.
 
+    methods slice raising cx_static_check.
+
     class-methods main.
     methods prepare.
     methods prepare_parsed raising cx_static_check.
     methods prepare_complex.
+    methods prepare_slice raising cx_static_check.
 
     methods prepare_components
       importing
@@ -167,6 +170,7 @@ class lcl_app definition final inheriting from lcl_runner_base.
     data mo_array type ref to zif_ajson.
     data mo_long_array type ref to zif_ajson.
     data mo_complex type ref to zif_ajson.
+    data mo_for_slice type ref to zif_ajson.
 
     data mv_deep_path type string.
 
@@ -203,6 +207,23 @@ class lcl_app definition final inheriting from lcl_runner_base.
 endclass.
 
 class lcl_app implementation.
+
+  method prepare_slice.
+
+    data lv_branch type string.
+
+    mo_for_slice = zcl_ajson=>new( ).
+
+    do 10 times.
+      lv_branch = |/branch{ sy-index }|.
+      do 100 times.
+        mo_for_slice->set_integer(
+          iv_path = |{ lv_branch }/item{ sy-index }|
+          iv_val  = sy-index ).
+      enddo.
+    enddo.
+
+  endmethod.
 
   method prepare.
     mv_json_plain_obj =
@@ -288,8 +309,8 @@ class lcl_app implementation.
 
     " Data
     mv_json_complex = prepare_json_object(
-        iv_fields     = lc_fields
-        iv_start_data = lv_data ).
+      iv_fields     = lc_fields
+      iv_start_data = lv_data ).
     lv_data = lv_data + lc_fields.
 
     mv_json_complex = replace( val = mv_json_complex sub = '}' with = `, "TAB": [` ).
@@ -530,6 +551,14 @@ class lcl_app implementation.
 
   endmethod.
 
+  method slice.
+
+    data li_json type ref to zif_ajson.
+
+    li_json = mo_for_slice->slice( iv_path = 'branch9' ).
+
+  endmethod.
+
   method main.
 
     data lo_app type ref to lcl_app.
@@ -573,6 +602,10 @@ class lcl_app implementation.
       lo_app->run( 'set_deep' ).
       lo_app->run( 'set_overwrite' ).
       lo_app->run( 'delete_tree' ).
+
+      lo_app->prepare_slice( ).
+
+      lo_app->run( 'slice' ).
 
     catch cx_root into lx.
       lv_tmp = lx->get_text( ).
