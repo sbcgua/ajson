@@ -826,22 +826,29 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lv_normalized_path type string.
     data ls_path_parts      type zif_ajson_types=>ty_path_name.
     data lv_path_len        type i.
+    data lv_path_pattern    type string.
 
     create object lo_section.
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lv_path_len        = strlen( lv_normalized_path ).
     ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
 
-    loop at mt_json_tree into ls_item.
-      " TODO potentially improve performance due to sorted tree (all path started from same prefix go in a row)
-      if strlen( ls_item-path ) >= lv_path_len
-          and substring( val = ls_item-path len = lv_path_len ) = lv_normalized_path.
-        ls_item-path = substring( val = ls_item-path off = lv_path_len - 1 ). " less closing '/'
-        insert ls_item into table lo_section->mt_json_tree.
-      elseif ls_item-path = ls_path_parts-path and ls_item-name = ls_path_parts-name.
-        clear: ls_item-path, ls_item-name. " this becomes a new root
-        insert ls_item into table lo_section->mt_json_tree.
-      endif.
+    read table mt_json_tree into ls_item
+      with key path = ls_path_parts-path name = ls_path_parts-name.
+    if sy-subrc <> 0.
+      return.
+    endif.
+
+    clear: ls_item-path, ls_item-name. " this becomes a new root
+    insert ls_item into table lo_section->mt_json_tree.
+
+    lv_path_pattern = lv_normalized_path && `*`.
+
+    loop at mt_json_tree into ls_item where path cp lv_path_pattern.
+
+      ls_item-path = substring( val = ls_item-path off = lv_path_len - 1 ). " less closing '/'
+      insert ls_item into table lo_section->mt_json_tree.
+
     endloop.
 
     ri_json = lo_section.
