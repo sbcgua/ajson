@@ -1359,6 +1359,9 @@ class ltcl_json_to_abap definition
     methods to_abap_array
       for testing
       raising zcx_ajson_error.
+    methods to_abap_array_of_arrays_simple
+      for testing
+      raising zcx_ajson_error.
     methods to_abap_array_of_arrays
       for testing
       raising zcx_ajson_error.
@@ -1504,6 +1507,40 @@ class ltcl_json_to_abap implementation.
 
     append 'One' to lt_exp.
     append 'Two' to lt_exp.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_mock
+      exp = lt_exp ).
+
+  endmethod.
+
+  method to_abap_array_of_arrays_simple.
+
+    data lo_cut   type ref to lcl_json_to_abap.
+    data lt_mock  type table of string_table.
+    data lt_exp   type table of string_table.
+    data lt_tmp   type string_table.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |array    |                    | ' ).
+    lo_nodes->add( '/      |1          |array    |                    |1' ).
+    lo_nodes->add( '/      |2          |array    |                    |2' ).
+    lo_nodes->add( '/1/    |1          |str      |One                 |1' ).
+    lo_nodes->add( '/2/    |1          |str      |Two                 |1' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lt_mock ).
+
+    append 'One' to lt_tmp.
+    append lt_tmp to lt_exp.
+    clear lt_tmp.
+    append 'Two' to lt_tmp.
+    append lt_tmp to lt_exp.
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_mock
