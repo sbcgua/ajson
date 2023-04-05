@@ -89,7 +89,7 @@ class lcl_utils implementation.
 
     data lo_conv type ref to object.
     data lv_out_ce type string.
-    
+
     lv_out_ce = 'CL_ABAP_CONV_OUT_CE'.
 
     try.
