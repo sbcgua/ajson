@@ -10,6 +10,7 @@ interface zif_ajson
       read_only type abap_bool,
       keep_item_order type abap_bool,
       format_datetime type abap_bool,
+      to_abap_corresponding_only type abap_bool,
     end of ty_opts.
 
   " DATA
@@ -47,6 +48,11 @@ interface zif_ajson
   methods format_datetime
     importing
       iv_use_iso type abap_bool default abap_true
+    returning
+      value(ri_json) type ref to zif_ajson.
+  methods to_abap_corresponding_only
+    importing
+      iv_enable type abap_bool default abap_true
     returning
       value(ri_json) type ref to zif_ajson.
   methods opts
