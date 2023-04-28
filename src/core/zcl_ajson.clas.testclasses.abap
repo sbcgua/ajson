@@ -1389,8 +1389,16 @@ class ltcl_json_to_abap definition
     methods to_abap_corresponding_negative
       for testing
       raising zcx_ajson_error.
+    methods to_abap_corresponding_public
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_corresponding_pub_neg
+      for testing
+      raising zcx_ajson_error.
 
 endclass.
+
+class zcl_ajson definition local friends ltcl_json_to_abap.
 
 class ltcl_json_to_abap implementation.
 
@@ -1972,6 +1980,66 @@ class ltcl_json_to_abap implementation.
           it_nodes    = lo_nodes->sorted( )
         changing
           c_container = ls_act ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path not found' ).
+    endtry.
+
+  endmethod.
+
+  method to_abap_corresponding_public.
+
+    data lo_cut type ref to zcl_ajson.
+    data ls_act type ty_struc.
+    data ls_exp  type ty_struc.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |object |                          | ' ).
+    lo_nodes->add( '/      |a          |str    |test                      | ' ).
+    lo_nodes->add( '/      |c          |num    |24022022                  | ' ).
+
+    ls_exp-a  = 'test'.
+
+    create object lo_cut.
+    lo_cut->mt_json_tree = lo_nodes->mt_nodes.
+
+    lo_cut->to_abap(
+      exporting
+        iv_corresponding = abap_true
+      importing
+        ev_container     = ls_act ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_act
+      exp = ls_exp ).
+
+  endmethod.
+
+
+  method to_abap_corresponding_pub_neg.
+
+    data lo_cut type ref to zcl_ajson.
+    data ls_act type ty_struc.
+    data ls_exp  type ty_struc.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lx type ref to zcx_ajson_error.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |object |                          | ' ).
+    lo_nodes->add( '/      |a          |str    |test                      | ' ).
+    lo_nodes->add( '/      |c          |num    |24022022                  | ' ).
+
+    ls_exp-a  = 'test'.
+
+    create object lo_cut.
+    lo_cut->mt_json_tree = lo_nodes->mt_nodes.
+
+    try.
+      lo_cut->to_abap( importing ev_container = ls_act ).
+
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(

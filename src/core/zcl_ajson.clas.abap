@@ -926,6 +926,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     clear ev_container.
     create object lo_to_abap
       exporting
+        iv_corresponding  = iv_corresponding
         ii_custom_mapping = mi_custom_mapping.
 
     lo_to_abap->to_abap(

@@ -126,6 +126,8 @@ interface zif_ajson
       value(ri_json) type ref to zif_ajson.
 
   methods to_abap
+    importing
+      iv_corresponding type abap_bool default abap_false
     exporting
       ev_container type any
     raising
