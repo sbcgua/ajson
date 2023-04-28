@@ -2038,13 +2038,13 @@ class ltcl_json_to_abap implementation.
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
 
     try.
-        lo_cut->to_abap( importing ev_container = ls_act ).
+      lo_cut->to_abap( importing ev_container = ls_act ).
 
-        cl_abap_unit_assert=>fail( ).
-      catch zcx_ajson_error into lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path not found' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path not found' ).
     endtry.
 
   endmethod.
