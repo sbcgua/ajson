@@ -131,6 +131,17 @@ data:
 payload->to_abap( importing ev_container = ls_payload ).
 ```
 
+`to_abap` supports transferring "corresponding only" fields.
+
+```abap
+payload->to_abap( 
+  exporting iv_corresponding = abap_true
+  importing ev_container     = ls_payload ).
+
+" Or via an instance flag (persists after setting!)
+payload->to_abap_corresponding_only( )->to_abap( importing ev_container = ls_payload ).
+```
+
 ### JSON writing
 
 The methods of interface allows setting attributes, objects, arrays.

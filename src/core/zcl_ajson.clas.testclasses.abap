@@ -2016,6 +2016,12 @@ class ltcl_json_to_abap implementation.
       act = ls_act
       exp = ls_exp ).
 
+    clear ls_act.
+    lo_cut->to_abap_corresponding_only( )->to_abap( importing ev_container = ls_act ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_act
+      exp = ls_exp ).
+
   endmethod.
 
 

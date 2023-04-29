@@ -45,6 +45,7 @@ class zcl_ajson definition
       mt_json_tree for zif_ajson~mt_json_tree,
       keep_item_order for zif_ajson~keep_item_order,
       format_datetime for zif_ajson~format_datetime,
+      to_abap_corresponding_only for zif_ajson~to_abap_corresponding_only,
       freeze for zif_ajson~freeze.
 
     class-methods parse
@@ -62,6 +63,7 @@ class zcl_ajson definition
         !ii_custom_mapping type ref to zif_ajson_mapping optional
         iv_keep_item_order type abap_bool default abap_false
         iv_format_datetime type abap_bool default abap_true
+        iv_to_abap_corresponding_only type abap_bool default abap_false
       returning
         value(ro_instance) type ref to zcl_ajson.
 
@@ -79,11 +81,13 @@ class zcl_ajson definition
     methods constructor
       importing
         iv_keep_item_order type abap_bool default abap_false
-        iv_format_datetime type abap_bool default abap_true.
+        iv_format_datetime type abap_bool default abap_true
+        iv_to_abap_corresponding_only type abap_bool default abap_false.
     class-methods new
       importing
         iv_keep_item_order type abap_bool default abap_false
         iv_format_datetime type abap_bool default abap_true
+        iv_to_abap_corresponding_only type abap_bool default abap_false
       returning
         value(ro_instance) type ref to zcl_ajson.
 
@@ -127,6 +131,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method constructor.
     ms_opts-keep_item_order = iv_keep_item_order.
+    ms_opts-to_abap_corresponding_only = iv_to_abap_corresponding_only.
     format_datetime( iv_format_datetime ).
   endmethod.
 
@@ -134,6 +139,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method create_empty.
     create object ro_instance
       exporting
+        iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
         iv_format_datetime = iv_format_datetime
         iv_keep_item_order = iv_keep_item_order.
     ro_instance->mi_custom_mapping = ii_custom_mapping.
@@ -150,6 +156,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     create object ro_instance
       exporting
+        iv_to_abap_corresponding_only = ii_source_json->opts( )-to_abap_corresponding_only
         iv_format_datetime = ii_source_json->opts( )-format_datetime
         iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
 
@@ -228,6 +235,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method new.
     create object ro_instance
       exporting
+        iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
         iv_format_datetime = iv_format_datetime
         iv_keep_item_order = iv_keep_item_order.
   endmethod.
@@ -926,7 +934,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     clear ev_container.
     create object lo_to_abap
       exporting
-        iv_corresponding  = iv_corresponding
+        iv_corresponding  = boolc( iv_corresponding = abap_true or ms_opts-to_abap_corresponding_only = abap_true )
         ii_custom_mapping = mi_custom_mapping.
 
     lo_to_abap->to_abap(
@@ -935,5 +943,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       changing
         c_container = ev_container ).
 
+  endmethod.
+
+
+  method zif_ajson~to_abap_corresponding_only.
+    ms_opts-to_abap_corresponding_only = iv_enable.
+    ri_json = me.
   endmethod.
 ENDCLASS.
