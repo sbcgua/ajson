@@ -2099,6 +2099,7 @@ class ltcl_writer_test definition final
     methods setx for testing raising zcx_ajson_error.
     methods setx_float for testing raising zcx_ajson_error.
     methods setx_complex for testing raising zcx_ajson_error.
+    methods setx_complex_w_keep_order for testing raising zcx_ajson_error.
 
     methods set_with_type_slice
       importing
@@ -3319,6 +3320,27 @@ class ltcl_writer_test implementation.
       cl_abap_unit_assert=>fail( ).
     catch zcx_ajson_error.
     endtry.
+
+  endmethod.
+
+  method setx_complex_w_keep_order.
+
+    data li_cut type ref to zif_ajson.
+
+    li_cut = zcl_ajson=>new( iv_keep_item_order = abap_true ).
+    li_cut->setx( '/c:3' ).
+    li_cut->setx( '/b:2' ).
+    li_cut->setx( '/a:1' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"c":3,"b":2,"a":1}' ).
+
+    li_cut->setx( '/b:{"z":9}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"c":3,"b":{"z":9},"a":1}' ).
 
   endmethod.
 

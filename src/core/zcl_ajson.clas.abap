@@ -126,7 +126,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_AJSON IMPLEMENTATION.
+CLASS zcl_ajson IMPLEMENTATION.
 
 
   method constructor.
@@ -591,7 +591,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     data ls_split_path type zif_ajson_types=>ty_path_name.
     data lr_parent type ref to zif_ajson_types=>ty_node.
-    data ls_deleted_node type zif_ajson_types=>ty_node.
+    data lv_item_order type zif_ajson_types=>ty_node-order.
 
     read_only_watchdog( ).
 
@@ -631,10 +631,10 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     assert lr_parent is not initial.
 
     " delete if exists with subtree
-    ls_deleted_node = delete_subtree(
+    lv_item_order = delete_subtree(
       ir_parent = lr_parent
       iv_path   = ls_split_path-path
-      iv_name   = ls_split_path-name ).
+      iv_name   = ls_split_path-name )-order.
 
     " convert to json
     data lt_new_nodes type zif_ajson_types=>ty_nodes_tt.
@@ -644,12 +644,15 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       lv_array_index = lcl_utils=>validate_array_index(
         iv_path  = ls_split_path-path
         iv_index = ls_split_path-name ).
+    elseif lr_parent->type = zif_ajson_types=>node_type-object
+      and lv_item_order is initial and ms_opts-keep_item_order = abap_true.
+      lv_item_order = lr_parent->children + 1.
     endif.
 
     if iv_node_type is not initial.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
         is_opts            = ms_opts
-        iv_item_order      = ls_deleted_node-order
+        iv_item_order      = lv_item_order
         iv_data            = iv_val
         iv_type            = iv_node_type
         iv_array_index     = lv_array_index
@@ -658,7 +661,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     else.
       lt_new_nodes = lcl_abap_to_json=>convert(
         is_opts            = ms_opts
-        iv_item_order      = ls_deleted_node-order
+        iv_item_order      = lv_item_order
         iv_data            = iv_val
         iv_array_index     = lv_array_index
         is_prefix          = ls_split_path
