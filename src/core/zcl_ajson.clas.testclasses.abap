@@ -3326,21 +3326,37 @@ class ltcl_writer_test implementation.
   method setx_complex_w_keep_order.
 
     data li_cut type ref to zif_ajson.
+    data:
+      begin of ls_dummy,
+        f type i value 5,
+        e type i value 6,
+      end of ls_dummy.
 
     li_cut = zcl_ajson=>new( iv_keep_item_order = abap_true ).
     li_cut->setx( '/c:3' ).
-    li_cut->setx( '/b:2' ).
+    li_cut->set(
+      iv_path = '/b'
+      iv_val  = ls_dummy ).
     li_cut->setx( '/a:1' ).
 
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->stringify( )
-      exp = '{"c":3,"b":2,"a":1}' ).
+      exp = '{"c":3,"b":{"f":5,"e":6},"a":1}' ).
 
-    li_cut->setx( '/b:{"z":9}' ).
+    li_cut->setx( '/b:{"z":9,"y":8}' ).
 
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->stringify( )
-      exp = '{"c":3,"b":{"z":9},"a":1}' ).
+      exp = '{"c":3,"b":{"z":9,"y":8},"a":1}' ).
+    " TODO: a subtle bug here. The '/b:{"z":9,"y":8}' creates a json internally
+    " without the ordering. It's just by chance that this UT passes, but the implementation
+    " does not guarantee it. The parser should be instructed to keep the order of the parsed json
+
+    li_cut->setx( '/0:9' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"c":3,"b":{"z":9,"y":8},"a":1,"0":9}' ).
 
   endmethod.
 

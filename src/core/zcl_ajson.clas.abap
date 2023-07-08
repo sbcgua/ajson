@@ -126,7 +126,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_ajson IMPLEMENTATION.
+CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method constructor.
@@ -591,6 +591,7 @@ CLASS zcl_ajson IMPLEMENTATION.
 
     data ls_split_path type zif_ajson_types=>ty_path_name.
     data lr_parent type ref to zif_ajson_types=>ty_node.
+    data ls_deleted_node type zif_ajson_types=>ty_node.
     data lv_item_order type zif_ajson_types=>ty_node-order.
 
     read_only_watchdog( ).
@@ -631,10 +632,11 @@ CLASS zcl_ajson IMPLEMENTATION.
     assert lr_parent is not initial.
 
     " delete if exists with subtree
-    lv_item_order = delete_subtree(
+    ls_deleted_node = delete_subtree(
       ir_parent = lr_parent
       iv_path   = ls_split_path-path
-      iv_name   = ls_split_path-name )-order.
+      iv_name   = ls_split_path-name ).
+    lv_item_order = ls_deleted_node-order.
 
     " convert to json
     data lt_new_nodes type zif_ajson_types=>ty_nodes_tt.
@@ -645,7 +647,7 @@ CLASS zcl_ajson IMPLEMENTATION.
         iv_path  = ls_split_path-path
         iv_index = ls_split_path-name ).
     elseif lr_parent->type = zif_ajson_types=>node_type-object
-      and lv_item_order is initial and ms_opts-keep_item_order = abap_true.
+      and lv_item_order = 0 and ms_opts-keep_item_order = abap_true.
       lv_item_order = lr_parent->children + 1.
     endif.
 
