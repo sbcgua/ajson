@@ -50,9 +50,10 @@ class zcl_ajson definition
 
     class-methods parse
       importing
-        !iv_json           type string
-        !iv_freeze         type abap_bool default abap_false
-        !ii_custom_mapping type ref to zif_ajson_mapping optional
+        !iv_json            type string
+        !iv_freeze          type abap_bool default abap_false
+        !ii_custom_mapping  type ref to zif_ajson_mapping optional
+        !iv_keep_item_order type abap_bool default abap_false
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
@@ -247,8 +248,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     create object ro_instance.
     create object lo_parser.
-    ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
+    ro_instance->mt_json_tree = lo_parser->parse(
+      iv_json            = iv_json
+      iv_keep_item_order = iv_keep_item_order ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
+    ro_instance->ms_opts-keep_item_order = iv_keep_item_order.
 
     if iv_freeze = abap_true.
       ro_instance->freeze( ).
@@ -730,7 +734,9 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       "Expect object/array, but no further checks, parser will catch errors
       zif_ajson~set(
         iv_path = lv_path
-        iv_val  = parse( lv_val ) ).
+        iv_val  = parse(
+          iv_json = lv_val
+          iv_keep_item_order = ms_opts-keep_item_order ) ).
     else. " string
       lv_last = strlen( lv_val ) - 1.
       if lv_val+0(1) = '"' and lv_val+lv_last(1) = '"'.
@@ -852,7 +858,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       return.
     endif.
 
-    clear: ls_item-path, ls_item-name. " this becomes a new root
+    clear: ls_item-path, ls_item-name, ls_item-order. " this becomes a new root
     insert ls_item into table lo_section->mt_json_tree.
 
     lv_path_pattern = lv_normalized_path && `*`.
