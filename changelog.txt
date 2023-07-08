@@ -13,6 +13,7 @@ v1.1.?, 2023-??
 ! use cx_dynamic_check instead of cx_sxml_error (#153)
 * Slice performance improvement (#156, @jrodriguez-rc)
 * Improve steampunk compatibility (#159,#160, @larshp)
+* Fix set with keep item order (#165, @mbtools)
 + iv_corresponding flag in to_abap (#161, #162, @christianguenter2)
 + to_abap_corresponding_only opt flag (#161)
 
