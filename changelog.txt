@@ -16,6 +16,7 @@ v1.1.?, 2023-??
 * Fix set with keep item order (#165, @mbtools)
 + iv_corresponding flag in to_abap (#161, #162, @christianguenter2)
 + to_abap_corresponding_only opt flag (#161)
++ Keep item order when parsing #166
 
 v1.1.8, 2023-02-16
 ------------------

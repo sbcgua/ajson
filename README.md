@@ -395,7 +395,7 @@ It is possible to set an instance of ajson immutable (read only). It is done on 
 
 #### Keep item order
 
-Sometimes you may want to keep order of json items in the same order as it was in abap structure (assuming you `set` structures or table of structures). To do this call `keep_item_order` after creation of instance, before any `set`.
+Sometimes you may want to keep order of json items in the same order as it was in abap structure (assuming you `set` structures or table of structures). To do this: set `iv_keep_item_order` flag shen creating an instance or call `keep_item_order` after creation of instance, before any `set`.
 
 ```abap
   data:
@@ -411,6 +411,19 @@ Sometimes you may want to keep order of json items in the same order as it was i
     iv_val  = ls_dummy ).
   li_json->stringify( ). " '{"zulu":"z","alpha":"a","beta":"b"}'
   " otherwise - '{"alpha":"a","beta":"b","zulu":"z"}'
+
+  " OR
+  li_json = zcl_ajson=>new( iv_keep_item_order = abap_true ).
+  ...
+```
+
+The same parameter exists for parsing
+
+```abap
+  li_json = zcl_ajson=>parse( 
+    iv_json            = '{"b":1,"a":2}'
+    iv_keep_item_order = abap_true ).
+  li_json->stringify( ). " '{"b":1,"a":2}'
 ```
 
 #### Auto format date/time
