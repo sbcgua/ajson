@@ -170,8 +170,8 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method parse_string.
-    mo_nodes->add( '                 |         |object |                        |  |1' ).
-    mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
+    mo_nodes->add( '                 |         |object |                        |  |1 |0' ).
+    mo_nodes->add( '/                |string   |str    |abc                     |  |0 |1' ).
 
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"string": "abc"}' ).
@@ -181,8 +181,8 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method parse_number.
-    mo_nodes->add( '                 |         |object |                        |  |1' ).
-    mo_nodes->add( '/                |number   |num    |123                     |  |0' ).
+    mo_nodes->add( '                 |         |object |                        |  |1 |0' ).
+    mo_nodes->add( '/                |number   |num    |123                     |  |0 |1' ).
 
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"number": 123}' ).
@@ -192,8 +192,8 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method parse_float.
-    mo_nodes->add( '                 |         |object |                        |  |1' ).
-    mo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
+    mo_nodes->add( '                 |         |object |                        |  |1 |0' ).
+    mo_nodes->add( '/                |float    |num    |123.45                  |  |0 |1' ).
 
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     create object mo_cut.
@@ -204,8 +204,8 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method parse_boolean.
-    mo_nodes->add( '                 |         |object |                        |  |1' ).
-    mo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
+    mo_nodes->add( '                 |         |object |                        |  |1 |0' ).
+    mo_nodes->add( '/                |boolean  |bool   |true                    |  |0 |1' ).
 
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"boolean": true}' ).
@@ -215,8 +215,8 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method parse_false.
-    mo_nodes->add( '                 |         |object |                        |  |1' ).
-    mo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
+    mo_nodes->add( '                 |         |object |                        |  |1 |0' ).
+    mo_nodes->add( '/                |false    |bool   |false                   |  |0 |1' ).
 
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"false": false}' ).
@@ -226,8 +226,8 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method parse_null.
-    mo_nodes->add( '                 |         |object |                        |  |1' ).
-    mo_nodes->add( '/                |null     |null   |                        |  |0' ).
+    mo_nodes->add( '                 |         |object |                        |  |1 |0' ).
+    mo_nodes->add( '/                |null     |null   |                        |  |0 |1' ).
 
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"null": null}' ).
@@ -237,8 +237,8 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method parse_date.
-    mo_nodes->add( '                 |         |object |                        |  |1' ).
-    mo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
+    mo_nodes->add( '                 |         |object |                        |  |1 |0' ).
+    mo_nodes->add( '/                |date     |str    |2020-03-15              |  |0 |1' ).
 
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"date": "2020-03-15"}' ).
@@ -299,35 +299,35 @@ class ltcl_parser_test implementation.
     data lo_nodes type ref to lcl_nodes_helper.
 
     create object lo_nodes.
-    lo_nodes->add( '                 |         |object |                        |  |8' ).
-    lo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
-    lo_nodes->add( '/                |number   |num    |123                     |  |0' ).
-    lo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
-    lo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
-    lo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
-    lo_nodes->add( '/                |null     |null   |                        |  |0' ).
-    lo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
-    lo_nodes->add( '/                |issues   |array  |                        |  |2' ).
-    lo_nodes->add( '/issues/         |1        |object |                        |1 |5' ).
-    lo_nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0' ).
-    lo_nodes->add( '/issues/1/       |key      |str    |indentation             |  |0' ).
-    lo_nodes->add( '/issues/1/       |start    |object |                        |  |2' ).
-    lo_nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0' ).
-    lo_nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0' ).
-    lo_nodes->add( '/issues/1/       |end      |object |                        |  |2' ).
-    lo_nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
-    lo_nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
-    lo_nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
-    lo_nodes->add( '/issues/         |2        |object |                        |2 |5' ).
-    lo_nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0' ).
-    lo_nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0' ).
-    lo_nodes->add( '/issues/2/       |start    |object |                        |  |2' ).
-    lo_nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0' ).
-    lo_nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0' ).
-    lo_nodes->add( '/issues/2/       |end      |object |                        |  |2' ).
-    lo_nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
-    lo_nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
-    lo_nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    lo_nodes->add( '                 |         |object |                        |  |8 |0' ).
+    lo_nodes->add( '/                |string   |str    |abc                     |  |0 |1' ).
+    lo_nodes->add( '/                |number   |num    |123                     |  |0 |2' ).
+    lo_nodes->add( '/                |float    |num    |123.45                  |  |0 |3' ).
+    lo_nodes->add( '/                |boolean  |bool   |true                    |  |0 |4' ).
+    lo_nodes->add( '/                |false    |bool   |false                   |  |0 |5' ).
+    lo_nodes->add( '/                |null     |null   |                        |  |0 |6' ).
+    lo_nodes->add( '/                |date     |str    |2020-03-15              |  |0 |7' ).
+    lo_nodes->add( '/                |issues   |array  |                        |  |2 |8' ).
+    lo_nodes->add( '/issues/         |1        |object |                        |1 |5 |0' ).
+    lo_nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0 |1' ).
+    lo_nodes->add( '/issues/1/       |key      |str    |indentation             |  |0 |2' ).
+    lo_nodes->add( '/issues/1/       |start    |object |                        |  |2 |3' ).
+    lo_nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0 |1' ).
+    lo_nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0 |2' ).
+    lo_nodes->add( '/issues/1/       |end      |object |                        |  |2 |4' ).
+    lo_nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0 |1' ).
+    lo_nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0 |2' ).
+    lo_nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0 |5' ).
+    lo_nodes->add( '/issues/         |2        |object |                        |2 |5 |0' ).
+    lo_nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0 |1' ).
+    lo_nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0 |2' ).
+    lo_nodes->add( '/issues/2/       |start    |object |                        |  |2 |3' ).
+    lo_nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0 |1' ).
+    lo_nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0 |2' ).
+    lo_nodes->add( '/issues/2/       |end      |object |                        |  |2 |4' ).
+    lo_nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0 |1' ).
+    lo_nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0 |2' ).
+    lo_nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0 |5' ).
 
     create object lo_cut.
     lt_act = lo_cut->parse( sample_json( ) ).
@@ -897,28 +897,27 @@ class ltcl_reader_test implementation.
     data lo_nodes type ref to lcl_nodes_helper.
 
     create object lo_nodes.
-    lo_nodes->add( '          |         |array  |                        |  |2' ).
-    lo_nodes->add( '/         |1        |object |                        |1 |5' ).
-    lo_nodes->add( '/1/       |message  |str    |Indentation problem ... |  |0' ).
-    lo_nodes->add( '/1/       |key      |str    |indentation             |  |0' ).
-    lo_nodes->add( '/1/       |start    |object |                        |  |2' ).
-    lo_nodes->add( '/1/start/ |row      |num    |4                       |  |0' ).
-    lo_nodes->add( '/1/start/ |col      |num    |3                       |  |0' ).
-    lo_nodes->add( '/1/       |end      |object |                        |  |2' ).
-    lo_nodes->add( '/1/end/   |row      |num    |4                       |  |0' ).
-    lo_nodes->add( '/1/end/   |col      |num    |26                      |  |0' ).
-    lo_nodes->add( '/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
-    lo_nodes->add( '/         |2        |object |                        |2 |5' ).
-    lo_nodes->add( '/2/       |message  |str    |Remove space before XXX |  |0' ).
-    lo_nodes->add( '/2/       |key      |str    |space_before_dot        |  |0' ).
-    lo_nodes->add( '/2/       |start    |object |                        |  |2' ).
-    lo_nodes->add( '/2/start/ |row      |num    |3                       |  |0' ).
-    lo_nodes->add( '/2/start/ |col      |num    |21                      |  |0' ).
-    lo_nodes->add( '/2/       |end      |object |                        |  |2' ).
-    lo_nodes->add( '/2/end/   |row      |num    |3                       |  |0' ).
-    lo_nodes->add( '/2/end/   |col      |num    |22                      |  |0' ).
-    lo_nodes->add( '/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
-
+    lo_nodes->add( '          |         |array  |                        |  |2 |0' ).
+    lo_nodes->add( '/         |1        |object |                        |1 |5 |0' ).
+    lo_nodes->add( '/1/       |message  |str    |Indentation problem ... |  |0 |1' ).
+    lo_nodes->add( '/1/       |key      |str    |indentation             |  |0 |2' ).
+    lo_nodes->add( '/1/       |start    |object |                        |  |2 |3' ).
+    lo_nodes->add( '/1/start/ |row      |num    |4                       |  |0 |1' ).
+    lo_nodes->add( '/1/start/ |col      |num    |3                       |  |0 |2' ).
+    lo_nodes->add( '/1/       |end      |object |                        |  |2 |4' ).
+    lo_nodes->add( '/1/end/   |row      |num    |4                       |  |0 |1' ).
+    lo_nodes->add( '/1/end/   |col      |num    |26                      |  |0 |2' ).
+    lo_nodes->add( '/1/       |filename |str    |./zxxx.prog.abap        |  |0 |5' ).
+    lo_nodes->add( '/         |2        |object |                        |2 |5 |0' ).
+    lo_nodes->add( '/2/       |message  |str    |Remove space before XXX |  |0 |1' ).
+    lo_nodes->add( '/2/       |key      |str    |space_before_dot        |  |0 |2' ).
+    lo_nodes->add( '/2/       |start    |object |                        |  |2 |3' ).
+    lo_nodes->add( '/2/start/ |row      |num    |3                       |  |0 |1' ).
+    lo_nodes->add( '/2/start/ |col      |num    |21                      |  |0 |2' ).
+    lo_nodes->add( '/2/       |end      |object |                        |  |2 |4' ).
+    lo_nodes->add( '/2/end/   |row      |num    |3                       |  |0 |1' ).
+    lo_nodes->add( '/2/end/   |col      |num    |22                      |  |0 |2' ).
+    lo_nodes->add( '/2/       |filename |str    |./zxxx.prog.abap        |  |0 |5' ).
 
     lo_cut = zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
     lo_cut ?= lo_cut->zif_ajson~slice( '/issues' ).
@@ -929,35 +928,35 @@ class ltcl_reader_test implementation.
     " **********************************************************************
 
     create object lo_nodes.
-    lo_nodes->add( '                 |         |object |                        |  |8' ).
-    lo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
-    lo_nodes->add( '/                |number   |num    |123                     |  |0' ).
-    lo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
-    lo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
-    lo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
-    lo_nodes->add( '/                |null     |null   |                        |  |0' ).
-    lo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
-    lo_nodes->add( '/                |issues   |array  |                        |  |2' ).
-    lo_nodes->add( '/issues/         |1        |object |                        |1 |5' ).
-    lo_nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0' ).
-    lo_nodes->add( '/issues/1/       |key      |str    |indentation             |  |0' ).
-    lo_nodes->add( '/issues/1/       |start    |object |                        |  |2' ).
-    lo_nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0' ).
-    lo_nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0' ).
-    lo_nodes->add( '/issues/1/       |end      |object |                        |  |2' ).
-    lo_nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
-    lo_nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
-    lo_nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
-    lo_nodes->add( '/issues/         |2        |object |                        |2 |5' ).
-    lo_nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0' ).
-    lo_nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0' ).
-    lo_nodes->add( '/issues/2/       |start    |object |                        |  |2' ).
-    lo_nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0' ).
-    lo_nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0' ).
-    lo_nodes->add( '/issues/2/       |end      |object |                        |  |2' ).
-    lo_nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
-    lo_nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
-    lo_nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    lo_nodes->add( '                 |         |object |                        |  |8 |0' ).
+    lo_nodes->add( '/                |string   |str    |abc                     |  |0 |1' ).
+    lo_nodes->add( '/                |number   |num    |123                     |  |0 |2' ).
+    lo_nodes->add( '/                |float    |num    |123.45                  |  |0 |3' ).
+    lo_nodes->add( '/                |boolean  |bool   |true                    |  |0 |4' ).
+    lo_nodes->add( '/                |false    |bool   |false                   |  |0 |5' ).
+    lo_nodes->add( '/                |null     |null   |                        |  |0 |6' ).
+    lo_nodes->add( '/                |date     |str    |2020-03-15              |  |0 |7' ).
+    lo_nodes->add( '/                |issues   |array  |                        |  |2 |8' ).
+    lo_nodes->add( '/issues/         |1        |object |                        |1 |5 |0' ).
+    lo_nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0 |1' ).
+    lo_nodes->add( '/issues/1/       |key      |str    |indentation             |  |0 |2' ).
+    lo_nodes->add( '/issues/1/       |start    |object |                        |  |2 |3' ).
+    lo_nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0 |1' ).
+    lo_nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0 |2' ).
+    lo_nodes->add( '/issues/1/       |end      |object |                        |  |2 |4' ).
+    lo_nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0 |1' ).
+    lo_nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0 |2' ).
+    lo_nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0 |5' ).
+    lo_nodes->add( '/issues/         |2        |object |                        |2 |5 |0' ).
+    lo_nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0 |1' ).
+    lo_nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0 |2' ).
+    lo_nodes->add( '/issues/2/       |start    |object |                        |  |2 |3' ).
+    lo_nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0 |1' ).
+    lo_nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0 |2' ).
+    lo_nodes->add( '/issues/2/       |end      |object |                        |  |2 |4' ).
+    lo_nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0 |1' ).
+    lo_nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0 |2' ).
+    lo_nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0 |5' ).
 
     lo_cut = zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
     lo_cut ?= lo_cut->zif_ajson~slice( '/' ).
@@ -969,8 +968,8 @@ class ltcl_reader_test implementation.
 
     create object lo_nodes.
     lo_nodes->add( '  |         |object |                        | |2' ).
-    lo_nodes->add( '/ |row      |num    |3                       | |0' ).
-    lo_nodes->add( '/ |col      |num    |21                      | |0' ).
+    lo_nodes->add( '/ |row      |num    |3                       | |0 |1' ).
+    lo_nodes->add( '/ |col      |num    |21                      | |0 |2' ).
 
     lo_cut = zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
     lo_cut ?= lo_cut->zif_ajson~slice( '/issues/2/start/' ).
@@ -3082,16 +3081,20 @@ class ltcl_writer_test implementation.
 
     data lo_sample type ref to zcl_ajson.
     data lo_cut type ref to zcl_ajson.
-    data li_writer type ref to zif_ajson.
+    field-symbols <i> like line of lo_cut->mt_json_tree.
 
     lo_sample = zcl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
+    lo_cut    = zcl_ajson=>create_empty( ).
 
-    lo_cut = zcl_ajson=>create_empty( ).
-    li_writer = lo_cut.
+    set_with_type_slice(
+      io_json_in  = lo_sample
+      io_json_out = lo_cut
+      iv_path     = '/' ).
 
-    set_with_type_slice( io_json_in  = lo_sample
-                         io_json_out = li_writer
-                         iv_path     = '/' ).
+    loop at lo_sample->mt_json_tree assigning <i>.
+      " set does not copy the order, and probably it is correct, so ... workaround
+      clear <i>-order.
+    endloop.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
@@ -3110,13 +3113,15 @@ class ltcl_writer_test implementation.
       case <node>-type.
         when zif_ajson_types=>node_type-array.
           io_json_out->touch_array( lv_path ).
-          set_with_type_slice( io_json_in  = io_json_in
-                               io_json_out = io_json_out
-                               iv_path     = lv_path ).
+          set_with_type_slice(
+            io_json_in  = io_json_in
+            io_json_out = io_json_out
+            iv_path     = lv_path ).
         when zif_ajson_types=>node_type-object.
-          set_with_type_slice( io_json_in  = io_json_in
-                               io_json_out = io_json_out
-                               iv_path     = lv_path ).
+          set_with_type_slice(
+            io_json_in  = io_json_in
+            io_json_out = io_json_out
+            iv_path     = lv_path ).
         when others.
           io_json_out->set(
             iv_path      = lv_path

@@ -330,6 +330,7 @@ class lcl_json_parser implementation.
                   <item>-name = lo_attr->get_value( ).
                 endif.
               endloop.
+              <item>-order = lr_stack_top->children.
             endif.
             if <item>-name is initial.
               raise( 'Node without name (maybe not JSON)' ).

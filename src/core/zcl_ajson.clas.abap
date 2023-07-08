@@ -852,7 +852,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       return.
     endif.
 
-    clear: ls_item-path, ls_item-name. " this becomes a new root
+    clear: ls_item-path, ls_item-name, ls_item-order. " this becomes a new root
     insert ls_item into table lo_section->mt_json_tree.
 
     lv_path_pattern = lv_normalized_path && `*`.
