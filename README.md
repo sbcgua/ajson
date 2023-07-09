@@ -1038,6 +1038,7 @@ Behavior options like `read_only` or `keep_item_order` are accessible via `opts(
 ## References
 
 - Forked from [here](https://github.com/abaplint/abaplint-abap-backend) originally, at early stages
+- The package is unit tested in Github actions thank to [abap transpiler](https://github.com/abaplint/transpiler) by @larshp
 - Publication at SCN:
   - [Bicycles. #2 – AJSON – yet another abap json parser and serializer](https://blogs.sap.com/2020/08/14/bicycles.-2-ajson-yet-another-abap-json-parser-and-serializer)
   - [JSON alternative to maintenance views in ABAP](https://blogs.sap.com/2022/07/23/json-alternative-to-maintenance-views-in-abap/)
