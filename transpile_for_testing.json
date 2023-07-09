@@ -1,8 +1,8 @@
 {
-  "input_folder": "{src}",
+  "input_folder": "src",
   "input_filter": [
-    "src/core/*",
-    "src/libs/*"
+    "core/*",
+    "libs/*"
   ],
   "output_folder": "transpiled",
   "libs": [
