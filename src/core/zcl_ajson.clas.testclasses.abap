@@ -75,6 +75,7 @@ class ltcl_parser_test definition final
 
     methods setup.
     methods parse for testing raising zcx_ajson_error.
+    methods parse_keeping_order for testing raising zcx_ajson_error.
     methods parse_string for testing raising zcx_ajson_error.
     methods parse_number for testing raising zcx_ajson_error.
     methods parse_float for testing raising zcx_ajson_error.
@@ -341,6 +342,67 @@ class ltcl_parser_test implementation.
       exp = lo_nodes->mt_nodes ).
 
     lt_act = lo_cut->parse( sample_json( |{ cl_abap_char_utilities=>cr_lf }| ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = lo_nodes->mt_nodes ).
+
+  endmethod.
+
+  method parse_keeping_order.
+
+    data lo_cut type ref to lcl_json_parser.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '                 |         |object |                        |  |8 |0' ).
+    lo_nodes->add( '/                |string   |str    |abc                     |  |0 |1' ).
+    lo_nodes->add( '/                |number   |num    |123                     |  |0 |2' ).
+    lo_nodes->add( '/                |float    |num    |123.45                  |  |0 |3' ).
+    lo_nodes->add( '/                |boolean  |bool   |true                    |  |0 |4' ).
+    lo_nodes->add( '/                |false    |bool   |false                   |  |0 |5' ).
+    lo_nodes->add( '/                |null     |null   |                        |  |0 |6' ).
+    lo_nodes->add( '/                |date     |str    |2020-03-15              |  |0 |7' ).
+    lo_nodes->add( '/                |issues   |array  |                        |  |2 |8' ).
+    lo_nodes->add( '/issues/         |1        |object |                        |1 |5 |0' ).
+    lo_nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0 |1' ).
+    lo_nodes->add( '/issues/1/       |key      |str    |indentation             |  |0 |2' ).
+    lo_nodes->add( '/issues/1/       |start    |object |                        |  |2 |3' ).
+    lo_nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0 |1' ).
+    lo_nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0 |2' ).
+    lo_nodes->add( '/issues/1/       |end      |object |                        |  |2 |4' ).
+    lo_nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0 |1' ).
+    lo_nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0 |2' ).
+    lo_nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0 |5' ).
+    lo_nodes->add( '/issues/         |2        |object |                        |2 |5 |0' ).
+    lo_nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0 |1' ).
+    lo_nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0 |2' ).
+    lo_nodes->add( '/issues/2/       |start    |object |                        |  |2 |3' ).
+    lo_nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0 |1' ).
+    lo_nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0 |2' ).
+    lo_nodes->add( '/issues/2/       |end      |object |                        |  |2 |4' ).
+    lo_nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0 |1' ).
+    lo_nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0 |2' ).
+    lo_nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0 |5' ).
+
+    create object lo_cut.
+    lt_act = lo_cut->parse(
+      iv_json = sample_json( )
+      iv_keep_item_order = abap_true ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = lo_nodes->mt_nodes ).
+
+    lt_act = lo_cut->parse(
+      iv_json = sample_json( |{ cl_abap_char_utilities=>newline }| )
+      iv_keep_item_order = abap_true ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = lo_nodes->mt_nodes ).
+
+    lt_act = lo_cut->parse(
+      iv_json = sample_json( |{ cl_abap_char_utilities=>cr_lf }| )
+      iv_keep_item_order = abap_true ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = lo_nodes->mt_nodes ).
