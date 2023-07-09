@@ -18,6 +18,8 @@
     "addCommonJS": true,
     "unknownTypes": "runtimeError",
     "keywords": ["return", "in", "class"],
-    "skip": []
+    "skip": [
+      {"object": "ZCL_AJSON", "class": "ltcl_parser_test", "method": "parse_error",  "note": "Node json error location issue"}
+    ]
   }
 }
