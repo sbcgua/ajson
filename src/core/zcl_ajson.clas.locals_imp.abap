@@ -1497,6 +1497,7 @@ class lcl_abap_to_json implementation.
     field-symbols <root> like ls_root.
     field-symbols <c> like line of lt_comps.
     field-symbols <val> type any.
+    field-symbols <fs_data> type any.
 
     " Object root
 
@@ -1540,7 +1541,7 @@ class lcl_abap_to_json implementation.
 
       if <c>-as_include = abap_true.
 
-        ASSIGN COMPONENT <c>-name OF STRUCTURE iv_data TO FIELD-SYMBOL(<fs_data>).
+        ASSIGN COMPONENT <c>-name OF STRUCTURE iv_data TO <fs_data>.
 
         convert_struc(
           exporting
