@@ -1541,7 +1541,7 @@ class lcl_abap_to_json implementation.
 
       if <c>-as_include = abap_true.
 
-        ASSIGN COMPONENT <c>-name OF STRUCTURE iv_data TO <include>.
+        assign component <c>-name of structure iv_data TO <include>.
 
         convert_struc(
           exporting
