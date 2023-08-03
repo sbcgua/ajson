@@ -1540,9 +1540,11 @@ class lcl_abap_to_json implementation.
 
       if <c>-as_include = abap_true.
 
+        ASSIGN COMPONENT <c>-name OF STRUCTURE iv_data TO FIELD-SYMBOL(<fs_data>).
+
         convert_struc(
           exporting
-            iv_data   = iv_data
+            iv_data   = <fs_data>
             io_type   = <c>-type
             is_prefix = is_prefix
           changing
