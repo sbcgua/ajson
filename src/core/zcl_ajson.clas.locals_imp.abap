@@ -1488,7 +1488,7 @@ class lcl_abap_to_json implementation.
   method convert_struc.
 
     data lo_struc type ref to cl_abap_structdescr.
-    data lt_comps type cl_abap_structdescr=>component_table.
+    data lt_comps type cl_abap_structdescr=>included_view.
     data ls_next_prefix like is_prefix.
     data lv_mapping_prefix_name like is_prefix-name.
     data lv_item_order type i.
@@ -1497,7 +1497,6 @@ class lcl_abap_to_json implementation.
     field-symbols <root> like ls_root.
     field-symbols <c> like line of lt_comps.
     field-symbols <val> type any.
-    field-symbols <include> type any.
 
     " Object root
 
@@ -1528,7 +1527,7 @@ class lcl_abap_to_json implementation.
     " Object attributes
 
     lo_struc ?= io_type.
-    lt_comps = lo_struc->get_components( ).
+    lt_comps = lo_struc->get_included_view( ). " <-- replaced call to get_components() with get_included_view() to avoid problems with suffixes in includes.
     " get_components is potentially much slower than lo_struc->components
     " but ! we still need it to identify booleans
     " and rtti seems to cache type descriptions really well (https://github.com/sbcgua/benchmarks.git)
@@ -1539,49 +1538,32 @@ class lcl_abap_to_json implementation.
     loop at lt_comps assigning <c>.
       clear lv_mapping_prefix_name.
 
-      if <c>-as_include = abap_true.
+      <root>-children = <root>-children + 1.
+      ls_next_prefix-name = to_lower( <c>-name ).
+      assign component <c>-name of structure iv_data to <val>.
+      assert sy-subrc = 0.
 
-        assign component <c>-name of structure iv_data TO <include>.
-
-        convert_struc(
-          exporting
-            iv_data   = <include>
-            io_type   = <c>-type
-            is_prefix = is_prefix
-          changing
-            cs_root  = <root>
-            ct_nodes = ct_nodes ).
-
-      else.
-
-        <root>-children = <root>-children + 1.
-        ls_next_prefix-name = to_lower( <c>-name ).
-        assign component <c>-name of structure iv_data to <val>.
-        assert sy-subrc = 0.
-
-        if mi_custom_mapping is bound and <c>-type->kind = cl_abap_typedescr=>kind_elem.
-          lv_mapping_prefix_name = mi_custom_mapping->to_json( iv_path = ls_next_prefix-path
-                                                               iv_name = ls_next_prefix-name ).
-        endif.
-
-        if lv_mapping_prefix_name is not initial.
-          ls_next_prefix-name = lv_mapping_prefix_name.
-        endif.
-
-        if mv_keep_item_order = abap_true.
-          lv_item_order = <root>-children.
-        endif.
-
-        convert_any(
-          exporting
-            iv_data   = <val>
-            io_type   = <c>-type
-            is_prefix = ls_next_prefix
-            iv_item_order = lv_item_order
-          changing
-            ct_nodes = ct_nodes ).
-
+      if mi_custom_mapping is bound and <c>-type->kind = cl_abap_typedescr=>kind_elem.
+        lv_mapping_prefix_name = mi_custom_mapping->to_json( iv_path = ls_next_prefix-path
+                                                             iv_name = ls_next_prefix-name ).
       endif.
+
+      if lv_mapping_prefix_name is not initial.
+        ls_next_prefix-name = lv_mapping_prefix_name.
+      endif.
+
+      if mv_keep_item_order = abap_true.
+        lv_item_order = <root>-children.
+      endif.
+
+      convert_any(
+        exporting
+          iv_data   = <val>
+          io_type   = <c>-type
+          is_prefix = ls_next_prefix
+          iv_item_order = lv_item_order
+        changing
+          ct_nodes = ct_nodes ).
 
     endloop.
 
