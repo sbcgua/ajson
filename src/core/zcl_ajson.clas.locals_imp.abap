@@ -1527,7 +1527,8 @@ class lcl_abap_to_json implementation.
     " Object attributes
 
     lo_struc ?= io_type.
-    lt_comps = lo_struc->get_included_view( ). " <-- replaced call to get_components() with get_included_view() to avoid problems with suffixes in includes.
+    lt_comps = lo_struc->get_included_view( ).
+    " replaced call to get_components() with get_included_view() to avoid problems with suffixes in includes.
     " get_components is potentially much slower than lo_struc->components
     " but ! we still need it to identify booleans
     " and rtti seems to cache type descriptions really well (https://github.com/sbcgua/benchmarks.git)
