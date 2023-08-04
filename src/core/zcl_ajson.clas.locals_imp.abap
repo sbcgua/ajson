@@ -1202,7 +1202,6 @@ class lcl_abap_to_json definition final.
         iv_item_order type i default 0
       changing
         ct_nodes type zif_ajson_types=>ty_nodes_tt
-        cs_root  type zif_ajson_types=>ty_node optional
       raising
         zcx_ajson_error.
 
@@ -1500,29 +1499,24 @@ class lcl_abap_to_json implementation.
 
     " Object root
 
-    if cs_root is supplied. " call for include structure
-      assign cs_root to <root>.
-    else. " First call
-      ls_root-path  = is_prefix-path.
-      ls_root-name  = is_prefix-name.
-      ls_root-type  = zif_ajson_types=>node_type-object.
-      ls_root-index = iv_index.
+    ls_root-path  = is_prefix-path.
+    ls_root-name  = is_prefix-name.
+    ls_root-type  = zif_ajson_types=>node_type-object.
+    ls_root-index = iv_index.
 
-      if mi_custom_mapping is bound.
-        ls_root-name = mi_custom_mapping->to_json(
-          iv_path = is_prefix-path
-          iv_name = is_prefix-name ).
-      endif.
-
-      if ls_root-name is initial.
-        ls_root-name  = is_prefix-name.
-      endif.
-
-      ls_root-order = iv_item_order.
-
-      append ls_root to ct_nodes assigning <root>.
-
+    if mi_custom_mapping is bound.
+      ls_root-name = mi_custom_mapping->to_json(
+        iv_path = is_prefix-path
+        iv_name = is_prefix-name ).
     endif.
+
+    if ls_root-name is initial.
+      ls_root-name  = is_prefix-name.
+    endif.
+
+    ls_root-order = iv_item_order.
+
+    append ls_root to ct_nodes assigning <root>.
 
     " Object attributes
 
