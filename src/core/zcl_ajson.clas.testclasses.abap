@@ -3826,8 +3826,8 @@ class ltcl_abap_to_json definition
     types
       begin of ty_named_include.
         include type ty_struc as named_with_suffix renaming with suffix _suf.
-        types el type string.
-    types
+    types:
+        el type string.
       end of ty_named_include.
 
     methods set_ajson for testing raising zcx_ajson_error.
