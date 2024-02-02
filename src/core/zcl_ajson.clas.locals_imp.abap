@@ -664,11 +664,11 @@ class lcl_json_to_abap definition final.
         zcx_ajson_error.
 
     methods to_time
-      IMPORTING
-        iv_value         TYPE z2ui5_if_ajson_types=>ty_node-value
-      RETURNING
-        VALUE(rv_result) TYPE t
-      RAISING
+      importing
+        iv_value         type z2ui5_if_ajson_types=>ty_node-value
+      returning
+        value(rv_result) type t
+      raising
         z2ui5_cx_ajson_error.
 
   private section.
