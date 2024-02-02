@@ -1098,17 +1098,17 @@ class lcl_json_to_abap implementation.
 
   method to_time.
 
-    DATA lv_h TYPE c LENGTH 2.
-    DATA lv_m TYPE c LENGTH 2.
-    DATA lv_s TYPE c LENGTH 2.
+    data lv_h type c length 2.
+    data lv_m type c length 2.
+    data lv_s type c length 2.
 
-    FIND FIRST OCCURRENCE OF REGEX '^(\d{2}):(\d{2}):(\d{2})(T|$)' "#EC NOTEXT
-      IN iv_value
-      SUBMATCHES lv_h lv_m lv_s.
-    IF sy-subrc <> 0.
+    find first occurrence of regex '^(\d{2}):(\d{2}):(\d{2})(T|$)' "#EC NOTEXT
+      in iv_value
+      submatches lv_h lv_m lv_s.
+    if sy-subrc <> 0.
       z2ui5_cx_ajson_error=>raise( 'Unexpected time format' ).
-    ENDIF.
-    CONCATENATE lv_h lv_m lv_s INTO rv_result.
+    endif.
+    concatenate lv_h lv_m lv_s into rv_result.
 
   endmethod.
 
