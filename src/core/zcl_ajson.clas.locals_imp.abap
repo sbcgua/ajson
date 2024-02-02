@@ -665,11 +665,11 @@ class lcl_json_to_abap definition final.
 
     methods to_time
       importing
-        iv_value         type z2ui5_if_ajson_types=>ty_node-value
+        iv_value         type zif_ajson_types=>ty_node-value
       returning
         value(rv_result) type t
       raising
-        z2ui5_cx_ajson_error.
+        zcx_ajson_error.
 
   private section.
 
@@ -1106,7 +1106,7 @@ class lcl_json_to_abap implementation.
       in iv_value
       submatches lv_h lv_m lv_s.
     if sy-subrc <> 0.
-      z2ui5_cx_ajson_error=>raise( 'Unexpected time format' ).
+      zcx_ajson_error=>raise( 'Unexpected time format' ).
     endif.
     concatenate lv_h lv_m lv_s into rv_result.
 
