@@ -663,6 +663,14 @@ class lcl_json_to_abap definition final.
       raising
         zcx_ajson_error.
 
+    methods to_time
+      IMPORTING
+        iv_value         TYPE z2ui5_if_ajson_types=>ty_node-value
+      RETURNING
+        VALUE(rv_result) TYPE t
+      RAISING
+        z2ui5_cx_ajson_error.
+
   private section.
 
     types:
@@ -977,6 +985,8 @@ class lcl_json_to_abap implementation.
         " TODO: check type ?
         if is_node_type-type_kind = lif_kind=>date and is_node-value is not initial.
           <container> = to_date( is_node-value ).
+        elseif is_node_type-type_kind = lif_kind=>time and is_node-value is not initial.
+          <container> = to_time( is_node-value ).
         elseif is_node_type-type_kind = lif_kind=>packed and is_node-value is not initial.
           <container> = to_timestamp( is_node-value ).
         else.
@@ -1083,6 +1093,22 @@ class lcl_json_to_abap implementation.
         importing
           tstmp_tgt = rv_result ).
     endif.
+
+  endmethod.
+
+  method to_time.
+
+    DATA lv_h TYPE c LENGTH 2.
+    DATA lv_m TYPE c LENGTH 2.
+    DATA lv_s TYPE c LENGTH 2.
+
+    FIND FIRST OCCURRENCE OF REGEX '^(\d{2}):(\d{2}):(\d{2})(T|$)' "#EC NOTEXT
+      IN iv_value
+      SUBMATCHES lv_h lv_m lv_s.
+    IF sy-subrc <> 0.
+      z2ui5_cx_ajson_error=>raise( 'Unexpected time format' ).
+    ENDIF.
+    CONCATENATE lv_h lv_m lv_s INTO rv_result.
 
   endmethod.
 
