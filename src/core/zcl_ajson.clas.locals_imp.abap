@@ -663,6 +663,14 @@ class lcl_json_to_abap definition final.
       raising
         zcx_ajson_error.
 
+    methods to_time
+      importing
+        iv_value         type zif_ajson_types=>ty_node-value
+      returning
+        value(rv_result) type t
+      raising
+        zcx_ajson_error.
+
   private section.
 
     types:
@@ -977,6 +985,8 @@ class lcl_json_to_abap implementation.
         " TODO: check type ?
         if is_node_type-type_kind = lif_kind=>date and is_node-value is not initial.
           <container> = to_date( is_node-value ).
+        elseif is_node_type-type_kind = lif_kind=>time and is_node-value is not initial.
+          <container> = to_time( is_node-value ).
         elseif is_node_type-type_kind = lif_kind=>packed and is_node-value is not initial.
           <container> = to_timestamp( is_node-value ).
         else.
@@ -1083,6 +1093,22 @@ class lcl_json_to_abap implementation.
         importing
           tstmp_tgt = rv_result ).
     endif.
+
+  endmethod.
+
+  method to_time.
+
+    data lv_h type c length 2.
+    data lv_m type c length 2.
+    data lv_s type c length 2.
+
+    find first occurrence of regex '^(\d{2}):(\d{2}):(\d{2})(T|$)' "#EC NOTEXT
+      in iv_value
+      submatches lv_h lv_m lv_s.
+    if sy-subrc <> 0.
+      zcx_ajson_error=>raise( 'Unexpected time format' ).
+    endif.
+    concatenate lv_h lv_m lv_s into rv_result.
 
   endmethod.
 
