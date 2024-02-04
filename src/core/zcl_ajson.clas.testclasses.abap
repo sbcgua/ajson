@@ -1458,7 +1458,7 @@ class ltcl_json_to_abap definition
       for testing
       raising zcx_ajson_error.
     methods to_abap_time
-                for testing
+      for testing
       raising cx_static_check.
 endclass.
 
@@ -1555,6 +1555,22 @@ class ltcl_json_to_abap implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lv_mock
       exp = '111111' ).
+
+    data lv_mock_init type t.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |str    || ' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lv_mock_init ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_mock_init
+      exp = '000000' ).
 
   endmethod.
 
