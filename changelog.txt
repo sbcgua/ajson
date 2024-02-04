@@ -8,9 +8,10 @@ Legend
 + : added
 - : removed
 
-v1.?.?, 2023-??
+v1.1.10, 2024-02-04
 ------------------
 * downport utilities testclass (#170, @mbtools)
+* proper support for time data type (#172, @oblomov-dev)
 
 v1.1.9, 2023-08-09
 ------------------
