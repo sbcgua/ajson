@@ -127,7 +127,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_AJSON IMPLEMENTATION.
+CLASS zcl_ajson IMPLEMENTATION.
 
 
   method constructor.
@@ -923,8 +923,12 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       ls_new_node-name = ls_split_path-name.
       ls_new_node-type = zif_ajson_types=>node_type-array.
 
-      if ms_opts-keep_item_order = abap_true and ls_deleted_node is not initial.
-        ls_new_node-order = ls_deleted_node-order.
+      if ms_opts-keep_item_order = abap_true.
+        if ls_deleted_node is not initial.
+          ls_new_node-order = ls_deleted_node-order.
+        else.
+          ls_new_node-order = lr_parent->children.
+        endif.
       endif.
 
       insert ls_new_node into table mt_json_tree.
