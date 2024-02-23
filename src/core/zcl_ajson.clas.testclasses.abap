@@ -2196,6 +2196,7 @@ class ltcl_writer_test definition final
     methods read_only for testing raising zcx_ajson_error.
     methods set_array_obj for testing raising zcx_ajson_error.
     methods set_with_type for testing raising zcx_ajson_error.
+    methods new_array_w_keep_order_touch for testing raising zcx_ajson_error.
     methods overwrite_w_keep_order_touch for testing raising zcx_ajson_error.
     methods overwrite_w_keep_order_set for testing raising zcx_ajson_error.
     methods setx for testing raising zcx_ajson_error.
@@ -3266,6 +3267,37 @@ class ltcl_writer_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->stringify( )
       exp = '{"b":0,"a":1}' ). " still ordered after overwrite
+
+  endmethod.
+
+  method new_array_w_keep_order_touch.
+
+    data li_cut type ref to zif_ajson.
+
+    " default order adds new arrays at beginning of node (pos 0)
+    li_cut = zcl_ajson=>create_empty(
+    )->set(
+      iv_path = '/b'
+      iv_val  = 1 ).
+
+    li_cut->touch_array( '/a' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"a":[],"b":1}' ).
+
+    " with keep order, new array is created at end of node
+    li_cut = zcl_ajson=>create_empty(
+    )->keep_item_order(
+    )->set(
+      iv_path = '/b'
+      iv_val  = 1 ).
+
+    li_cut->touch_array( '/a' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"b":1,"a":[]}' ).
 
   endmethod.
 
