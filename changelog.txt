@@ -8,7 +8,7 @@ Legend
 + : added
 - : removed
 
-v1.1.10, 2024-02-04
+v1.1.11, 2024-??
 ------------------
 * Fix touch_array with keep order (#178, @mbtools)
 
