@@ -10,6 +10,10 @@ Legend
 
 v1.1.10, 2024-02-04
 ------------------
+* Fix touch_array with keep order (#178, @mbtools)
+
+v1.1.10, 2024-02-04
+------------------
 * downport utilities testclass (#170, @mbtools)
 * proper support for time data type (#172, @oblomov-dev)
 
