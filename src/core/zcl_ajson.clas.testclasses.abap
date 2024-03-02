@@ -1407,6 +1407,7 @@ class ltcl_json_to_abap definition
         timestamp1 type timestamp,
         timestamp2 type timestamp,
         timestamp3 type timestamp,
+        timestamp4 type timestampl,
       end of ty_complex.
 
     methods to_abap_struc
@@ -1460,6 +1461,9 @@ class ltcl_json_to_abap definition
     methods to_abap_time
       for testing
       raising cx_static_check.
+    methods to_abap_str_to_packed
+      for testing
+      raising cx_static_check.
 endclass.
 
 class zcl_ajson definition local friends ltcl_json_to_abap.
@@ -1489,6 +1493,7 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/      |timestamp1 |str    |2020-07-28T00:00:00       | ' ).
     lo_nodes->add( '/      |timestamp2 |str    |2020-07-28T00:00:00Z      | ' ).
     lo_nodes->add( '/      |timestamp3 |str    |2020-07-28T01:00:00+01:00 | ' ).
+    lo_nodes->add( '/      |timestamp4 |str    |2020-07-28T01:00:00+01:00 | ' ).
 
     create object lo_cut.
     lo_cut->to_abap(
@@ -1507,6 +1512,7 @@ class ltcl_json_to_abap implementation.
     ls_exp-timestamp1 = lv_exp_timestamp.
     ls_exp-timestamp2 = lv_exp_timestamp.
     ls_exp-timestamp3 = lv_exp_timestamp.
+    ls_exp-timestamp4 = lv_exp_timestamp.
 
     cl_abap_unit_assert=>assert_equals(
       act = ls_mock
@@ -1571,6 +1577,28 @@ class ltcl_json_to_abap implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lv_mock_init
       exp = '000000' ).
+
+  endmethod.
+
+  method to_abap_str_to_packed.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lv_act type p length 10 decimals 3.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '       |           |str    |1.3333                    | ' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lv_act ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = '1.333' ).
 
   endmethod.
 
