@@ -988,7 +988,8 @@ class lcl_json_to_abap implementation.
             <container> = to_date( is_node-value ).
           elseif is_node_type-type_kind = lif_kind=>time.
             <container> = to_time( is_node-value ).
-          elseif is_node_type-dd->absolute_name = '\TYPE=TIMESTAMP' or is_node_type-dd->absolute_name = '\TYPE=TIMESTAMPL'.
+          elseif is_node_type-dd->absolute_name = '\TYPE=TIMESTAMP'
+            or is_node_type-dd->absolute_name = '\TYPE=TIMESTAMPL'.
             <container> = to_timestamp( is_node-value ).
           elseif is_node_type-type_kind = lif_kind=>packed. " Number as a string, but not a timestamp
             <container> = is_node-value.
