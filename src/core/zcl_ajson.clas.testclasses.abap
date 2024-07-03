@@ -1464,6 +1464,21 @@ class ltcl_json_to_abap definition
     methods to_abap_str_to_packed
       for testing
       raising cx_static_check.
+    methods to_abap_compressed_stdrd
+      for testing
+      raising cx_static_check.
+    methods to_abap_compressed_stdrd_key
+      for testing
+      raising cx_static_check.
+    methods to_abap_compressed_sort
+      for testing
+      raising cx_static_check.
+    methods to_abap_compressed_sort_unique
+      for testing
+      raising cx_static_check.
+    methods to_abap_compressed_hash
+      for testing
+      raising cx_static_check.
 endclass.
 
 class zcl_ajson definition local friends ltcl_json_to_abap.
@@ -2184,6 +2199,171 @@ class ltcl_json_to_abap implementation.
         act = lx->message
         exp = 'Path not found' ).
     endtry.
+
+  endmethod.
+
+  method to_abap_compressed_stdrd.
+
+    types: begin of ty_foo_bar,
+             foo type string,
+             bar type string,
+           end of ty_foo_bar.
+
+    data lt_foo_bar type standard table of ty_foo_bar.
+    data ls_foo_bar like line of lt_foo_bar.
+    data lo_ajson type ref to zcl_ajson.
+    data lv_json type string.
+
+    lv_json =
+    '[' &&
+    '  {' &&
+    '    "foo": "abc",' &&
+    '    "bar": "123"' &&
+    '  },' &&
+    '  {' &&
+    '    "foo": "cde"' &&
+    '  }' &&
+    ']'.
+
+    lo_ajson = zcl_ajson=>parse( lv_json ).
+
+    lo_ajson->to_abap( importing ev_container = lt_foo_bar ).
+
+    read table lt_foo_bar with key foo = 'cde' into ls_foo_bar.
+
+    cl_abap_unit_assert=>assert_initial( act = ls_foo_bar-bar ).
+
+  endmethod.
+
+  method to_abap_compressed_stdrd_key.
+
+    types: begin of ty_foo_bar,
+             foo type string,
+             bar type string,
+           end of ty_foo_bar.
+
+    data lt_foo_bar type standard table of ty_foo_bar with non-unique key foo.
+    data ls_foo_bar like line of lt_foo_bar.
+    data lo_ajson type ref to zcl_ajson.
+    data lv_json type string.
+
+    lv_json =
+    '[' &&
+    '  {' &&
+    '    "foo": "abc",' &&
+    '    "bar": "123"' &&
+    '  },' &&
+    '  {' &&
+    '    "foo": "cde"' &&
+    '  }' &&
+    ']'.
+
+    lo_ajson = zcl_ajson=>parse( lv_json ).
+
+    lo_ajson->to_abap( importing ev_container = lt_foo_bar ).
+
+    read table lt_foo_bar with key foo = 'cde' into ls_foo_bar.
+
+    cl_abap_unit_assert=>assert_initial( act = ls_foo_bar-bar ).
+
+  endmethod.
+
+  method to_abap_compressed_sort.
+
+    types: begin of ty_foo_bar,
+             foo type string,
+             bar type string,
+           end of ty_foo_bar.
+
+    data lt_foo_bar type sorted table of ty_foo_bar with non-unique key foo.
+    data ls_foo_bar like line of lt_foo_bar.
+    data lo_ajson type ref to zcl_ajson.
+    data lv_json type string.
+
+    lv_json =
+    '[' &&
+    '  {' &&
+    '    "foo": "abc",' &&
+    '    "bar": "123"' &&
+    '  },' &&
+    '  {' &&
+    '    "foo": "cde"' &&
+    '  }' &&
+    ']'.
+
+    lo_ajson = zcl_ajson=>parse( lv_json ).
+
+    lo_ajson->to_abap( importing ev_container = lt_foo_bar ).
+
+    read table lt_foo_bar with key foo = 'cde' into ls_foo_bar.
+
+    cl_abap_unit_assert=>assert_initial( act = ls_foo_bar-bar ).
+
+  endmethod.
+
+  method to_abap_compressed_sort_unique.
+
+    types: begin of ty_foo_bar,
+             foo type string,
+             bar type string,
+           end of ty_foo_bar.
+
+    data lt_foo_bar type sorted table of ty_foo_bar with unique key foo.
+    data ls_foo_bar like line of lt_foo_bar.
+    data lo_ajson type ref to zcl_ajson.
+    data lv_json type string.
+
+    lv_json =
+    '[' &&
+    '  {' &&
+    '    "foo": "abc",' &&
+    '    "bar": "123"' &&
+    '  },' &&
+    '  {' &&
+    '    "foo": "cde"' &&
+    '  }' &&
+    ']'.
+
+    lo_ajson = zcl_ajson=>parse( lv_json ).
+
+    lo_ajson->to_abap( importing ev_container = lt_foo_bar ).
+
+    read table lt_foo_bar with key foo = 'cde' into ls_foo_bar.
+
+    cl_abap_unit_assert=>assert_initial( act = ls_foo_bar-bar ).
+
+  endmethod.
+
+  method to_abap_compressed_hash.
+
+    types: begin of ty_foo_bar,
+             foo type string,
+             bar type string,
+           end of ty_foo_bar.
+
+    data lt_foo_bar type hashed table of ty_foo_bar with unique key foo.
+    data ls_foo_bar like line of lt_foo_bar.
+    data lo_ajson type ref to zcl_ajson.
+    data lv_json type string.
+
+    lv_json =
+    '[' &&
+    '  {' &&
+    '    "foo": "abc",' &&
+    '    "bar": "123"' &&
+    '  },' &&
+    '  {' &&
+    '    "foo": "cde"' &&
+    '  }' &&
+    ']'.
+
+    lo_ajson = zcl_ajson=>parse( lv_json ).
+
+    lo_ajson->to_abap( importing ev_container = lt_foo_bar ).
+
+    read table lt_foo_bar with key foo = 'cde' into ls_foo_bar.
+
+    cl_abap_unit_assert=>assert_initial( act = ls_foo_bar-bar ).
 
   endmethod.
 
