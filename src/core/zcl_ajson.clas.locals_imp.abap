@@ -909,6 +909,9 @@ class lcl_json_to_abap implementation.
                ls_node_type-type_kind <> lif_kind=>struct_deep.
               zcx_ajson_error=>raise( 'Expected structure' ).
             endif.
+            if <tab_item> is assigned.
+              clear <tab_item>.
+            endif.
             any_to_abap(
               iv_path         = <n>-path && <n>-name && '/'
               is_parent_type  = ls_node_type
