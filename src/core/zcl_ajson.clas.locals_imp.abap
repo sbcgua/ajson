@@ -1800,8 +1800,13 @@ class lcl_filter_runner implementation.
   method walk.
 
     data ls_node type zif_ajson_types=>ty_node.
+    data lv_tab_key type string.
 
-    loop at mr_source_tree->* into ls_node where path = iv_path.
+    if cs_parent-type = zif_ajson_types=>node_type-array.
+      lv_tab_key = 'array_index'. " path + index
+    endif.
+
+    loop at mr_source_tree->* into ls_node using key (lv_tab_key) where path = iv_path.
       case ls_node-type.
         when zif_ajson_types=>node_type-boolean or zif_ajson_types=>node_type-null
           or zif_ajson_types=>node_type-number or zif_ajson_types=>node_type-string.
