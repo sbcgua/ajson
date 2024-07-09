@@ -887,6 +887,8 @@ class lcl_json_to_abap implementation.
             if is_parent_type-tab_item_buf is not bound. " Indirect hint that table was srt/hsh, see get_node_type
               append initial line to <parent_stdtab> reference into lr_target_field.
               assert sy-subrc = 0.
+            else.
+              clear <tab_item>.
             endif.
 
           when lif_kind=>struct_flat or lif_kind=>struct_deep.
@@ -908,9 +910,6 @@ class lcl_json_to_abap implementation.
             if ls_node_type-type_kind <> lif_kind=>struct_flat and
                ls_node_type-type_kind <> lif_kind=>struct_deep.
               zcx_ajson_error=>raise( 'Expected structure' ).
-            endif.
-            if <tab_item> is assigned.
-              clear <tab_item>.
             endif.
             any_to_abap(
               iv_path         = <n>-path && <n>-name && '/'
