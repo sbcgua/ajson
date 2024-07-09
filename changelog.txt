@@ -12,6 +12,7 @@ v1.1.11, 2024-??
 ------------------
 * Fix touch_array with keep order (#178, @mbtools)
 * Fix conversion of string to packed #179
+* Fix filter walk order for arrays (based on array index), (#183, @cwildt)
 
 v1.1.10, 2024-02-04
 ------------------
