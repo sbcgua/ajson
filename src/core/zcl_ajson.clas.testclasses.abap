@@ -3748,6 +3748,7 @@ class ltcl_integrated definition
     methods chaining for testing raising zcx_ajson_error.
     methods push_json for testing raising zcx_ajson_error.
     methods is_empty for testing raising zcx_ajson_error.
+    methods issue_186 for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -4070,6 +4071,39 @@ class ltcl_integrated implementation.
     cl_abap_unit_assert=>assert_equals(
       exp = abap_false
       act = li_cut->is_empty( ) ).
+
+  endmethod.
+
+  method issue_186.
+
+    types:
+      begin of ty_contact,
+        id type string,
+        email type string,
+      end of ty_contact,
+      ty_contacts type standard table of ty_contact with key id,
+      begin of ty_person,
+        name type string,
+        email type ty_contacts,
+      end of ty_person,
+      ty_persons type standard table of ty_person with key name.
+
+    data li_json1 type ref to zif_ajson.
+    data li_jsonA type ref to zif_ajson.
+    data ls_act type ty_person.
+    data ls_exp type ty_person.
+    data lt_act type ty_persons.
+    data lt_exp type ty_persons.
+
+    li_json1 = zcl_ajson=>parse( '{ "name": "A",' &&
+      '"email": [ { "id": "1", "email": "a@a.com" }, { "id": "2", "email": "b@a.com" } ] }' ).
+    li_jsonA = zcl_ajson=>parse( '[' &&
+      '{ "name": "A", "email": [ { "id": "1", "email": "a@a.com" }, { "id": "2", "email": "b@a.com" } ] },' &&
+      '{ "name": "B", "email": [ { "id": "3", "email": "c@a.com" }, { "id": "4", "email": "d@a.com" } ] }' &&
+      ']' ).
+
+    li_json1->to_abap( importing ev_container = ls_act ).
+    li_jsonA->to_abap( importing ev_container = lt_act ).
 
   endmethod.
 
