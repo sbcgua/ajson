@@ -4089,21 +4089,21 @@ class ltcl_integrated implementation.
       ty_persons type standard table of ty_person with key name.
 
     data li_json1 type ref to zif_ajson.
-    data li_jsonA type ref to zif_ajson.
+    data li_jsona type ref to zif_ajson.
     data ls_act type ty_person.
-    data ls_exp type ty_person.
+*    data ls_exp type ty_person.
     data lt_act type ty_persons.
-    data lt_exp type ty_persons.
+*    data lt_exp type ty_persons.
 
     li_json1 = zcl_ajson=>parse( '{ "name": "A",' &&
       '"email": [ { "id": "1", "email": "a@a.com" }, { "id": "2", "email": "b@a.com" } ] }' ).
-    li_jsonA = zcl_ajson=>parse( '[' &&
+    li_jsona = zcl_ajson=>parse( '[' &&
       '{ "name": "A", "email": [ { "id": "1", "email": "a@a.com" }, { "id": "2", "email": "b@a.com" } ] },' &&
       '{ "name": "B", "email": [ { "id": "3", "email": "c@a.com" }, { "id": "4", "email": "d@a.com" } ] }' &&
       ']' ).
 
     li_json1->to_abap( importing ev_container = ls_act ).
-    li_jsonA->to_abap( importing ev_container = lt_act ).
+    li_jsona->to_abap( importing ev_container = lt_act ).
 
   endmethod.
 
