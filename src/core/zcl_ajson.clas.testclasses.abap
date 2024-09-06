@@ -309,17 +309,17 @@ class ltcl_parser_test implementation.
     create object lo_cut.
 
     try.
-        lo_cut->parse( lv_numc ).
-        cl_abap_unit_assert=>fail( ).
-      catch zcx_ajson_error into lx.
-        cl_abap_unit_assert=>assert_not_initial( lx ).
+      lo_cut->parse( lv_numc ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_not_initial( lx ).
     endtry.
 
     try.
-        lo_cut->parse( lt_hashed ).
-        cl_abap_unit_assert=>fail( ).
-      catch zcx_ajson_error into lx.
-        cl_abap_unit_assert=>assert_not_initial( lx ).
+      lo_cut->parse( lt_hashed ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_not_initial( lx ).
     endtry.
 
   endmethod.

@@ -226,7 +226,7 @@ class lcl_utils implementation.
     data lo_table_type type ref to cl_abap_tabledescr.
     data lv_str type string.
 
-    field-symbols: <lt_data> type standard table.
+    field-symbols: <data> type standard table.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
@@ -241,14 +241,14 @@ class lcl_utils implementation.
           zcx_ajson_error=>raise( 'Unsupported type of input table (must be standard table)' ).
         endif.
         try.
-          assign iv_data to <lt_data>.
-          lv_str = concat_lines_of( table = <lt_data> sep = cl_abap_char_utilities=>newline ).
+          assign iv_data to <data>.
+          lv_str = concat_lines_of( table = <data> sep = cl_abap_char_utilities=>newline ).
           rv_xstr = string_to_xstring_utf8( lv_str ).
         catch cx_root.
           zcx_ajson_error=>raise( 'Error converting input table (should be string_table)' ).
         endtry.
       when others.
-       zcx_ajson_error=>raise( 'Unsupported type of input (must be char, string, string_table, or xstring)' ).
+        zcx_ajson_error=>raise( 'Unsupported type of input (must be char, string, string_table, or xstring)' ).
     endcase.
 
   endmethod.
@@ -259,7 +259,7 @@ class lcl_utils implementation.
     data lo_type type ref to cl_abap_typedescr.
     data lo_table_type type ref to cl_abap_tabledescr.
 
-    field-symbols: <lt_data> type standard table.
+    field-symbols: <data> type standard table.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
@@ -274,13 +274,13 @@ class lcl_utils implementation.
           zcx_ajson_error=>raise( 'Unsupported type of input table (must be standard table)' ).
         endif.
         try.
-          assign iv_data to <lt_data>.
-          rv_str = concat_lines_of( table = <lt_data> sep = cl_abap_char_utilities=>newline ).
+          assign iv_data to <data>.
+          rv_str = concat_lines_of( table = <data> sep = cl_abap_char_utilities=>newline ).
         catch cx_root.
           zcx_ajson_error=>raise( 'Error converting input table (should be string_table)' ).
         endtry.
       when others.
-       zcx_ajson_error=>raise( 'Unsupported type of input (must be char, string, string_table, or xstring)' ).
+        zcx_ajson_error=>raise( 'Unsupported type of input (must be char, string, string_table, or xstring)' ).
     endcase.
 
   endmethod.
