@@ -50,7 +50,7 @@ class zcl_ajson definition
 
     class-methods parse
       importing
-        !iv_json            type string
+        !iv_json            type any
         !iv_freeze          type abap_bool default abap_false
         !ii_custom_mapping  type ref to zif_ajson_mapping optional
         !iv_keep_item_order type abap_bool default abap_false
