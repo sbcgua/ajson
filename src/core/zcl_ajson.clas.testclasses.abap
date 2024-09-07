@@ -463,6 +463,7 @@ class ltcl_serializer_test definition final
 
     methods stringify_condensed for testing raising zcx_ajson_error.
     methods stringify_indented for testing raising zcx_ajson_error.
+    methods stringify_with_comma for testing raising zcx_ajson_error.
     methods array_index for testing raising zcx_ajson_error.
     methods item_order for testing raising zcx_ajson_error.
     methods simple_indented for testing raising zcx_ajson_error.
@@ -622,6 +623,49 @@ class ltcl_serializer_test implementation.
       it_json_tree = sample_nodes( )
       iv_indent    = 2 ).
     lv_exp = sample_json( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+  endmethod.
+
+  method stringify_with_comma.
+
+    data lv_act type string.
+    data lv_exp type string.
+
+    lv_act = lcl_json_serializer=>stringify(
+      it_json_tree      = sample_nodes( )
+      iv_indent         = 2
+      iv_trailing_comma = abap_true ).
+    lv_exp = sample_json( ).
+
+    lv_exp = replace(
+      val = lv_exp
+      sub = |4\n|
+      with = |4,\n|
+      occ = 0 ).
+    lv_exp = replace(
+      val = lv_exp
+      sub = |3\n|
+      with = |3,\n|
+      occ = 0 ).
+    lv_exp = replace(
+      val = lv_exp
+      sub = |"abc"\n|
+      with = |"abc",\n|
+      occ = 0 ).
+    lv_exp = replace(
+      val = lv_exp
+      sub = |\}\n|
+      with = |\},\n|
+      occ = 0 ).
+    lv_exp = replace(
+      val = lv_exp
+      sub = |]\n|
+      with = |],\n|
+      occ = 0 ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_act

@@ -254,6 +254,7 @@ interface zif_ajson
   methods stringify
     importing
       iv_indent type i default 0
+      iv_trailing_comma type abap_bool default abap_false
     returning
       value(rv_json) type string
     raising

@@ -880,6 +880,7 @@ CLASS zcl_ajson IMPLEMENTATION.
     rv_json = lcl_json_serializer=>stringify(
       it_json_tree       = mt_json_tree
       iv_keep_item_order = ms_opts-keep_item_order
+      iv_trailing_comma  = iv_trailing_comma
       iv_indent          = iv_indent ).
 
   endmethod.

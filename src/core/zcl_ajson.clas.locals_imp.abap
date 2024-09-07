@@ -401,6 +401,7 @@ class lcl_json_serializer definition final create private.
         it_json_tree type zif_ajson_types=>ty_nodes_ts
         iv_indent type i default 0
         iv_keep_item_order type abap_bool default abap_false
+        iv_trailing_comma type abap_bool default abap_false
       returning
         value(rv_json_string) type string
       raising
@@ -414,6 +415,7 @@ class lcl_json_serializer definition final create private.
 
     data mt_json_tree type zif_ajson_types=>ty_nodes_ts.
     data mv_keep_item_order type abap_bool.
+    data mv_trailing_comma type abap_bool.
     data mt_buffer type string_table.
     data mv_indent_step type i.
     data mv_level type i.
@@ -458,6 +460,7 @@ class lcl_json_serializer implementation.
     lo->mt_json_tree = it_json_tree.
     lo->mv_indent_step = iv_indent.
     lo->mv_keep_item_order = iv_keep_item_order.
+    lo->mv_trailing_comma = iv_trailing_comma.
     rv_json_string = lo->_stringify( ).
 
   endmethod.
@@ -583,7 +586,11 @@ class lcl_json_serializer implementation.
     endloop.
 
     if mv_indent_step > 0 and lv_first_done = abap_true. " only of items were in the list
-      append cl_abap_char_utilities=>newline to mt_buffer.
+      if mv_trailing_comma = abap_true.
+        append gv_comma_with_lf to mt_buffer.
+      else.
+        append cl_abap_char_utilities=>newline to mt_buffer.
+      endif.
     endif.
 
   endmethod.
