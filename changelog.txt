@@ -14,6 +14,7 @@ v1.1.11, 2024-??
 * Fix conversion of string to packed #179
 * Fix filter walk order for arrays (based on array index), (#183, @cwildt)
 * Fix to_abap for sorted/hashed table empty components (#181, #182, @thorsten-wolf-neptune)
++ Support xstring and string_table as input for parser (#190, @mbtools)
 
 v1.1.10, 2024-02-04
 ------------------
