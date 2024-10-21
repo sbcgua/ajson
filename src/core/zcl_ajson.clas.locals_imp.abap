@@ -20,27 +20,27 @@ interface lif_kind.
 
   constants:
     begin of numeric,
-      int1       type ty_kind value cl_abap_tabledescr=>typekind_int1,
-      int2       type ty_kind value cl_abap_tabledescr=>typekind_int2,
-      int4       type ty_kind value cl_abap_tabledescr=>typekind_int,
-      int8       type ty_kind value '8', " cl_abap_tabledescr=>typekind_int8 not in lower releases
-      float      type ty_kind value cl_abap_tabledescr=>typekind_float,
-      packed     type ty_kind value cl_abap_tabledescr=>typekind_packed,
-      decfloat16 type ty_kind value cl_abap_tabledescr=>typekind_decfloat16,
-      decfloat34 type ty_kind value cl_abap_tabledescr=>typekind_decfloat34,
+      int1       type ty_kind value cl_abap_typedescr=>typekind_int1,
+      int2       type ty_kind value cl_abap_typedescr=>typekind_int2,
+      int4       type ty_kind value cl_abap_typedescr=>typekind_int,
+      int8       type ty_kind value '8', " cl_abap_typedescr=>typekind_int8 not in lower releases
+      float      type ty_kind value cl_abap_typedescr=>typekind_float,
+      packed     type ty_kind value cl_abap_typedescr=>typekind_packed,
+      decfloat16 type ty_kind value cl_abap_typedescr=>typekind_decfloat16,
+      decfloat34 type ty_kind value cl_abap_typedescr=>typekind_decfloat34,
     end of numeric.
 
   constants:
     begin of texts,
-      char   type ty_kind value cl_abap_tabledescr=>typekind_char,
-      numc   type ty_kind value cl_abap_tabledescr=>typekind_num,
-      string type ty_kind value cl_abap_tabledescr=>typekind_string,
+      char   type ty_kind value cl_abap_typedescr=>typekind_char,
+      numc   type ty_kind value cl_abap_typedescr=>typekind_num,
+      string type ty_kind value cl_abap_typedescr=>typekind_string,
     end of texts.
 
   constants:
     begin of binary,
-      hex     type ty_kind value cl_abap_tabledescr=>typekind_hex,
-      xstring type ty_kind value cl_abap_tabledescr=>typekind_xstring,
+      hex     type ty_kind value cl_abap_typedescr=>typekind_hex,
+      xstring type ty_kind value cl_abap_typedescr=>typekind_xstring,
     end of binary.
 
   constants:
@@ -80,6 +80,25 @@ class lcl_utils definition final.
         iv_str type string
       returning
         value(rv_xstr) type xstring.
+    class-methods xstring_to_string_utf8
+      importing
+        iv_xstr type xstring
+      returning
+        value(rv_str) type string.
+    class-methods any_to_xstring
+      importing
+        iv_data type any
+      returning
+        value(rv_xstr) type xstring
+      raising
+        zcx_ajson_error.
+    class-methods any_to_string
+      importing
+        iv_data type any
+      returning
+        value(rv_str) type string
+      raising
+        zcx_ajson_error.
 
 endclass.
 
@@ -112,6 +131,37 @@ class lcl_utils implementation.
           data = iv_str
         importing
           buffer = rv_xstr.
+    endtry.
+
+  endmethod.
+
+  method xstring_to_string_utf8.
+
+    data lo_conv type ref to object.
+    data lv_in_ce type string.
+
+    lv_in_ce = 'CL_ABAP_CONV_IN_CE'.
+
+    try.
+      call method ('CL_ABAP_CONV_CODEPAGE')=>create_in
+        receiving
+          instance = lo_conv.
+      call method lo_conv->('IF_ABAP_CONV_IN~CONVERT')
+        exporting
+          source = iv_xstr
+        receiving
+          result = rv_str.
+    catch cx_sy_dyn_call_illegal_class.
+      call method (lv_in_ce)=>create
+        exporting
+          encoding = 'UTF-8'
+        receiving
+          conv = lo_conv.
+      call method lo_conv->('CONVERT')
+        exporting
+          data = iv_xstr
+        importing
+          buffer = rv_str.
     endtry.
 
   endmethod.
@@ -169,6 +219,72 @@ class lcl_utils implementation.
 
   endmethod.
 
+  method any_to_xstring.
+    " supports xstring, char, string, or string_table as input
+
+    data lo_type type ref to cl_abap_typedescr.
+    data lo_table_type type ref to cl_abap_tabledescr.
+    data lv_str type string.
+
+    field-symbols: <data> type standard table.
+
+    lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
+
+    case lo_type->type_kind.
+      when lif_kind=>binary-xstring.
+        rv_xstr = iv_data.
+      when lif_kind=>texts-string or lif_kind=>texts-char.
+        rv_xstr = string_to_xstring_utf8( iv_data ).
+      when lif_kind=>table.
+        lo_table_type ?= lo_type.
+        if lo_table_type->table_kind <> cl_abap_tabledescr=>tablekind_std.
+          zcx_ajson_error=>raise( 'Unsupported type of input table (must be standard table)' ).
+        endif.
+        try.
+          assign iv_data to <data>.
+          lv_str = concat_lines_of( table = <data> sep = cl_abap_char_utilities=>newline ).
+          rv_xstr = string_to_xstring_utf8( lv_str ).
+        catch cx_root.
+          zcx_ajson_error=>raise( 'Error converting input table (should be string_table)' ).
+        endtry.
+      when others.
+        zcx_ajson_error=>raise( 'Unsupported type of input (must be char, string, string_table, or xstring)' ).
+    endcase.
+
+  endmethod.
+
+  method any_to_string.
+    " supports xstring, char, string, or string_table as input
+
+    data lo_type type ref to cl_abap_typedescr.
+    data lo_table_type type ref to cl_abap_tabledescr.
+
+    field-symbols: <data> type standard table.
+
+    lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
+
+    case lo_type->type_kind.
+      when lif_kind=>binary-xstring.
+        rv_str = xstring_to_string_utf8( iv_data ).
+      when lif_kind=>texts-string or lif_kind=>texts-char.
+        rv_str = iv_data.
+      when lif_kind=>table.
+        lo_table_type ?= lo_type.
+        if lo_table_type->table_kind <> cl_abap_tabledescr=>tablekind_std.
+          zcx_ajson_error=>raise( 'Unsupported type of input table (must be standard table)' ).
+        endif.
+        try.
+          assign iv_data to <data>.
+          rv_str = concat_lines_of( table = <data> sep = cl_abap_char_utilities=>newline ).
+        catch cx_root.
+          zcx_ajson_error=>raise( 'Error converting input table (should be string_table)' ).
+        endtry.
+      when others.
+        zcx_ajson_error=>raise( 'Unsupported type of input (must be char, string, string_table, or xstring)' ).
+    endcase.
+
+  endmethod.
+
 endclass.
 
 
@@ -181,7 +297,7 @@ class lcl_json_parser definition final.
 
     methods parse
       importing
-        iv_json type string
+        iv_json type any
         iv_keep_item_order type abap_bool default abap_false
       returning
         value(rt_json_tree) type zif_ajson_types=>ty_nodes_tt
@@ -205,7 +321,7 @@ class lcl_json_parser definition final.
 
     methods _parse
       importing
-        iv_json type string
+        iv_json type xstring
       returning
         value(rt_json_tree) type zif_ajson_types=>ty_nodes_tt
       raising
@@ -226,17 +342,20 @@ class lcl_json_parser implementation.
     data lx_sxml_parse type ref to cx_sxml_parse_error.
     data lx_sxml type ref to cx_dynamic_check.
     data lv_location type string.
+    data lv_json type xstring.
 
     mv_keep_item_order = iv_keep_item_order.
+
+    lv_json = lcl_utils=>any_to_xstring( iv_json ).
 
     try.
       " TODO sane JSON check:
       " JSON can be true,false,null,(-)digits
       " or start from " or from {
-      rt_json_tree = _parse( iv_json ).
+      rt_json_tree = _parse( lv_json ).
     catch cx_sxml_parse_error into lx_sxml_parse.
       lv_location = _get_location(
-        iv_json   = iv_json
+        iv_json   = lcl_utils=>any_to_string( iv_json )
         iv_offset = lx_sxml_parse->xml_offset ).
       zcx_ajson_error=>raise(
         iv_msg      = |Json parsing error (SXML): { lx_sxml_parse->get_text( ) }|
@@ -298,7 +417,7 @@ class lcl_json_parser implementation.
     if iv_json is initial.
       return.
     endif.
-    lo_reader = cl_sxml_string_reader=>create( lcl_utils=>string_to_xstring_utf8( iv_json ) ).
+    lo_reader = cl_sxml_string_reader=>create( iv_json ).
 
     " TODO: self protection, check non-empty, check starting from object ...
 

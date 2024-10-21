@@ -85,6 +85,10 @@ class ltcl_parser_test definition final
     methods parse_date for testing raising zcx_ajson_error.
     methods parse_bare_values for testing raising zcx_ajson_error.
     methods parse_error for testing raising zcx_ajson_error.
+    methods parse_input_xstring for testing raising zcx_ajson_error.
+    methods parse_input_string for testing raising zcx_ajson_error.
+    methods parse_input_string_table for testing raising zcx_ajson_error.
+    methods parse_input_error for testing raising zcx_ajson_error.
     methods duplicate_key for testing raising zcx_ajson_error.
     methods non_json for testing raising zcx_ajson_error.
 
@@ -246,6 +250,78 @@ class ltcl_parser_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = mo_nodes->mt_nodes ).
+  endmethod.
+
+  method parse_input_xstring.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
+
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
+    data lv_xstr type xstring.
+
+    lv_xstr = '7B22737472696E67223A2022616263227D0A'.
+    lt_act = mo_cut->parse( lv_xstr ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  endmethod.
+
+  method parse_input_string.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
+
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
+    data lv_str type string.
+
+    lv_str = `{"string": "abc"}`.
+    lt_act = mo_cut->parse( lv_str ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  endmethod.
+
+  method parse_input_string_table.
+    mo_nodes->add( '                 |         |object |                        |  |2' ).
+    mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
+    mo_nodes->add( '/                |number   |num    |123                     |  |0' ).
+
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
+    data lt_json type string_table.
+
+    insert `{` into table lt_json.
+    insert `"string": "abc",` into table lt_json.
+    insert `"number": 123` into table lt_json.
+    insert `}` into table lt_json.
+
+    lt_act = mo_cut->parse( lt_json ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  endmethod.
+
+  method parse_input_error.
+
+    data lo_cut type ref to lcl_json_parser.
+    data lx type ref to zcx_ajson_error.
+    data lv_numc type n length 10.
+    data lt_hashed type hashed table of string with unique default key.
+
+    create object lo_cut.
+
+    try.
+      lo_cut->parse( lv_numc ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_not_initial( lx ).
+    endtry.
+
+    try.
+      lo_cut->parse( lt_hashed ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_not_initial( lx ).
+    endtry.
+
   endmethod.
 
   method sample_json.
