@@ -44,7 +44,7 @@ class lcl_paths_filter implementation.
     data lv_full_path type string.
     field-symbols <p> like line of mt_skip_paths.
 
-    lv_full_path = is_node-path && is_node-name.
+    lv_full_path = to_lower( is_node-path && is_node-name ).
 
     if mv_pattern_search = abap_true.
       rv_keep = abap_true.
