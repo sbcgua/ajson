@@ -466,8 +466,12 @@ class lcl_json_parser implementation.
 
           get reference of <item> into lr_stack_top.
           insert lr_stack_top into mt_stack index 1.
-          " add path component
-          mv_stack_path = mv_stack_path && <item>-name && '/'.
+          " add path component (avoid issues with names containing slashes)
+          mv_stack_path = mv_stack_path && replace(
+            val  = <item>-name
+            sub  = '/'
+            with = cl_abap_char_utilities=>horizontal_tab )
+            && '/'.
 
         when if_sxml_node=>co_nt_element_close.
           data lo_close type ref to if_sxml_close_element.
