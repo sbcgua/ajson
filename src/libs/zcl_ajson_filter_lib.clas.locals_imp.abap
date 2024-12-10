@@ -44,7 +44,7 @@ class lcl_paths_filter implementation.
     data lv_full_path type string.
     field-symbols <p> like line of mt_skip_paths.
 
-    lv_full_path = to_lower( is_node-path && is_node-name ).
+    lv_full_path = is_node-path && is_node-name.
 
     if mv_pattern_search = abap_true.
       rv_keep = abap_true.
@@ -72,7 +72,7 @@ class lcl_paths_filter implementation.
     endif.
 
     loop at it_skip_paths into lv_s.
-      lv_s = to_lower( lv_s ).
+      lv_s = condense( lv_s ).
       append lv_s to lt_tab.
     endloop.
 
@@ -83,7 +83,7 @@ class lcl_paths_filter implementation.
           delete lt_tab index sy-tabix.
           continue.
         endif.
-        <s> = condense( to_lower( <s> ) ).
+        <s> = condense( <s> ).
       endloop.
     endif.
 

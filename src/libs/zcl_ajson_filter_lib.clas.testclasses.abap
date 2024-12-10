@@ -244,8 +244,11 @@ class ltcl_filters_test implementation.
       iv_path = '/CC'
       iv_val  = '3' ).
     li_json->set(
+      iv_path = '/cc'
+      iv_val  = '4' ).
+    li_json->set(
       iv_path = '/d'
-      iv_val  = 4 ).
+      iv_val  = 5 ).
 
     li_json_filtered = zcl_ajson=>create_from(
       ii_source_json = li_json
@@ -253,7 +256,7 @@ class ltcl_filters_test implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = li_json_filtered->stringify( )
-      exp = '{"a":"1","d":4}' ).
+      exp = '{"a":"1","cc":"4","d":5}' ).
 
   endmethod.
 
