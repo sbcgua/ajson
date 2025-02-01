@@ -10,6 +10,7 @@ class ltcl_filters_test definition final
     methods path_filter_w_patterns for testing raising zcx_ajson_error.
     methods path_filter_deep for testing raising zcx_ajson_error.
     methods and_filter for testing raising zcx_ajson_error.
+    methods mixed_case_filter for testing raising zcx_ajson_error.
 endclass.
 
 
@@ -224,6 +225,38 @@ class ltcl_filters_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = li_json_filtered->stringify( )
       exp = '{"a":"1"}' ).
+
+  endmethod.
+
+  method mixed_case_filter.
+
+    data li_json type ref to zif_ajson.
+    data li_json_filtered type ref to zif_ajson.
+
+    li_json = zcl_ajson=>create_empty( ).
+    li_json->set(
+      iv_path = '/a'
+      iv_val  = '1' ).
+    li_json->set(
+      iv_path = '/bB'
+      iv_val  = '2' ).
+    li_json->set(
+      iv_path = '/CC'
+      iv_val  = '3' ).
+    li_json->set(
+      iv_path = '/cc'
+      iv_val  = '4' ).
+    li_json->set(
+      iv_path = '/d'
+      iv_val  = 5 ).
+
+    li_json_filtered = zcl_ajson=>create_from(
+      ii_source_json = li_json
+      ii_filter = zcl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/bB,/CC' ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_filtered->stringify( )
+      exp = '{"a":"1","cc":"4","d":5}' ).
 
   endmethod.
 
