@@ -216,6 +216,11 @@ class lcl_utils implementation.
 
     rv_path_name-path = normalize_path( substring( val = iv_path len = lv_offs ) ).
     rv_path_name-name = substring( val = iv_path off = lv_offs len = lv_len - lv_offs - lv_trim_slash ).
+    rv_path_name-name = replace(
+      val  = rv_path_name-name
+      sub  = cl_abap_char_utilities=>horizontal_tab
+      with = '/'
+      occ  = 0 ).
 
   endmethod.
 
