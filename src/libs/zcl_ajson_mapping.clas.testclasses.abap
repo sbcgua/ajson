@@ -417,7 +417,7 @@ class ltcl_fields implementation.
                                ii_custom_mapping = zcl_ajson_mapping=>create_field_mapping( lt_mapping_fields )
                                )->slice( `/b` ).
 
-    lo_cut->to_abap( IMPORTING ev_container = ls_act ).
+    lo_cut->to_abap( importing ev_container = ls_act ).
 
     cl_abap_unit_assert=>assert_equals(
       act = ls_act-y
