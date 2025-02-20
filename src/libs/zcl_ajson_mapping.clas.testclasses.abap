@@ -401,7 +401,7 @@ class ltcl_fields implementation.
   method to_abap_with_slice.
 
     data: begin of ls_act,
-            y TYPE i,
+            y type i,
           end of ls_act.
 
     data lo_cut type ref to zif_ajson.
