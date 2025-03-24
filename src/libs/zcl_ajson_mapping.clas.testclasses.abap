@@ -353,6 +353,7 @@ class ltcl_fields definition final for testing
       to_json_without_path for testing raising zcx_ajson_error,
       to_json_with_path for testing raising zcx_ajson_error,
       to_abap for testing raising zcx_ajson_error,
+      to_abap_with_slice for testing raising zcx_ajson_error,
       to_json importing iv_path type string returning value(rv_result) type string raising zcx_ajson_error.
 
 
@@ -394,6 +395,33 @@ class ltcl_fields implementation.
     cl_abap_unit_assert=>assert_equals(
       act = ls_result-field
       exp = 'value' ).
+
+  endmethod.
+
+  method to_abap_with_slice.
+
+    data: begin of ls_act,
+            y type i,
+          end of ls_act.
+
+    data lo_cut type ref to zif_ajson.
+    data lt_mapping_fields type zif_ajson_mapping=>ty_mapping_fields.
+    data ls_mapping_field  like line of lt_mapping_fields.
+
+    clear ls_mapping_field.
+    ls_mapping_field-abap = 'Y'.
+    ls_mapping_field-json = 'c'.
+    insert ls_mapping_field into table lt_mapping_fields.
+
+    lo_cut = zcl_ajson=>parse( iv_json           = '{"a":1,"b":{"c":2},"d":{"e":3}}'
+                               ii_custom_mapping = zcl_ajson_mapping=>create_field_mapping( lt_mapping_fields )
+                               )->slice( `/b` ).
+
+    lo_cut->to_abap( importing ev_container = ls_act ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_act-y
+      exp = 2 ).
 
   endmethod.
 
