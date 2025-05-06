@@ -216,6 +216,7 @@ class lcl_utils implementation.
 
     rv_path_name-path = normalize_path( substring( val = iv_path len = lv_offs ) ).
     rv_path_name-name = substring( val = iv_path off = lv_offs len = lv_len - lv_offs - lv_trim_slash ).
+    " Replace tabs with slash to get original value
     rv_path_name-name = replace(
       val  = rv_path_name-name
       sub  = cl_abap_char_utilities=>horizontal_tab
@@ -475,7 +476,8 @@ class lcl_json_parser implementation.
           mv_stack_path = mv_stack_path && replace(
             val  = <item>-name
             sub  = '/'
-            with = cl_abap_char_utilities=>horizontal_tab )
+            with = cl_abap_char_utilities=>horizontal_tab
+            occ  = 0 )
             && '/'.
 
         when if_sxml_node=>co_nt_element_close.

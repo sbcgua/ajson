@@ -519,19 +519,21 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method special_characters_in_name.
-    mo_nodes->add( |                 \|                 \|object \|                        \|  \|6| ).
+    mo_nodes->add( |                 \|                 \|object \|                        \|  \|7| ).
     mo_nodes->add( |/                \|a\\backslash     \|num    \|1                       \|  \|0| ).
     mo_nodes->add( |/                \|contains/slash   \|num    \|2                       \|  \|0| ).
     mo_nodes->add( |/                \|unicodeሴ         \|num    \|3                       \|  \|0| ).
     mo_nodes->add( |/                \|quoted"text"     \|num    \|4                       \|  \|0| ).
     mo_nodes->add( |/                \|line\nfeed       \|num    \|5                       \|  \|0| ).
     mo_nodes->add( |/                \|with\ttab        \|num    \|6                       \|  \|0| ).
+    mo_nodes->add( |/                \|one/two/slash    \|num    \|7                       \|  \|0| ).
 
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     data lv_str type string.
 
     lv_str = '{ "a\\backslash": 1, "contains/slash": 2, "unicode\u1234": 3,'
-          && ' "quoted\"text\"": 4, "line\nfeed": 5, "with\ttab": 6 }'.
+          && ' "quoted\"text\"": 4, "line\nfeed": 5, "with\ttab": 6,'
+          && ' "one/two/slash": 7 }'.
     lt_act = mo_cut->parse( lv_str ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -541,7 +543,7 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method special_characters_in_path.
-    mo_nodes->add( |                 \|                 \|object \|                        \|  \|6| ).
+    mo_nodes->add( |                 \|                 \|object \|                        \|  \|7| ).
     mo_nodes->add( |/                \|a\\backslash     \|object \|                        \|  \|1| ).
     mo_nodes->add( |/a\\backslash/   \|a                \|num    \|1                       \|  \|0| ).
     mo_nodes->add( |/                \|contains/slash   \|object \|                        \|  \|1| ).
@@ -554,13 +556,16 @@ class ltcl_parser_test implementation.
     mo_nodes->add( |/line\nfeed/     \|e                \|num    \|5                       \|  \|0| ).
     mo_nodes->add( |/                \|with\ttab        \|object \|                        \|  \|1| ).
     mo_nodes->add( |/with\ttab/      \|f                \|num    \|6                       \|  \|0| ).
+    mo_nodes->add( |/                \|one/two/slash    \|object \|                        \|  \|1| ).
+    mo_nodes->add( |/one\ttwo\tslash/\|g                \|num    \|7                       \|  \|0| ). " tab!
 
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     data lv_str type string.
 
     lv_str = '{ "a\\backslash": { "a": 1 }, "contains/slash": { "b": 2 },'
           && ' "unicode\u1234": { "c": 3 }, "quoted\"text\"": { "d": 4 },'
-          && ' "line\nfeed": { "e": 5 }, "with\ttab": { "f": 6 } }'.
+          && ' "line\nfeed": { "e": 5 }, "with\ttab": { "f": 6 },'
+          && ' "one/two/slash": { "g": 7 } }'.
     lt_act = mo_cut->parse( lv_str ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -570,19 +575,21 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method special_characters_in_value.
-    mo_nodes->add( |                 \|                 \|object \|                        \|  \|6| ).
+    mo_nodes->add( |                 \|                 \|object \|                        \|  \|7| ).
     mo_nodes->add( |/                \|a                \|str    \|a\\backslash            \|  \|0| ).
     mo_nodes->add( |/                \|b                \|str    \|contains/slash          \|  \|0| ).
     mo_nodes->add( |/                \|c                \|str    \|unicodeሴ                \|  \|0| ).
     mo_nodes->add( |/                \|d                \|str    \|quoted"text"            \|  \|0| ).
     mo_nodes->add( |/                \|e                \|str    \|line\nfeed              \|  \|0| ).
     mo_nodes->add( |/                \|f                \|str    \|with\ttab               \|  \|0| ).
+    mo_nodes->add( |/                \|g                \|str    \|one/two/slash           \|  \|0| ).
 
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     data lv_str type string.
 
     lv_str = '{ "a": "a\\backslash", "b": "contains/slash", "c": "unicode\u1234",'
-          && ' "d": "quoted\"text\"", "e": "line\nfeed", "f": "with\ttab" }'.
+          && ' "d": "quoted\"text\"", "e": "line\nfeed", "f": "with\ttab",'
+          && ' "g": "one/two/slash" }'.
     lt_act = mo_cut->parse( lv_str ).
 
     cl_abap_unit_assert=>assert_equals(
