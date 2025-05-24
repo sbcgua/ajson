@@ -618,4 +618,18 @@ endclass.
 
 start-of-selection.
 
+  data gv_sta_time type timestampl.
+  data gv_end_time type timestampl.
+  data gv_diff     type timestampl.
+
+  get time stamp field gv_sta_time.
+
   lcl_app=>main( ).
+
+  get time stamp field gv_end_time.
+
+  gv_diff  = cl_abap_tstmp=>subtract(
+    tstmp1 = gv_end_time
+    tstmp2 = gv_sta_time ).
+
+  write: / 'Total runtime:', gv_diff, 'seconds'.

@@ -73,7 +73,9 @@
     "names_no_dash": true,
     "no_aliases": false,
     "no_chained_assignment": true,
-    "7bit_ascii": true,
+    "7bit_ascii": {
+      "exclude": ["zcl_ajson.clas.testclasses.abap"]
+    },
     "abapdoc": false,
     "allowed_object_naming": true,
     "allowed_object_types": true,
