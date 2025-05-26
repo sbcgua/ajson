@@ -597,14 +597,26 @@ class ltcl_parser_test implementation.
 
   method unicode_characters.
 
+    data lv_uchar type c.
+
+    try.
+        call method ('CL_ABAP_CONV_IN_CE')=>uccpi
+          exporting
+            uccp = 4660
+          receiving
+            char = lv_uchar.
+      catch cx_sy_dyn_call_illegal_class.
+        cl_abap_unit_assert=>fail( level = if_aunit_constants=>tolerable ).
+    endtry.
+
     mo_nodes->add( |                 \|                 \|object \|                        \|  \|3| ).
     " in_name
-    mo_nodes->add( |/                \|unicodeሴ         \|num    \|3                       \|  \|0| ).
+    mo_nodes->add( |/                \|unicode{ lv_uchar }         \|num    \|3                       \|  \|0| ).
     " in path
-    mo_nodes->add( |/                \|unicodeሴ         \|object \|                        \|  \|1| ).
+    mo_nodes->add( |/                \|unicode{ lv_uchar }         \|object \|                        \|  \|1| ).
     mo_nodes->add( |/unicodeሴ/       \|c                \|num    \|3                       \|  \|0| ).
     " in value
-    mo_nodes->add( |/                \|c                \|str    \|unicodeሴ                \|  \|0| ).
+    mo_nodes->add( |/                \|c                \|str    \|unicode{ lv_uchar }                \|  \|0| ).
 
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     data lv_str type string.
