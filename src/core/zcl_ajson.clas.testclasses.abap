@@ -600,13 +600,13 @@ class ltcl_parser_test implementation.
     data lv_uchar type c.
 
     try.
-        call method ('CL_ABAP_CONV_IN_CE')=>uccpi
-          exporting
-            uccp = 4660
-          receiving
-            char = lv_uchar.
-      catch cx_sy_dyn_call_illegal_class.
-        cl_abap_unit_assert=>fail( level = if_aunit_constants=>tolerable ).
+      call method ('CL_ABAP_CONV_IN_CE')=>uccpi
+        exporting
+          uccp = 4660
+        receiving
+          char = lv_uchar.
+    catch cx_sy_dyn_call_illegal_class.
+      cl_abap_unit_assert=>fail( level = if_aunit_constants=>tolerable ).
     endtry.
 
     mo_nodes->add( |                 \|                 \|object \|                        \|  \|3| ).
