@@ -94,6 +94,7 @@ class ltcl_parser_test definition final
     methods special_characters_in_name for testing raising zcx_ajson_error.
     methods special_characters_in_path for testing raising zcx_ajson_error.
     methods special_characters_in_value for testing raising zcx_ajson_error.
+    methods unicode_characters for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -519,10 +520,9 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method special_characters_in_name.
-    mo_nodes->add( |                 \|                 \|object \|                        \|  \|7| ).
+    mo_nodes->add( |                 \|                 \|object \|                        \|  \|6| ).
     mo_nodes->add( |/                \|a\\backslash     \|num    \|1                       \|  \|0| ).
     mo_nodes->add( |/                \|contains/slash   \|num    \|2                       \|  \|0| ).
-    mo_nodes->add( |/                \|unicodeሴ         \|num    \|3                       \|  \|0| ).
     mo_nodes->add( |/                \|quoted"text"     \|num    \|4                       \|  \|0| ).
     mo_nodes->add( |/                \|line\nfeed       \|num    \|5                       \|  \|0| ).
     mo_nodes->add( |/                \|with\ttab        \|num    \|6                       \|  \|0| ).
@@ -531,7 +531,7 @@ class ltcl_parser_test implementation.
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     data lv_str type string.
 
-    lv_str = '{ "a\\backslash": 1, "contains/slash": 2, "unicode\u1234": 3,'
+    lv_str = '{ "a\\backslash": 1, "contains/slash": 2,'
           && ' "quoted\"text\"": 4, "line\nfeed": 5, "with\ttab": 6,'
           && ' "one/two/slash": 7 }'.
     lt_act = mo_cut->parse( lv_str ).
@@ -543,13 +543,11 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method special_characters_in_path.
-    mo_nodes->add( |                 \|                 \|object \|                        \|  \|7| ).
+    mo_nodes->add( |                 \|                 \|object \|                        \|  \|6| ).
     mo_nodes->add( |/                \|a\\backslash     \|object \|                        \|  \|1| ).
     mo_nodes->add( |/a\\backslash/   \|a                \|num    \|1                       \|  \|0| ).
     mo_nodes->add( |/                \|contains/slash   \|object \|                        \|  \|1| ).
     mo_nodes->add( |/contains\tslash/\|b                \|num    \|2                       \|  \|0| ). " tab!
-    mo_nodes->add( |/                \|unicodeሴ         \|object \|                        \|  \|1| ).
-    mo_nodes->add( |/unicodeሴ/       \|c                \|num    \|3                       \|  \|0| ).
     mo_nodes->add( |/                \|quoted"text"     \|object \|                        \|  \|1| ).
     mo_nodes->add( |/quoted"text"/   \|d                \|num    \|4                       \|  \|0| ).
     mo_nodes->add( |/                \|line\nfeed       \|object \|                        \|  \|1| ).
@@ -563,7 +561,7 @@ class ltcl_parser_test implementation.
     data lv_str type string.
 
     lv_str = '{ "a\\backslash": { "a": 1 }, "contains/slash": { "b": 2 },'
-          && ' "unicode\u1234": { "c": 3 }, "quoted\"text\"": { "d": 4 },'
+          && ' "quoted\"text\"": { "d": 4 },'
           && ' "line\nfeed": { "e": 5 }, "with\ttab": { "f": 6 },'
           && ' "one/two/slash": { "g": 7 } }'.
     lt_act = mo_cut->parse( lv_str ).
@@ -575,10 +573,9 @@ class ltcl_parser_test implementation.
   endmethod.
 
   method special_characters_in_value.
-    mo_nodes->add( |                 \|                 \|object \|                        \|  \|7| ).
+    mo_nodes->add( |                 \|                 \|object \|                        \|  \|6| ).
     mo_nodes->add( |/                \|a                \|str    \|a\\backslash            \|  \|0| ).
     mo_nodes->add( |/                \|b                \|str    \|contains/slash          \|  \|0| ).
-    mo_nodes->add( |/                \|c                \|str    \|unicodeሴ                \|  \|0| ).
     mo_nodes->add( |/                \|d                \|str    \|quoted"text"            \|  \|0| ).
     mo_nodes->add( |/                \|e                \|str    \|line\nfeed              \|  \|0| ).
     mo_nodes->add( |/                \|f                \|str    \|with\ttab               \|  \|0| ).
@@ -587,9 +584,34 @@ class ltcl_parser_test implementation.
     data lt_act type zif_ajson_types=>ty_nodes_tt.
     data lv_str type string.
 
-    lv_str = '{ "a": "a\\backslash", "b": "contains/slash", "c": "unicode\u1234",'
+    lv_str = '{ "a": "a\\backslash", "b": "contains/slash",'
           && ' "d": "quoted\"text\"", "e": "line\nfeed", "f": "with\ttab",'
           && ' "g": "one/two/slash" }'.
+    lt_act = mo_cut->parse( lv_str ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+
+  endmethod.
+
+  method unicode_characters.
+
+    mo_nodes->add( |                 \|                 \|object \|                        \|  \|3| ).
+    " in_name
+    mo_nodes->add( |/                \|unicodeሴ         \|num    \|3                       \|  \|0| ).
+    " in path
+    mo_nodes->add( |/                \|unicodeሴ         \|object \|                        \|  \|1| ).
+    mo_nodes->add( |/unicodeሴ/       \|c                \|num    \|3                       \|  \|0| ).
+    " in value
+    mo_nodes->add( |/                \|c                \|str    \|unicodeሴ                \|  \|0| ).
+
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
+    data lv_str type string.
+
+    lv_str = '{ "unicode\u1234": 3,'
+          && ' "unicode\u1234": { "c": 3 }, '
+          && ' "c": "unicode\u1234" }'.
     lt_act = mo_cut->parse( lv_str ).
 
     cl_abap_unit_assert=>assert_equals(
