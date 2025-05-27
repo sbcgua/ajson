@@ -614,7 +614,7 @@ class ltcl_parser_test implementation.
     mo_nodes->add( |/                \|unicode{ lv_uchar }         \|num    \|3                       \|  \|0| ).
     " in path
     mo_nodes->add( |/                \|unicode{ lv_uchar }         \|object \|                        \|  \|1| ).
-    mo_nodes->add( |/unicodeሴ/       \|c                \|num    \|3                       \|  \|0| ).
+    mo_nodes->add( |/unicode{ lv_uchar }/       \|c                \|num    \|3                       \|  \|0| ).
     " in value
     mo_nodes->add( |/                \|c                \|str    \|unicode{ lv_uchar }                \|  \|0| ).
 
