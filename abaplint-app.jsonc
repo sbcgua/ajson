@@ -1,0 +1,10 @@
+{
+    "configurations": {
+      "default": {
+        "filename": "./abaplint.jsonc"
+      },
+      "cloud": {
+        "filename": "./abaplint-cloud.jsonc"
+      }
+    }
+  }
