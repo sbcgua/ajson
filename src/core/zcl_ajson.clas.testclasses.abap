@@ -1602,6 +1602,7 @@ class ltcl_json_to_abap definition
         timestamp2 type timestamp,
         timestamp3 type timestamp,
         timestamp4 type timestampl,
+        timestamp5 type timestampl,
       end of ty_complex.
 
     methods to_abap_struc
@@ -1703,6 +1704,7 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/      |timestamp2 |str    |2020-07-28T00:00:00Z      | ' ).
     lo_nodes->add( '/      |timestamp3 |str    |2020-07-28T01:00:00+01:00 | ' ).
     lo_nodes->add( '/      |timestamp4 |str    |2020-07-28T01:00:00+01:00 | ' ).
+    lo_nodes->add( '/      |timestamp5 |str    |2020-07-28T00:00:00.12345Z| ' ).
 
     create object lo_cut.
     lo_cut->to_abap(
@@ -1722,6 +1724,7 @@ class ltcl_json_to_abap implementation.
     ls_exp-timestamp2 = lv_exp_timestamp.
     ls_exp-timestamp3 = lv_exp_timestamp.
     ls_exp-timestamp4 = lv_exp_timestamp.
+    ls_exp-timestamp5 = lv_exp_timestamp + '0.12345'.
 
     cl_abap_unit_assert=>assert_equals(
       act = ls_mock
