@@ -11,6 +11,7 @@ Legend
 v1.1.12, 2025-??
 -------------------
 * proper support for "/" in node names (#193, @mbtools)
+* align reads with ATC checks (#199, @mbtools)
 
 v1.1.11, 2025-02-24
 ------------------
