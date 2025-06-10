@@ -1196,7 +1196,6 @@ class lcl_json_to_abap implementation.
     data lv_date type d.
     data lv_time type t.
     data lv_seconds_conv type i.
-    data lv_frac type p length 10 decimals 6.
     data lv_timestamp type timestampl.
 
     find first occurrence of regex lc_regex_ts_with_hour
