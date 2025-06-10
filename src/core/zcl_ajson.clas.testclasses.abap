@@ -1611,6 +1611,9 @@ class ltcl_json_to_abap definition
     methods to_abap_timestamp_initial
       for testing
       raising zcx_ajson_error.
+    methods to_abap_timestamp_long
+      for testing
+      raising zcx_ajson_error.
     methods to_abap_value
       for testing
       raising zcx_ajson_error.
@@ -1751,6 +1754,49 @@ class ltcl_json_to_abap implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lv_mock
       exp = 0 ).
+
+  endmethod.
+
+  method to_abap_timestamp_long.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lx type ref to zcx_ajson_error.
+    data lv_mock type timestamp.
+    data lv_exp_timestamp type timestamp value '20200728000000'.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    " Long timestamp to short timestamp fails
+    create object lo_nodes.
+    lo_nodes->add( '       |           |str    |2020-07-28T00:00:00.12345Z| ' ).
+
+    try.
+      create object lo_cut.
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = lv_mock ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Unexpected timestamp format' ).
+    endtry.
+
+    " Long timestamp with zero fraction passes
+    create object lo_nodes.
+    lo_nodes->add( '       |           |str    |2020-07-28T00:00:00.00000Z| ' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lv_mock ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_mock
+      exp = lv_exp_timestamp ).
 
   endmethod.
 

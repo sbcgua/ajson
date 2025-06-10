@@ -1163,11 +1163,21 @@ class lcl_json_to_abap implementation.
   endmethod.
 
   method to_timestamp.
+
     data lv_timestampl type timestampl.
+    data lv_int_part type string.
+    data lv_frac_part type string.
+
     lv_timestampl = to_timestampl( iv_value ).
-    if lv_timestampl is not initial.
-      rv_result = cl_abap_tstmp=>move_to_short( lv_timestampl ).
+    split |{ lv_timestampl }| at '.' into lv_int_part lv_frac_part.
+
+    " short timestamp must not have any fraction (.000 is acceptable)
+    if lv_frac_part ca '123456789'.
+      zcx_ajson_error=>raise( 'Unexpected timestamp format' ).
     endif.
+
+    rv_result = lv_int_part.
+
   endmethod.
 
   method to_timestampl.
