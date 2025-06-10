@@ -188,7 +188,7 @@ CLASS zcl_ajson IMPLEMENTATION.
     data lr_parent like ir_parent.
 
     read table mt_json_tree into rs_top_node
-      with key
+      with table key
         path = iv_path
         name = iv_name.
     if sy-subrc <> 0.
@@ -275,7 +275,7 @@ CLASS zcl_ajson IMPLEMENTATION.
     do.
       lr_node_parent = rr_end_node.
       read table mt_json_tree reference into rr_end_node
-        with key
+        with table key
           path = lv_cur_path
           name = lv_cur_name.
       if sy-subrc <> 0. " New node, assume it is always object as it has a named child, use touch_array to init array
