@@ -963,6 +963,7 @@ class lcl_json_to_abap implementation.
     field-symbols <parent_anytab> type any table.
     field-symbols <parent_struc> type any.
     field-symbols <tab_item> type any.
+    field-symbols <field> type any.
 
     " Assign container
     case is_parent_type-type_kind.
@@ -1026,7 +1027,6 @@ class lcl_json_to_abap implementation.
             endif.
 
           when lif_kind=>struct_flat or lif_kind=>struct_deep.
-            field-symbols <field> type any.
             assign component ls_node_type-target_field_name of structure <parent_struc> to <field>.
             assert sy-subrc = 0.
             get reference of <field> into lr_target_field.
