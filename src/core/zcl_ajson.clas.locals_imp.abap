@@ -772,6 +772,7 @@ class lcl_json_to_abap definition final.
     methods to_abap
       importing
         it_nodes     type zif_ajson_types=>ty_nodes_ts
+        iv_keep_data TYPE abap_bool DEFAULT abap_false
       changing
         c_container type any
       raising
@@ -857,7 +858,11 @@ class lcl_json_to_abap implementation.
 
     data lr_ref type ref to data.
 
-    clear c_container. " what about data/obj refs ?
+    " Because this initializes refs, in order to use data refs, keep_data must be true
+    IF iv_keep_data = abap_false.
+      CLEAR c_container.
+    ENDIF.
+
     clear mt_node_type_cache.
 
     get reference of c_container into lr_ref.
@@ -925,7 +930,7 @@ class lcl_json_to_abap implementation.
             endif.
           endif.
 
-        when ''. " Root node
+        WHEN '' OR lif_kind=>data_ref. " Root node or ref to data
           rs_node_type-dd ?= cl_abap_typedescr=>describe_by_data_ref( i_container_ref ).
 
         when others.
@@ -1000,8 +1005,7 @@ class lcl_json_to_abap implementation.
         endif.
 
         " Validate node type
-        if ls_node_type-type_kind = lif_kind=>data_ref or
-           ls_node_type-type_kind = lif_kind=>object_ref.
+        if ls_node_type-type_kind = lif_kind=>object_ref.
           " TODO maybe in future
           zcx_ajson_error=>raise( 'Cannot assign to ref' ).
         endif.
@@ -1033,6 +1037,20 @@ class lcl_json_to_abap implementation.
           when others.
             zcx_ajson_error=>raise( 'Unexpected parent type' ).
         endcase.
+
+          " For data refs, get the type it is pointing to
+          IF ls_node_type-type_kind = lif_kind=>data_ref.
+            lr_target_field = <field>.
+
+            IF lr_target_field IS INITIAL.
+              zcx_ajson_error=>raise( 'Cannot use initial data ref' ).
+            ENDIF.
+
+            ls_node_type = get_node_type(
+              i_container_ref = lr_target_field
+              is_node         = <n>
+              is_parent_type  = ls_node_type ).
+          ENDIF.
 
         " Process value assignment
         case <n>-type.
@@ -1618,9 +1636,12 @@ class lcl_abap_to_json implementation.
 
   endmethod.
 
-  method convert_ref.
+   method convert_ref.
 
     data ls_node like line of ct_nodes.
+    data lo_type type ref to cl_abap_typedescr.
+
+    field-symbols <lv_data> type any.
 
     ls_node-path  = is_prefix-path.
     ls_node-name  = is_prefix-name.
@@ -1640,12 +1661,21 @@ class lcl_abap_to_json implementation.
     if iv_data is initial.
       ls_node-type  = zif_ajson_types=>node_type-null.
       ls_node-value = 'null'.
+      append ls_node to ct_nodes.
     else.
-      " TODO support data references
-      zcx_ajson_error=>raise( |Unexpected reference @{ is_prefix-path && is_prefix-name }| ).
-    endif.
+      assign iv_data->* to <lv_data>.
+      lo_type = cl_abap_typedescr=>describe_by_data( <lv_data> ).
 
-    append ls_node to ct_nodes.
+      convert_any(
+        exporting
+          iv_data       = <lv_data>
+          io_type       = lo_type
+          is_prefix     = is_prefix
+          iv_index      = iv_index
+          iv_item_order = iv_item_order
+        changing
+          ct_nodes      = ct_nodes ).
+    endif.
 
   endmethod.
 
