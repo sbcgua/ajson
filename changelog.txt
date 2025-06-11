@@ -8,10 +8,11 @@ Legend
 + : added
 - : removed
 
-v1.1.12, 2025-??
+v1.1.12, 2025-06-11
 -------------------
 * proper support for "/" in node names (#193, @mbtools)
 * align reads with ATC checks (#199, @mbtools)
++ Add support for timestamps with fractions (#200, @mbtools)
 
 v1.1.11, 2025-02-24
 ------------------
