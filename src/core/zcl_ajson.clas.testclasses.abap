@@ -2641,17 +2641,17 @@ class ltcl_json_to_abap implementation.
 
     " ls_mock-dref is initial
     try.
-        create object lo_cut.
-        lo_cut->to_abap(
-          exporting
-            it_nodes    = lo_nodes->sorted( )
-          changing
-            c_container = ls_mock ).
-        cl_abap_unit_assert=>fail( ).
-      catch zcx_ajson_error into lx.
-        cl_abap_unit_assert=>assert_equals(
-        act = lx->message
-        exp = 'Cannot use initial data ref' ).
+      create object lo_cut.
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = ls_mock ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+      act = lx->message
+      exp = 'Cannot use initial data ref' ).
     endtry.
 
   endmethod.
