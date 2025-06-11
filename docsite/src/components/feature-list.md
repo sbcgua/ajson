@@ -1,0 +1,21 @@
+# Features
+
+- Parse json content into a flexible form, not fixed to any predefined data structure, allowing to modify the parsed data, selectively access its parts and slice subsections of it.
+- Allows conversion to fixed abap structures/tables (`to_abap`) - strict or "corresponding".
+- Supports timestamps
+- Checking node types
+- Convenient interface to manipulate the data:
+  - `set( value )`
+  - `set( structure )` + control over item order (sorted or historical)
+  - `set( table )`
+  - `push` to an array item-per-item
+  - `set( another_instance_of_ajson )`
+  - also typed e.g. `set_date`, `set_number`
+  - also `setx` for text-based value setting e.g. `setx( '/a/b:123' )` (useful e.g. for constants in APIs or in unit-tests)
+  - node deletion
+- Seralization to string (indented and not).
+- Freezing (read only) instance content.
+- Filtering - create a json skipping empty values, predefined paths, or your custom filter.
+- Mapping - changing node names on-the-fly (e.g. snake case to camel case, upper/lower case)
+- Utility to calculate difference between 2 jsons
+- See **[documentation](./docs/intro)** for more details ...
