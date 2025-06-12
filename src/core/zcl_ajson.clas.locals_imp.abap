@@ -1336,6 +1336,11 @@ class lcl_abap_to_json definition final.
         iv_ts type timestamp
       returning
         value(rv_str) type string.
+    class-methods format_timestampl
+      importing
+        iv_ts type timestampl
+      returning
+        value(rv_str) type string.
 
     class-methods class_constructor.
 
@@ -1585,6 +1590,31 @@ class lcl_abap_to_json implementation.
       lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
       'T' &&
       lv_time+0(2) && ':' && lv_time+2(2) && ':' && lv_time+4(2) &&
+      'Z'.
+
+  endmethod.
+
+  method format_timestampl.
+
+    constants lc_utc type c length 6 value 'UTC'.
+
+    data lv_date type d.
+    data lv_time type t.
+    data lv_frac type string.
+    data lv_int type string.
+
+    convert time stamp iv_ts time zone lc_utc
+      into date lv_date time lv_time.
+
+    split |{ iv_ts }| at '.' into lv_int lv_frac.
+    shift lv_frac right deleting trailing '0'.
+    shift lv_frac left deleting leading space.
+
+    rv_str =
+      lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
+      'T' &&
+      lv_time+0(2) && ':' && lv_time+2(2) && ':' && lv_time+4(2) &&
+      '.' && lv_frac &&
       'Z'.
 
   endmethod.

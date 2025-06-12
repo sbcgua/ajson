@@ -838,6 +838,21 @@ CLASS zcl_ajson IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson~set_timestampl.
+
+    ri_json = me.
+
+    data lv_timestamp_iso type string.
+    lv_timestamp_iso = lcl_abap_to_json=>format_timestampl( iv_val ).
+
+    zif_ajson~set(
+      iv_ignore_empty = abap_false
+      iv_path = iv_path
+      iv_val  = lv_timestamp_iso ).
+
+  endmethod.
+
+
   method zif_ajson~slice.
 
     data lo_section         type ref to zcl_ajson.
