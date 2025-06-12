@@ -458,6 +458,7 @@ Conversion from JSON to ABAP can determine automatically if the value is a times
   - ss = two digits of second (00 through 59)
   - TZD = time zone designator (Z or +hh:mm or -hh:mm)
 - abap base type of field is P (Packed)
+- if the abap field has data element `timestampl`, then fractions of seconds are supported
 
 ### Examples
 
@@ -468,7 +469,8 @@ Using a json with possible formats:
   "date":"2020-07-28",
   "datetime":"2020-07-28T00:00:00",
   "datetime_utc":"2020-07-28T00:00:00Z",
-  "datetime_plus1":"2020-07-28T01:00:00+01:00"
+  "datetime_plus1":"2020-07-28T01:00:00+01:00",
+  "datetime_fract":"2020-07-28T00:00:00.123456Z",
 }
 ```
 
@@ -481,6 +483,7 @@ Can be mapped to following structure:
       datetime       TYPE timestamp,
       datetime_utc   TYPE timestamp,
       datetime_plus1 TYPE timestamp,
+      datetime_fract TYPE timestampl, " long timestamp
     END OF json_timestamp.
 
   DATA(lo_ajson) = zcl_ajson=>parse( json_content ).
