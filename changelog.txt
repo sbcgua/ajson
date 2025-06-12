@@ -8,6 +8,10 @@ Legend
 + : added
 - : removed
 
+v1.1.13, 2025-??
+-------------------
++ Add set_timestampl() that supports full ISO date time format (#202, @mbtools)
+
 v1.1.12, 2025-06-11
 -------------------
 * proper support for "/" in node names (#193, @mbtools)
