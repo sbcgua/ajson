@@ -20,7 +20,8 @@
     "keywords": ["return", "in", "class"],
     "skip": [
       {"object": "ZCL_AJSON", "class": "ltcl_parser_test", "method": "parse_error",  "note": "Node json error location issue"},
-      {"object": "ZCL_AJSON", "class": "ltcl_parser_test", "method": "unicode_characters",  "note": "missing class"}
+      {"object": "ZCL_AJSON", "class": "ltcl_parser_test", "method": "unicode_characters",  "note": "missing class"},
+      {"object": "ZCL_AJSON", "class": "ltcl_writer_test", "method": "set_timestampl",  "note": "abaplint/transpiler#1528"}
     ]
   }
 }

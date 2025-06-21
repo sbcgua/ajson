@@ -11,12 +11,10 @@
     <item>/LICENSE</item>
     <item>/README.md</item>
     <item>/package.json</item>
-    <item>/.travis.yml</item>
-    <item>/.gitlab-ci.yml</item>
-    <item>/abaplint.json</item>
-    <item>/azure-pipelines.yml</item>
+    <item>/abaplint.jsonc</item>
     <item>/changelog.txt</item>
    </IGNORE>
+   <VERSION_CONSTANT>ZIF_AJSON=&gt;VERSION</VERSION_CONSTANT>
   </DATA>
  </asx:values>
 </asx:abap>

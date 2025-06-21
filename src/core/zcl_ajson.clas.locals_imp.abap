@@ -786,6 +786,14 @@ class lcl_json_to_abap definition final.
       raising
         zcx_ajson_error.
 
+    methods to_timestampl
+      importing
+        iv_value         type zif_ajson_types=>ty_node-value
+      returning
+        value(rv_result) type timestampl
+      raising
+        zcx_ajson_error.
+
     methods to_date
       importing
         iv_value         type zif_ajson_types=>ty_node-value
@@ -1138,9 +1146,10 @@ class lcl_json_to_abap implementation.
             <container> = to_date( is_node-value ).
           elseif is_node_type-type_kind = lif_kind=>time.
             <container> = to_time( is_node-value ).
-          elseif is_node_type-dd->absolute_name = '\TYPE=TIMESTAMP'
-            or is_node_type-dd->absolute_name = '\TYPE=TIMESTAMPL'.
+          elseif is_node_type-dd->absolute_name = '\TYPE=TIMESTAMP'.
             <container> = to_timestamp( is_node-value ).
+          elseif is_node_type-dd->absolute_name = '\TYPE=TIMESTAMPL'.
+            <container> = to_timestampl( is_node-value ).
           elseif is_node_type-type_kind = lif_kind=>packed. " Number as a string, but not a timestamp
             <container> = is_node-value.
           else.
@@ -1173,11 +1182,29 @@ class lcl_json_to_abap implementation.
 
   method to_timestamp.
 
+    data lv_timestampl type timestampl.
+    data lv_int_part type string.
+    data lv_frac_part type string.
+
+    lv_timestampl = to_timestampl( iv_value ).
+    split |{ lv_timestampl }| at '.' into lv_int_part lv_frac_part.
+
+    " short timestamp must not have any fraction (.000 is acceptable)
+    if lv_frac_part ca '123456789'.
+      zcx_ajson_error=>raise( 'Unexpected timestamp format' ).
+    endif.
+
+    rv_result = lv_int_part.
+
+  endmethod.
+
+  method to_timestampl.
+
     constants lc_utc type c length 6 value 'UTC'.
     constants lc_regex_ts_with_hour type string
       value `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(\+)(\d{2}):(\d{2})`. "#EC NOTEXT
     constants lc_regex_ts_utc type string
-      value `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(Z|$)`. "#EC NOTEXT
+      value `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|$)`. "#EC NOTEXT
 
     data:
       begin of ls_timestamp,
@@ -1188,6 +1215,7 @@ class lcl_json_to_abap implementation.
         hour         type c length 2,
         minute       type c length 2,
         second       type c length 2,
+        frac         type c length 8,
         local_sign   type c length 1,
         local_hour   type c length 2,
         local_minute type c length 2,
@@ -1213,7 +1241,7 @@ class lcl_json_to_abap implementation.
       find first occurrence of regex lc_regex_ts_utc
         in iv_value submatches
           ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
-          ls_timestamp-hour ls_timestamp-minute ls_timestamp-second.
+          ls_timestamp-hour ls_timestamp-minute ls_timestamp-second ls_timestamp-frac.
 
       if sy-subrc <> 0.
         zcx_ajson_error=>raise( 'Unexpected timestamp format' ).
@@ -1225,6 +1253,12 @@ class lcl_json_to_abap implementation.
     concatenate ls_timestamp-hour ls_timestamp-minute ls_timestamp-second into lv_time.
 
     convert date lv_date time lv_time into time stamp lv_timestamp time zone lc_utc.
+
+    " add fraction
+    if ls_timestamp-frac is not initial.
+      ls_timestamp-frac = '0' && ls_timestamp-frac.
+      lv_timestamp = lv_timestamp + ls_timestamp-frac.
+    endif.
 
     try.
 
@@ -1318,6 +1352,11 @@ class lcl_abap_to_json definition final.
     class-methods format_timestamp
       importing
         iv_ts type timestamp
+      returning
+        value(rv_str) type string.
+    class-methods format_timestampl
+      importing
+        iv_ts type timestampl
       returning
         value(rv_str) type string.
 
@@ -1569,6 +1608,31 @@ class lcl_abap_to_json implementation.
       lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
       'T' &&
       lv_time+0(2) && ':' && lv_time+2(2) && ':' && lv_time+4(2) &&
+      'Z'.
+
+  endmethod.
+
+  method format_timestampl.
+
+    constants lc_utc type c length 6 value 'UTC'.
+
+    data lv_date type d.
+    data lv_time type t.
+    data lv_frac type string.
+    data lv_int type string.
+
+    convert time stamp iv_ts time zone lc_utc
+      into date lv_date time lv_time.
+
+    split |{ iv_ts }| at '.' into lv_int lv_frac.
+    shift lv_frac right deleting trailing '0'.
+    shift lv_frac left deleting leading space.
+
+    rv_str =
+      lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
+      'T' &&
+      lv_time+0(2) && ':' && lv_time+2(2) && ':' && lv_time+4(2) &&
+      '.' && lv_frac &&
       'Z'.
 
   endmethod.

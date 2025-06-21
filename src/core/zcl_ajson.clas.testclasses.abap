@@ -1603,12 +1603,16 @@ class ltcl_json_to_abap definition
         timestamp2 type timestamp,
         timestamp3 type timestamp,
         timestamp4 type timestampl,
+        timestamp5 type timestampl,
       end of ty_complex.
 
     methods to_abap_struc
       for testing
       raising zcx_ajson_error.
     methods to_abap_timestamp_initial
+      for testing
+      raising zcx_ajson_error.
+    methods to_abap_timestamp_long
       for testing
       raising zcx_ajson_error.
     methods to_abap_value
@@ -1713,6 +1717,7 @@ class ltcl_json_to_abap implementation.
     lo_nodes->add( '/      |timestamp2 |str    |2020-07-28T00:00:00Z      | ' ).
     lo_nodes->add( '/      |timestamp3 |str    |2020-07-28T01:00:00+01:00 | ' ).
     lo_nodes->add( '/      |timestamp4 |str    |2020-07-28T01:00:00+01:00 | ' ).
+    lo_nodes->add( '/      |timestamp5 |str    |2020-07-28T00:00:00.12345Z| ' ).
 
     create object lo_cut.
     lo_cut->to_abap(
@@ -1732,6 +1737,7 @@ class ltcl_json_to_abap implementation.
     ls_exp-timestamp2 = lv_exp_timestamp.
     ls_exp-timestamp3 = lv_exp_timestamp.
     ls_exp-timestamp4 = lv_exp_timestamp.
+    ls_exp-timestamp5 = lv_exp_timestamp + '0.12345'.
 
     cl_abap_unit_assert=>assert_equals(
       act = ls_mock
@@ -1758,6 +1764,49 @@ class ltcl_json_to_abap implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lv_mock
       exp = 0 ).
+
+  endmethod.
+
+  method to_abap_timestamp_long.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data lx type ref to zcx_ajson_error.
+    data lv_mock type timestamp.
+    data lv_exp_timestamp type timestamp value '20200728000000'.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    " Long timestamp to short timestamp fails
+    create object lo_nodes.
+    lo_nodes->add( '       |           |str    |2020-07-28T00:00:00.12345Z| ' ).
+
+    try.
+      create object lo_cut.
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = lv_mock ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Unexpected timestamp format' ).
+    endtry.
+
+    " Long timestamp with zero fraction passes
+    create object lo_nodes.
+    lo_nodes->add( '       |           |str    |2020-07-28T00:00:00.00000Z| ' ).
+
+    create object lo_cut.
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = lv_mock ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_mock
+      exp = lv_exp_timestamp ).
 
   endmethod.
 
@@ -2693,6 +2742,7 @@ class ltcl_writer_test definition final
     methods set_number for testing raising zcx_ajson_error.
     methods set_date for testing raising zcx_ajson_error.
     methods set_timestamp for testing raising zcx_ajson_error.
+    methods set_timestampl for testing raising zcx_ajson_error.
     methods read_only for testing raising zcx_ajson_error.
     methods set_array_obj for testing raising zcx_ajson_error.
     methods set_with_type for testing raising zcx_ajson_error.
@@ -3656,6 +3706,30 @@ class ltcl_writer_test implementation.
     li_writer->set_timestamp(
       iv_path = '/a'
       iv_val  = lv_timestamp ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  endmethod.
+
+  method set_timestampl.
+
+    data lo_cut type ref to zcl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to zif_ajson.
+    data lv_timestampl type timestampl.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |                            ||1' ).
+    lo_nodes_exp->add( '/       |a     |str    |2021-05-05T12:00:00.123456Z ||0' ).
+
+    lv_timestampl = '20210505120000.123456'.
+    li_writer->set_timestampl(
+      iv_path = '/a'
+      iv_val  = lv_timestampl ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
