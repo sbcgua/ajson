@@ -26,12 +26,12 @@ CLASS zcl_ajson_refs IMPLEMENTATION.
 
   method zif_ajson_refs~get_data_ref.
 
-    field-symbols <ls_data_refs> like line of mt_data_refs.
+    field-symbols <data_ref> like line of mt_data_refs.
 
-    read table mt_data_refs assigning <ls_data_refs>
+    read table mt_data_refs assigning <data_ref>
       with key by_path components path = is_node-path name = is_node-name.
     if sy-subrc = 0.
-      ro_ref = <ls_data_refs>-dref.
+      ro_ref = <data_ref>-dref.
     endif.
 
   endmethod.

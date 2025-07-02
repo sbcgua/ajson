@@ -854,6 +854,14 @@ class lcl_json_to_abap definition final.
       raising
         zcx_ajson_error.
 
+    methods get_data_ref
+      importing
+        is_node       type zif_ajson_types=>ty_node
+      returning
+        value(ro_ref) type ref to data
+      raising
+        zcx_ajson_error.
+
 endclass.
 
 class lcl_json_to_abap implementation.
@@ -893,6 +901,8 @@ class lcl_json_to_abap implementation.
     " Calculate type path
     if is_parent_type-type_kind = lif_kind=>table.
       lv_node_type_path = is_parent_type-type_path && '/-'. " table item type
+    elseif is_parent_type-type_kind = lif_kind=>data_ref.
+      lv_node_type_path = is_parent_type-type_path && '/+'. " data reference
     elseif is_parent_type-type_kind is not initial.
       lv_node_type_path = is_parent_type-type_path && '/' && is_node-name.
     endif. " For root node lv_node_type_path remains ''
@@ -954,6 +964,20 @@ class lcl_json_to_abap implementation.
       endif.
 
       insert rs_node_type into table mt_node_type_cache.
+    endif.
+
+  endmethod.
+
+  method get_data_ref.
+
+    if mi_refs_initiator is initial.
+      zcx_ajson_error=>raise( 'Missing ref initiator' ).
+    endif.
+
+    ro_ref = mi_refs_initiator->get_data_ref( is_node ).
+
+    if ro_ref is initial.
+      zcx_ajson_error=>raise( 'Cannot use initial data ref' ).
     endif.
 
   endmethod.
@@ -1047,15 +1071,7 @@ class lcl_json_to_abap implementation.
 
         " For data refs, get the type it is pointing to
         if ls_node_type-type_kind = lif_kind=>data_ref.
-          if mi_refs_initiator IS INITIAL.
-            zcx_ajson_error=>raise( 'Missing ref initiator' ).
-          endif.
-
-          lr_target_field = mi_refs_initiator->get_data_ref( <n> ).
-
-          if lr_target_field is initial.
-            zcx_ajson_error=>raise( 'Cannot use initial data ref' ).
-          endif.
+          lr_target_field = get_data_ref( <n> ).
 
           ls_node_type = get_node_type(
             i_container_ref = lr_target_field
