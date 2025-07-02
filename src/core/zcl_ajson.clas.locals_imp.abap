@@ -767,12 +767,12 @@ class lcl_json_to_abap definition final.
     methods constructor
       importing
         !iv_corresponding  type abap_bool default abap_false
-        !ii_custom_mapping type ref to zif_ajson_mapping optional.
+        !ii_custom_mapping type ref to zif_ajson_mapping optional
+        !ii_refs_initiator type ref to zif_ajson_refs optional.
 
     methods to_abap
       importing
-        it_nodes     type zif_ajson_types=>ty_nodes_ts
-        iv_keep_data type abap_bool default abap_false
+        it_nodes    type zif_ajson_types=>ty_nodes_ts
       changing
         c_container type any
       raising
@@ -824,6 +824,7 @@ class lcl_json_to_abap definition final.
 
     data mr_nodes type ref to zif_ajson_types=>ty_nodes_ts.
     data mi_custom_mapping type ref to zif_ajson_mapping.
+    data mi_refs_initiator type ref to zif_ajson_refs.
     data mv_corresponding type abap_bool.
 
     methods any_to_abap
@@ -859,6 +860,7 @@ class lcl_json_to_abap implementation.
 
   method constructor.
     mi_custom_mapping = ii_custom_mapping.
+    mi_refs_initiator = ii_refs_initiator.
     mv_corresponding  = iv_corresponding.
   endmethod.
 
@@ -866,10 +868,7 @@ class lcl_json_to_abap implementation.
 
     data lr_ref type ref to data.
 
-    " Because this initializes refs, in order to use data refs, keep_data must be true
-    if iv_keep_data = abap_false.
-      clear c_container.
-    endif.
+    clear c_container.
 
     clear mt_node_type_cache.
 
@@ -1048,7 +1047,11 @@ class lcl_json_to_abap implementation.
 
         " For data refs, get the type it is pointing to
         if ls_node_type-type_kind = lif_kind=>data_ref.
-          lr_target_field = <field>.
+          if mi_refs_initiator IS INITIAL.
+            zcx_ajson_error=>raise( 'Missing ref initiator' ).
+          endif.
+
+          lr_target_field = mi_refs_initiator->get_data_ref( <n> ).
 
           if lr_target_field is initial.
             zcx_ajson_error=>raise( 'Cannot use initial data ref' ).
