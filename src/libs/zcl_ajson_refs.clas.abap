@@ -12,11 +12,11 @@ class zcl_ajson_refs definition
 
   private section.
     data mt_data_refs type zif_ajson_refs~tty_data_refs.
-ENDCLASS.
+endclass.
 
 
 
-CLASS zcl_ajson_refs IMPLEMENTATION.
+class zcl_ajson_refs implementation.
 
 
   method constructor.
@@ -35,4 +35,4 @@ CLASS zcl_ajson_refs IMPLEMENTATION.
     endif.
 
   endmethod.
-ENDCLASS.
+endclass.
