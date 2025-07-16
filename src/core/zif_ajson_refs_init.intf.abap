@@ -1,4 +1,4 @@
-interface zif_ajson_refs public.
+interface zif_ajson_refs_init public.
 
   types:
     begin of ty_data_ref,
@@ -14,12 +14,5 @@ interface zif_ajson_refs public.
       !is_node      type zif_ajson_types=>ty_node
     returning
       value(ro_ref) type ref to data.
-
-  " possible future enhancement
-  "  methods get_object_ref
-  "    importing
-  "      !is_node      type zif_ajson_types=>ty_node
-  "    returning
-  "      value(ro_ref) type ref to object
 
 endinterface.

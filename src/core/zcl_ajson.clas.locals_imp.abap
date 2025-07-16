@@ -768,7 +768,7 @@ class lcl_json_to_abap definition final.
       importing
         !iv_corresponding  type abap_bool default abap_false
         !ii_custom_mapping type ref to zif_ajson_mapping optional
-        !ii_refs_initiator type ref to zif_ajson_refs optional.
+        !ii_refs_initiator type ref to zif_ajson_refs_init optional.
 
     methods to_abap
       importing
@@ -824,7 +824,7 @@ class lcl_json_to_abap definition final.
 
     data mr_nodes type ref to zif_ajson_types=>ty_nodes_ts.
     data mi_custom_mapping type ref to zif_ajson_mapping.
-    data mi_refs_initiator type ref to zif_ajson_refs.
+    data mi_refs_initiator type ref to zif_ajson_refs_init.
     data mv_corresponding type abap_bool.
 
     methods any_to_abap
