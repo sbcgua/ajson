@@ -1596,6 +1596,7 @@ class ltcl_json_to_abap definition
         tab_plain  type string_table,
         tab_hashed type tty_struc_hashed,
         oref  type ref to object,
+        dref  type ref to data,
         date1 type d,
         date2 type d,
         timestamp1 type timestamp,
@@ -2278,23 +2279,6 @@ class ltcl_json_to_abap implementation.
     endtry.
 
     try.
-      data lr_data type ref to data.
-      create object lo_nodes.
-      lo_nodes->add( '      |     |str  |hello      | ' ).
-
-      lo_cut->to_abap(
-        exporting
-          it_nodes    = lo_nodes->sorted( )
-        changing
-          c_container = lr_data ).
-      cl_abap_unit_assert=>fail( ).
-    catch zcx_ajson_error into lx.
-      cl_abap_unit_assert=>assert_equals(
-        act = lx->message
-        exp = 'Cannot assign to ref' ).
-    endtry.
-
-    try.
       data lt_hashed type hashed table of string with unique key table_line.
       create object lo_nodes.
       lo_nodes->add( '            |           |array  |                          | ' ).
@@ -2631,6 +2615,8 @@ class ltcl_writer_test definition final
     methods set_tab for testing raising zcx_ajson_error.
     methods set_tab_hashed for testing raising zcx_ajson_error.
     methods set_tab_nested_struct for testing raising zcx_ajson_error.
+    methods set_ref_to_data for testing raising zcx_ajson_error.
+    methods set_ref_to_data_struct for testing raising zcx_ajson_error.
     methods prove_path_exists for testing raising zcx_ajson_error.
     methods delete_subtree for testing raising zcx_ajson_error.
     methods delete for testing raising zcx_ajson_error.
@@ -3090,6 +3076,63 @@ class ltcl_writer_test implementation.
       iv_val  = lt_tab ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->mt_json_tree
+      exp = lo_nodes->sorted( ) ).
+
+  endmethod.
+
+  method set_ref_to_data.
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson.
+    data lv_foo type i.
+    data lr_foo type ref to data.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    create object lo_nodes.
+    lo_nodes->add( '        |      |num    |10         ||0' ).
+
+    lv_foo = 10.
+    get reference of lv_foo into lr_foo.
+
+    li_writer->set(
+      iv_path = '/'
+      iv_val  = lr_foo ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = lo_nodes->sorted( ) ).
+
+  endmethod.
+
+  method set_ref_to_data_struct.
+
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to zcl_ajson.
+    data li_writer type ref to zif_ajson.
+    data lv_foo type string.
+
+    data:
+      begin of ls_struc,
+        r type ref to data,
+      end of ls_struc.
+
+    lo_cut = zcl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |           ||1' ).
+    lo_nodes->add( '/       |r     |str    |abc        ||0' ).
+
+    lv_foo = `abc`.
+    get reference of lv_foo into ls_struc-r.
+
+    li_writer->set(
+      iv_path = '/'
+      iv_val  = ls_struc ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
       exp = lo_nodes->sorted( ) ).
 
   endmethod.
@@ -5369,6 +5412,205 @@ class ltcl_cloning_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = li_json_new->opts( )-keep_item_order
       exp = abap_true ).
+
+  endmethod.
+
+endclass.
+
+**********************************************************************
+* REF TEST
+**********************************************************************
+
+class ltcl_data_ref_test definition
+  for testing
+  risk level harmless
+  duration short
+  final.
+
+  private section.
+
+    types:
+      begin of ty_data,
+        str  type string,
+        int  type i,
+        itab type string_table,
+      end of ty_data,
+      begin of ty_refs,
+        str  type ref to data,
+        int  type ref to data,
+        itab type ref to data,
+      end of ty_refs.
+
+    methods to_abap_data_ref
+      for testing
+      raising cx_static_check.
+    methods to_abap_data_ref_table
+      for testing
+      raising cx_static_check.
+    methods to_abap_data_ref_negative
+      for testing
+      raising cx_static_check.
+    methods to_abap_data_ref_no_initiator
+      for testing
+      raising cx_static_check.
+endclass.
+
+class ltcl_data_ref_test implementation.
+
+  method to_abap_data_ref.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data li_refs type ref to zif_ajson_refs_init.
+    data lt_refs type zif_ajson_refs_init=>tty_data_refs.
+    data ls_refs like line of lt_refs.
+    data ls_data type ty_data.
+    data ls_mock type ty_refs.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '        |           |object |                          | ' ).
+    lo_nodes->add( '/       |str        |str    |hello                     | ' ).
+    lo_nodes->add( '/       |int        |num    |42                        | ' ).
+
+    " prepare ref initiator
+    ls_refs-path = '/'.
+    ls_refs-name = 'str'.
+    get reference of ls_data-str into ls_refs-dref.
+    insert ls_refs into table lt_refs.
+    ls_refs-name = 'int'.
+    get reference of ls_data-int into ls_refs-dref.
+    insert ls_refs into table lt_refs.
+
+    li_refs = zcl_ajson_refs_init_lib=>create_path_refs_init( lt_refs ).
+
+    " to_abap
+    create object lo_cut
+      exporting
+        ii_refs_initiator = li_refs.
+
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = ls_mock ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_data-str
+      exp = `hello` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_data-int
+      exp = 42 ).
+
+  endmethod.
+
+  method to_abap_data_ref_table.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data li_refs type ref to zif_ajson_refs_init.
+    data lt_refs type zif_ajson_refs_init=>tty_data_refs.
+    data ls_refs like line of lt_refs.
+    data ls_data type ty_data.
+    data ls_mock type ty_refs.
+    data lt_exp type string_table.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '        |           |object |                          | ' ).
+    lo_nodes->add( '/       |itab       |array  |                          | ' ).
+    lo_nodes->add( '/itab/  |1          |str    |one                       |1' ).
+    lo_nodes->add( '/itab/  |2          |str    |two                       |2' ).
+
+    " prepare ref initiator
+    ls_refs-path = '/'.
+    ls_refs-name = 'itab'.
+    get reference of ls_data-itab into ls_refs-dref.
+    insert ls_refs into table lt_refs.
+
+    li_refs = zcl_ajson_refs_init_lib=>create_path_refs_init( lt_refs ).
+
+    " to_abap
+    create object lo_cut
+      exporting
+        ii_refs_initiator = li_refs.
+
+    lo_cut->to_abap(
+      exporting
+        it_nodes    = lo_nodes->sorted( )
+      changing
+        c_container = ls_mock ).
+
+    insert `one` into table lt_exp.
+    insert `two` into table lt_exp.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_data-itab
+      exp = lt_exp ).
+
+  endmethod.
+
+  method to_abap_data_ref_negative.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data li_refs type ref to zif_ajson_refs_init.
+    data lt_refs type zif_ajson_refs_init=>tty_data_refs.
+    data ls_mock type ty_refs.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lx type ref to zcx_ajson_error.
+
+    create object lo_nodes.
+    lo_nodes->add( '        |           |object |                          | ' ).
+    lo_nodes->add( '/       |itab       |array  |                          | ' ).
+    lo_nodes->add( '/itab/  |1          |str    |one                       |1' ).
+
+    li_refs = zcl_ajson_refs_init_lib=>create_path_refs_init( lt_refs ).
+
+    " ls_mock-itab is initial and no ref initiator
+    try.
+      create object lo_cut
+        exporting
+          ii_refs_initiator = li_refs.
+
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = ls_mock ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+      act = lx->message
+      exp = 'Cannot use initial data ref' ).
+    endtry.
+
+  endmethod.
+
+  method to_abap_data_ref_no_initiator.
+
+    data lo_cut type ref to lcl_json_to_abap.
+    data ls_mock type ty_refs.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lx type ref to zcx_ajson_error.
+
+    create object lo_nodes.
+    lo_nodes->add( '        |           |object |                          | ' ).
+    lo_nodes->add( '/       |itab       |array  |                          | ' ).
+    lo_nodes->add( '/itab/  |1          |str    |one                       |1' ).
+
+    " ref initiator is not supplied
+    try.
+      create object lo_cut.
+      lo_cut->to_abap(
+        exporting
+          it_nodes    = lo_nodes->sorted( )
+        changing
+          c_container = ls_mock ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+      act = lx->message
+      exp = 'Missing ref initiator' ).
+    endtry.
 
   endmethod.
 

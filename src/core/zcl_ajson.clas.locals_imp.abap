@@ -767,11 +767,12 @@ class lcl_json_to_abap definition final.
     methods constructor
       importing
         !iv_corresponding  type abap_bool default abap_false
-        !ii_custom_mapping type ref to zif_ajson_mapping optional.
+        !ii_custom_mapping type ref to zif_ajson_mapping optional
+        !ii_refs_initiator type ref to zif_ajson_refs_init optional.
 
     methods to_abap
       importing
-        it_nodes     type zif_ajson_types=>ty_nodes_ts
+        it_nodes    type zif_ajson_types=>ty_nodes_ts
       changing
         c_container type any
       raising
@@ -823,6 +824,7 @@ class lcl_json_to_abap definition final.
 
     data mr_nodes type ref to zif_ajson_types=>ty_nodes_ts.
     data mi_custom_mapping type ref to zif_ajson_mapping.
+    data mi_refs_initiator type ref to zif_ajson_refs_init.
     data mv_corresponding type abap_bool.
 
     methods any_to_abap
@@ -852,12 +854,21 @@ class lcl_json_to_abap definition final.
       raising
         zcx_ajson_error.
 
+    methods get_data_ref
+      importing
+        is_node       type zif_ajson_types=>ty_node
+      returning
+        value(ro_ref) type ref to data
+      raising
+        zcx_ajson_error.
+
 endclass.
 
 class lcl_json_to_abap implementation.
 
   method constructor.
     mi_custom_mapping = ii_custom_mapping.
+    mi_refs_initiator = ii_refs_initiator.
     mv_corresponding  = iv_corresponding.
   endmethod.
 
@@ -865,7 +876,8 @@ class lcl_json_to_abap implementation.
 
     data lr_ref type ref to data.
 
-    clear c_container. " what about data/obj refs ?
+    clear c_container.
+
     clear mt_node_type_cache.
 
     get reference of c_container into lr_ref.
@@ -889,6 +901,8 @@ class lcl_json_to_abap implementation.
     " Calculate type path
     if is_parent_type-type_kind = lif_kind=>table.
       lv_node_type_path = is_parent_type-type_path && '/-'. " table item type
+    elseif is_parent_type-type_kind = lif_kind=>data_ref.
+      lv_node_type_path = is_parent_type-type_path && '/+'. " data reference
     elseif is_parent_type-type_kind is not initial.
       lv_node_type_path = is_parent_type-type_path && '/' && is_node-name.
     endif. " For root node lv_node_type_path remains ''
@@ -933,7 +947,7 @@ class lcl_json_to_abap implementation.
             endif.
           endif.
 
-        when ''. " Root node
+        when '' or lif_kind=>data_ref. " Root node or ref to data
           rs_node_type-dd ?= cl_abap_typedescr=>describe_by_data_ref( i_container_ref ).
 
         when others.
@@ -954,6 +968,20 @@ class lcl_json_to_abap implementation.
 
   endmethod.
 
+  method get_data_ref.
+
+    if mi_refs_initiator is initial.
+      zcx_ajson_error=>raise( 'Missing ref initiator' ).
+    endif.
+
+    ro_ref = mi_refs_initiator->get_data_ref( is_node ).
+
+    if ro_ref is initial.
+      zcx_ajson_error=>raise( 'Cannot use initial data ref' ).
+    endif.
+
+  endmethod.
+
   method any_to_abap.
 
     data ls_node_type like line of mt_node_type_cache.
@@ -966,6 +994,7 @@ class lcl_json_to_abap implementation.
     field-symbols <parent_anytab> type any table.
     field-symbols <parent_struc> type any.
     field-symbols <tab_item> type any.
+    field-symbols <field> type any.
 
     " Assign container
     case is_parent_type-type_kind.
@@ -1008,8 +1037,7 @@ class lcl_json_to_abap implementation.
         endif.
 
         " Validate node type
-        if ls_node_type-type_kind = lif_kind=>data_ref or
-           ls_node_type-type_kind = lif_kind=>object_ref.
+        if ls_node_type-type_kind = lif_kind=>object_ref.
           " TODO maybe in future
           zcx_ajson_error=>raise( 'Cannot assign to ref' ).
         endif.
@@ -1030,7 +1058,6 @@ class lcl_json_to_abap implementation.
             endif.
 
           when lif_kind=>struct_flat or lif_kind=>struct_deep.
-            field-symbols <field> type any.
             assign component ls_node_type-target_field_name of structure <parent_struc> to <field>.
             assert sy-subrc = 0.
             get reference of <field> into lr_target_field.
@@ -1041,6 +1068,16 @@ class lcl_json_to_abap implementation.
           when others.
             zcx_ajson_error=>raise( 'Unexpected parent type' ).
         endcase.
+
+        " For data refs, get the type it is pointing to
+        if ls_node_type-type_kind = lif_kind=>data_ref.
+          lr_target_field = get_data_ref( <n> ).
+
+          ls_node_type = get_node_type(
+            i_container_ref = lr_target_field
+            is_node         = <n>
+            is_parent_type  = ls_node_type ).
+        endif.
 
         " Process value assignment
         case <n>-type.
@@ -1685,6 +1722,9 @@ class lcl_abap_to_json implementation.
   method convert_ref.
 
     data ls_node like line of ct_nodes.
+    data lo_type type ref to cl_abap_typedescr.
+
+    field-symbols <data> type any.
 
     ls_node-path  = is_prefix-path.
     ls_node-name  = is_prefix-name.
@@ -1704,12 +1744,21 @@ class lcl_abap_to_json implementation.
     if iv_data is initial.
       ls_node-type  = zif_ajson_types=>node_type-null.
       ls_node-value = 'null'.
+      append ls_node to ct_nodes.
     else.
-      " TODO support data references
-      zcx_ajson_error=>raise( |Unexpected reference @{ is_prefix-path && is_prefix-name }| ).
-    endif.
+      assign iv_data->* to <data>.
+      lo_type = cl_abap_typedescr=>describe_by_data( <data> ).
 
-    append ls_node to ct_nodes.
+      convert_any(
+        exporting
+          iv_data       = <data>
+          io_type       = lo_type
+          is_prefix     = is_prefix
+          iv_index      = iv_index
+          iv_item_order = iv_item_order
+        changing
+          ct_nodes      = ct_nodes ).
+    endif.
 
   endmethod.
 

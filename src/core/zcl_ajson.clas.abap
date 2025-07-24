@@ -967,7 +967,8 @@ CLASS zcl_ajson IMPLEMENTATION.
     create object lo_to_abap
       exporting
         iv_corresponding  = boolc( iv_corresponding = abap_true or ms_opts-to_abap_corresponding_only = abap_true )
-        ii_custom_mapping = mi_custom_mapping.
+        ii_custom_mapping = mi_custom_mapping
+        ii_refs_initiator = ii_refs_initiator.
 
     lo_to_abap->to_abap(
       exporting

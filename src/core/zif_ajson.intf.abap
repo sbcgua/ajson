@@ -134,6 +134,7 @@ interface zif_ajson
   methods to_abap
     importing
       iv_corresponding type abap_bool default abap_false
+      ii_refs_initiator type ref to zif_ajson_refs_init optional
     exporting
       ev_container type any
     raising
