@@ -3,7 +3,8 @@
 - Parse json content into a flexible form, not fixed to any predefined data structure, allowing to modify the parsed data, selectively access its parts and slice subsections of it.
 - Allows conversion to fixed abap structures/tables (`to_abap`) - strict or "corresponding".
 - Supports timestamps
-- Checking node types
+- Supports reference instantiation
+- Supports checking node types
 - Convenient interface to manipulate the data:
   - `set( value )`
   - `set( structure )` + control over item order (sorted or historical)
@@ -16,6 +17,6 @@
 - Seralization to string (indented and not).
 - Freezing (read only) instance content.
 - Filtering - create a json skipping empty values, predefined paths, or your custom filter.
-- Mapping - changing node names on-the-fly (e.g. snake case to camel case, upper/lower case)
+- Mapping - rule-based changing node names (e.g. snake case to camel case, upper/lower case)
 - Utility to calculate difference between 2 jsons
 - See **[documentation](./docs/intro)** for more details ...
