@@ -34,7 +34,7 @@ Example of json config
 
 As you can see the content is freely editable JSON text.
 
-Finally, accessing the config parameters is done with a help of [ajson package](https://github.com/sbcgua/ajson). I wrote about it before - [AJSON – yet another abap json parser and serializer](/posts/2020-08-14---ajson---yet-another-abap-json-parser-and-serializer/). Since the original blog post, the library has matured and we use it in several productive tools which exchange the data with external APIs and web services. The tool is designed to be convenient for a developer, so the accessing code looks, for example, as follows:
+Finally, accessing the config parameters is done with a help of [ajson package](https://github.com/sbcgua/ajson). I wrote about it before - [AJSON – yet another abap json parser and serializer](/blog/ajson-yet-another-abap-json-parser-and-serializer/). Since the original blog post, the library has matured and we use it in several productive tools which exchange the data with external APIs and web services. The tool is designed to be convenient for a developer, so the accessing code looks, for example, as follows:
 
 ```abap
 data lo_json_settings type ref to zif_ajson.
