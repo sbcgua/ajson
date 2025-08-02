@@ -12,6 +12,12 @@ const repoUrl = `${githubUrl}/${organizationName}/${projectName}`
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
+
+  future: {
+    v4: true,
+    experimental_faster: true,
+  },
+
   title:   'AJson',
   tagline: 'Abap library to import/export and manipulate data in JSON format',
   favicon: 'img/favicon.ico',
