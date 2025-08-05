@@ -1,4 +1,4 @@
-class zcl_ajson_refs_init_lib definition
+class zcl_ajson_refs_ini_lib definition
   public
   final
   create public.
@@ -17,7 +17,7 @@ endclass.
 
 
 
-class zcl_ajson_refs_init_lib implementation.
+class zcl_ajson_refs_ini_lib implementation.
 
 
   method create_path_refs_init.
