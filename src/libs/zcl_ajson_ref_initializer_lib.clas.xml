@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>ZCL_AJSON_REFS_INI_LIB</CLSNAME>
+    <CLSNAME>ZCL_AJSON_REF_INITIALIZER_LIB</CLSNAME>
     <LANGU>E</LANGU>
     <DESCRIPT>AJSON Reference Initiator</DESCRIPT>
     <STATE>1</STATE>

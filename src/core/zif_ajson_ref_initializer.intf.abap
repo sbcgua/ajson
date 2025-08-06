@@ -1,11 +1,12 @@
-interface zif_ajson_refs_init public.
+interface zif_ajson_ref_initializer public.
 
   types:
     begin of ty_data_ref,
       path type string,
       name type string,
       dref type ref to data,
-    end of ty_data_ref,
+    end of ty_data_ref.
+  types:
     tty_data_refs type standard table of ty_data_ref
       with unique sorted key by_path components path name.
 
