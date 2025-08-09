@@ -16,6 +16,7 @@ interface lif_kind.
     struct_deep type ty_kind value cl_abap_typedescr=>typekind_struct2,
     data_ref    type ty_kind value cl_abap_typedescr=>typekind_dref,
     object_ref  type ty_kind value cl_abap_typedescr=>typekind_oref,
+    utclong     type ty_kind value 'p', " cl_abap_typedescr=>typekind_utclong not in lower releases
     enum        type ty_kind value 'k'. " cl_abap_typedescr=>typekind_enum not in lower releases
 
   constants:
@@ -28,7 +29,6 @@ interface lif_kind.
       packed     type ty_kind value cl_abap_typedescr=>typekind_packed,
       decfloat16 type ty_kind value cl_abap_typedescr=>typekind_decfloat16,
       decfloat34 type ty_kind value cl_abap_typedescr=>typekind_decfloat34,
-      utclong    type ty_kind value 'p', " cl_abap_typedescr=>typekind_utclong not in lower releases,
     end of numeric.
 
   constants:
@@ -1663,6 +1663,7 @@ class lcl_abap_to_json implementation.
   method convert_value.
 
     data ls_node like line of ct_nodes.
+    data lv_timestamp type string.
 
     ls_node-path  = is_prefix-path.
     ls_node-name  = is_prefix-name.
@@ -1700,6 +1701,13 @@ class lcl_abap_to_json implementation.
         ls_node-type  = zif_ajson_types=>node_type-number.
         ls_node-value = |{ iv_data }|.
       endif.
+    elseif io_type->type_kind = lif_kind=>utclong.
+      lv_timestamp  = replace(
+        val  = iv_data
+        sub  = ` `
+        with = `T` ) && 'Z'.
+      ls_node-type  = zif_ajson_types=>node_type-string.
+      ls_node-value = lv_timestamp.
     elseif io_type->type_kind co lif_kind=>texts or
            io_type->type_kind co lif_kind=>binary or
            io_type->type_kind co lif_kind=>enum.
