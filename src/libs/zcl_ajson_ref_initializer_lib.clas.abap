@@ -1,4 +1,4 @@
-class zcl_ajson_refs_init_lib definition
+class zcl_ajson_ref_initializer_lib definition
   public
   final
   create public.
@@ -7,9 +7,9 @@ class zcl_ajson_refs_init_lib definition
 
     class-methods create_path_refs_init
       importing
-        !it_data_refs       type zif_ajson_refs_init=>tty_data_refs
+        !it_data_refs       type zif_ajson_ref_initializer=>tty_data_refs
       returning
-        value(ri_refs_init) type ref to zif_ajson_refs_init
+        value(ri_refs_init) type ref to zif_ajson_ref_initializer
       raising
         zcx_ajson_error.
 
@@ -17,7 +17,7 @@ endclass.
 
 
 
-class zcl_ajson_refs_init_lib implementation.
+class zcl_ajson_ref_initializer_lib implementation.
 
 
   method create_path_refs_init.

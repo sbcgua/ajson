@@ -5460,8 +5460,8 @@ class ltcl_data_ref_test implementation.
   method to_abap_data_ref.
 
     data lo_cut type ref to lcl_json_to_abap.
-    data li_refs type ref to zif_ajson_refs_init.
-    data lt_refs type zif_ajson_refs_init=>tty_data_refs.
+    data li_refs type ref to zif_ajson_ref_initializer.
+    data lt_refs type zif_ajson_ref_initializer=>tty_data_refs.
     data ls_refs like line of lt_refs.
     data ls_data type ty_data.
     data ls_mock type ty_refs.
@@ -5481,7 +5481,7 @@ class ltcl_data_ref_test implementation.
     get reference of ls_data-int into ls_refs-dref.
     insert ls_refs into table lt_refs.
 
-    li_refs = zcl_ajson_refs_init_lib=>create_path_refs_init( lt_refs ).
+    li_refs = zcl_ajson_ref_initializer_lib=>create_path_refs_init( lt_refs ).
 
     " to_abap
     create object lo_cut
@@ -5507,8 +5507,8 @@ class ltcl_data_ref_test implementation.
   method to_abap_data_ref_table.
 
     data lo_cut type ref to lcl_json_to_abap.
-    data li_refs type ref to zif_ajson_refs_init.
-    data lt_refs type zif_ajson_refs_init=>tty_data_refs.
+    data li_refs type ref to zif_ajson_ref_initializer.
+    data lt_refs type zif_ajson_ref_initializer=>tty_data_refs.
     data ls_refs like line of lt_refs.
     data ls_data type ty_data.
     data ls_mock type ty_refs.
@@ -5527,7 +5527,7 @@ class ltcl_data_ref_test implementation.
     get reference of ls_data-itab into ls_refs-dref.
     insert ls_refs into table lt_refs.
 
-    li_refs = zcl_ajson_refs_init_lib=>create_path_refs_init( lt_refs ).
+    li_refs = zcl_ajson_ref_initializer_lib=>create_path_refs_init( lt_refs ).
 
     " to_abap
     create object lo_cut
@@ -5552,8 +5552,8 @@ class ltcl_data_ref_test implementation.
   method to_abap_data_ref_negative.
 
     data lo_cut type ref to lcl_json_to_abap.
-    data li_refs type ref to zif_ajson_refs_init.
-    data lt_refs type zif_ajson_refs_init=>tty_data_refs.
+    data li_refs type ref to zif_ajson_ref_initializer.
+    data lt_refs type zif_ajson_ref_initializer=>tty_data_refs.
     data ls_mock type ty_refs.
     data lo_nodes type ref to lcl_nodes_helper.
     data lx type ref to zcx_ajson_error.
@@ -5563,7 +5563,7 @@ class ltcl_data_ref_test implementation.
     lo_nodes->add( '/       |itab       |array  |                          | ' ).
     lo_nodes->add( '/itab/  |1          |str    |one                       |1' ).
 
-    li_refs = zcl_ajson_refs_init_lib=>create_path_refs_init( lt_refs ).
+    li_refs = zcl_ajson_ref_initializer_lib=>create_path_refs_init( lt_refs ).
 
     " ls_mock-itab is initial and no ref initiator
     try.
