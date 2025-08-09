@@ -28,6 +28,7 @@ interface lif_kind.
       packed     type ty_kind value cl_abap_typedescr=>typekind_packed,
       decfloat16 type ty_kind value cl_abap_typedescr=>typekind_decfloat16,
       decfloat34 type ty_kind value cl_abap_typedescr=>typekind_decfloat34,
+      utclong    type ty_kind value 'p', " cl_abap_typedescr=>typekind_utclong not in lower releases,
     end of numeric.
 
   constants:
@@ -1646,6 +1647,9 @@ class lcl_abap_to_json implementation.
     split |{ iv_ts }| at '.' into lv_int lv_frac.
     shift lv_frac right deleting trailing '0'.
     shift lv_frac left deleting leading space.
+    if lv_frac is initial.
+      lv_frac = '0'.
+    endif.
 
     rv_str =
       lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
@@ -1684,6 +1688,14 @@ class lcl_abap_to_json implementation.
       if mv_format_datetime = abap_true.
         ls_node-type  = zif_ajson_types=>node_type-string.
         ls_node-value = format_timestamp( iv_data ).
+      else.
+        ls_node-type  = zif_ajson_types=>node_type-number.
+        ls_node-value = |{ iv_data }|.
+      endif.
+    elseif io_type->absolute_name = '\TYPE=TIMESTAMPL'.
+      if mv_format_datetime = abap_true.
+        ls_node-type  = zif_ajson_types=>node_type-string.
+        ls_node-value = format_timestampl( iv_data ).
       else.
         ls_node-type  = zif_ajson_types=>node_type-number.
         ls_node-value = |{ iv_data }|.
