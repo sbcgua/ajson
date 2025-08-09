@@ -4451,6 +4451,8 @@ class ltcl_abap_to_json definition
     methods set_value_xsdboolean for testing raising zcx_ajson_error.
     methods set_value_timestamp for testing raising zcx_ajson_error.
     methods set_value_timestamp_initial for testing raising zcx_ajson_error.
+    methods set_value_timestampl for testing raising zcx_ajson_error.
+    methods set_value_timestampl_initial for testing raising zcx_ajson_error.
     methods set_null for testing raising zcx_ajson_error.
     methods set_obj for testing raising zcx_ajson_error.
     methods set_array for testing raising zcx_ajson_error.
@@ -4621,6 +4623,45 @@ class ltcl_abap_to_json implementation.
 
     lv_timestamp = 0.
     lt_nodes = lcl_abap_to_json=>convert( lcl_abap_to_json=>format_timestamp( lv_timestamp ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = lo_nodes_exp->mt_nodes ).
+
+  endmethod.
+
+  method set_value_timestampl.
+
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
+    data lv_timezone type timezone value ''.
+
+    data lv_timestampl type timestampl.
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |str |2022-08-31T12:34:56.1234567Z||' ).
+
+    convert date '20220831' time '123456'
+      into time stamp lv_timestampl time zone lv_timezone.
+    lv_timestampl = lv_timestampl + '0.1234567'.
+    lt_nodes = lcl_abap_to_json=>convert( lcl_abap_to_json=>format_timestampl( lv_timestampl ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_nodes
+      exp = lo_nodes_exp->mt_nodes ).
+
+  endmethod.
+
+  method set_value_timestampl_initial.
+
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type zif_ajson_types=>ty_nodes_tt.
+
+    data lv_timestampl type timestampl.
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |str |0000-00-00T00:00:00.0Z||' ).
+
+    lv_timestampl = 0.
+    lt_nodes = lcl_abap_to_json=>convert( lcl_abap_to_json=>format_timestampl( lv_timestampl ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
