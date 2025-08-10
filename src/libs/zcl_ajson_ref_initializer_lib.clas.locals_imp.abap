@@ -4,14 +4,14 @@
 
 class lcl_path_refs_init definition.
   public section.
-    interfaces zif_ajson_refs_init.
+    interfaces zif_ajson_ref_initializer.
 
     methods constructor
       importing
-        !it_data_refs type zif_ajson_refs_init~tty_data_refs.
+        !it_data_refs type zif_ajson_ref_initializer~tty_data_refs.
 
   private section.
-    data mt_data_refs type zif_ajson_refs_init~tty_data_refs.
+    data mt_data_refs type zif_ajson_ref_initializer~tty_data_refs.
 endclass.
 
 class lcl_path_refs_init implementation.
@@ -20,7 +20,7 @@ class lcl_path_refs_init implementation.
     mt_data_refs = it_data_refs.
   endmethod.
 
-  method zif_ajson_refs_init~get_data_ref.
+  method zif_ajson_ref_initializer~get_data_ref.
 
     field-symbols <data_ref> like line of mt_data_refs.
 
