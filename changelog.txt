@@ -12,6 +12,7 @@ v1.1.13, 2025-??
 -------------------
 + Add set_timestampl() that supports full ISO date time format (#202, @mbtools)
 + Add support for data references initialization (#201, @mbtools)
++ Long timestamps support (data element timestampl) (#207, @mbtools)
 
 v1.1.12, 2025-06-11
 -------------------
