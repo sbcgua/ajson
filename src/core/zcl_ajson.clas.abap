@@ -512,6 +512,28 @@ CLASS zcl_ajson IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson~get_timestampl.
+
+    data lo_to_abap type ref to lcl_json_to_abap.
+    data lr_item type ref to zif_ajson_types=>ty_node.
+
+    lr_item = get_item( iv_path ).
+
+    if lr_item is initial.
+      return.
+    endif.
+
+    create object lo_to_abap.
+
+    try.
+      rv_value = lo_to_abap->to_timestampl( lr_item->value ).
+    catch zcx_ajson_error.
+      return.
+    endtry.
+
+  endmethod.
+
+
   method zif_ajson~is_empty.
     rv_yes = boolc( lines( mt_json_tree ) = 0 ).
   endmethod.

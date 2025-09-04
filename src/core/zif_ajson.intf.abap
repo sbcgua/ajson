@@ -119,6 +119,12 @@ interface zif_ajson
     returning
       value(rv_value) type timestamp.
 
+  methods get_timestampl
+    importing
+      iv_path type string
+    returning
+      value(rv_value) type timestampl.
+
   methods get_string
     importing
       iv_path type string
