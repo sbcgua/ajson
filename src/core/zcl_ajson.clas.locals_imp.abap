@@ -479,7 +479,7 @@ class lcl_json_parser implementation.
               lt_attributes = lo_open->get_attributes( ).
               " JSON nodes always have one "name" attribute
               read table lt_attributes into lo_attr index 1.
-              assert sy-subrc = 0.
+              assert sy-subrc = 0 and lo_attr->qname-name = 'name'.
               <item>-name = lo_attr->get_value( ).
               if mv_keep_item_order = abap_true.
                 <item>-order = lr_stack_top->children.
