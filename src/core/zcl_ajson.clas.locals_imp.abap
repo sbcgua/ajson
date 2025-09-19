@@ -100,6 +100,11 @@ class lcl_utils definition final.
         value(rv_str) type string
       raising
         zcx_ajson_error.
+    class-methods sanity_check
+      importing
+        iv_data type csequence
+      raising
+        zcx_ajson_error.
 
 endclass.
 
@@ -239,8 +244,10 @@ class lcl_utils implementation.
 
     case lo_type->type_kind.
       when lif_kind=>binary-xstring.
+        " in case of binary data, skip the sanity check to have best performance
         rv_xstr = iv_data.
       when lif_kind=>texts-string or lif_kind=>texts-char.
+        sanity_check( iv_data ).
         rv_xstr = string_to_xstring_utf8( iv_data ).
       when lif_kind=>table.
         lo_table_type ?= lo_type.
@@ -250,6 +257,7 @@ class lcl_utils implementation.
         try.
           assign iv_data to <data>.
           lv_str = concat_lines_of( table = <data> sep = cl_abap_char_utilities=>newline ).
+          sanity_check( lv_str ).
           rv_xstr = string_to_xstring_utf8( lv_str ).
         catch cx_root.
           zcx_ajson_error=>raise( 'Error converting input table (should be string_table)' ).
@@ -289,6 +297,20 @@ class lcl_utils implementation.
       when others.
         zcx_ajson_error=>raise( 'Unsupported type of input (must be char, string, string_table, or xstring)' ).
     endcase.
+
+  endmethod.
+
+  method sanity_check.
+
+    " A lightweight check covering the top-level JSON value would look like this
+    " ^\s*(\{.*\}|\[.*\]|"(?:\\.|[^"\\])*"|true|false|null|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*$
+    " Unfortunately, this is quite slow so we use a trivial check of the beginning of the JSON data
+    find regex '^\s*(true|false|null|-?\d|"|\{|\[)' in iv_data.
+    if sy-subrc <> 0.
+      zcx_ajson_error=>raise(
+        iv_msg      = |Json parsing error: Not JSON|
+        iv_location = 'Line 1, Offset 1' ).
+    endif.
 
   endmethod.
 
@@ -353,12 +375,10 @@ class lcl_json_parser implementation.
 
     mv_keep_item_order = iv_keep_item_order.
 
+    " Includes lightweight sanity check (unless input is binary)
     lv_json = lcl_utils=>any_to_xstring( iv_json ).
 
     try.
-      " TODO sane JSON check:
-      " JSON can be true,false,null,(-)digits
-      " or start from " or from {
       rt_json_tree = _parse( lv_json ).
     catch cx_sxml_parse_error into lx_sxml_parse.
       lv_location = _get_location(
@@ -457,11 +477,10 @@ class lcl_json_parser implementation.
               <item>-index = lr_stack_top->children.
             else.
               lt_attributes = lo_open->get_attributes( ).
-              loop at lt_attributes into lo_attr.
-                if lo_attr->qname-name = 'name' and lo_attr->value_type = if_sxml_value=>co_vt_text.
-                  <item>-name = lo_attr->get_value( ).
-                endif.
-              endloop.
+              " JSON nodes always have one "name" attribute
+              read table lt_attributes into lo_attr index 1.
+              assert sy-subrc = 0 and lo_attr->qname-name = 'name'.
+              <item>-name = lo_attr->get_value( ).
               if mv_keep_item_order = abap_true.
                 <item>-order = lr_stack_top->children.
               endif.
