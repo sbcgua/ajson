@@ -19,7 +19,8 @@ class zcl_ajson definition
       get_string for zif_ajson~get_string,
       slice for zif_ajson~slice,
       to_abap for zif_ajson~to_abap,
-      array_to_string_table for zif_ajson~array_to_string_table.
+      array_to_string_table for zif_ajson~array_to_string_table,
+      iterate_array for zif_ajson~iterate_array.
 
     aliases:
       clear for zif_ajson~clear,
@@ -127,7 +128,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_ajson IMPLEMENTATION.
+CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method constructor.
@@ -217,18 +218,14 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method get_item.
 
-    field-symbols <item> like line of mt_json_tree.
     data ls_path_name type zif_ajson_types=>ty_path_name.
     ls_path_name = lcl_utils=>split_path( iv_path ).
 
     read table mt_json_tree
-      assigning <item>
+      reference into rv_item
       with key
         path = ls_path_name-path
         name = ls_path_name-name.
-    if sy-subrc = 0.
-      get reference of <item> into rv_item.
-    endif.
 
   endmethod.
 
@@ -536,6 +533,16 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method zif_ajson~is_empty.
     rv_yes = boolc( lines( mt_json_tree ) = 0 ).
+  endmethod.
+
+
+  method zif_ajson~iterate_array.
+
+    create object ri_iterator type lcl_array_iterator
+      exporting
+        io_json = me
+        iv_path = iv_path.
+
   endmethod.
 
 
@@ -876,6 +883,11 @@ CLASS zcl_ajson IMPLEMENTATION.
 
 
   method zif_ajson~slice.
+
+    " TODO: idea
+    " read only mode (for read only jsons or a param)
+    " which would reuse the original tree, so copy a reference of the tree, presuming that it is not changed
+    " this will be faster, in particular for array iterations
 
     data lo_section         type ref to zcl_ajson.
     data ls_item            like line of mt_json_tree.

@@ -2325,3 +2325,78 @@ class lcl_mutator_queue implementation.
   endmethod.
 
 endclass.
+
+**********************************************************************
+* ITERATOR
+**********************************************************************
+
+class lcl_array_iterator definition final.
+  public section.
+    interfaces zif_ajson_iterator.
+    methods constructor
+      importing
+        io_json type ref to zcl_ajson
+        iv_path type string
+      raising
+        zcx_ajson_error.
+
+  private section.
+    data mi_json type ref to zif_ajson.
+    data mv_array_path type string.
+    data mr_cursor type ref to zif_ajson_types=>ty_node.
+    data mv_tabix type i.
+    data mv_has_next type abap_bool.
+
+endclass.
+
+class zcl_ajson definition local friends lcl_array_iterator.
+
+class lcl_array_iterator implementation.
+
+  method constructor.
+
+    data lr_node type ref to zif_ajson_types=>ty_node.
+
+    mv_array_path = lcl_utils=>normalize_path( iv_path ).
+    lr_node = io_json->get_item( mv_array_path ).
+
+    if lr_node is initial.
+      zcx_ajson_error=>raise( |Path not found: { iv_path }| ).
+    endif.
+    if lr_node->type <> zif_ajson_types=>node_type-array.
+      zcx_ajson_error=>raise( |Array expected at: { iv_path }| ).
+    endif.
+
+    mi_json = io_json.
+
+    " Get first item
+    loop at mi_json->mt_json_tree reference into mr_cursor using key array_index where path = mv_array_path.
+      mv_has_next = abap_true.
+      mv_tabix    = sy-tabix.
+      exit. " first found
+    endloop.
+
+  endmethod.
+
+  method zif_ajson_iterator~has_next.
+    rv_yes = mv_has_next.
+  endmethod.
+
+  method zif_ajson_iterator~next.
+
+    if mv_has_next = abap_false.
+      return.
+    endif.
+
+    ri_item = mi_json->slice( |{ mr_cursor->path }{ mr_cursor->name }| ).
+    " TODO: improve performance, see comment in slice, maybe reuse read only reference to node_tree
+
+    mv_tabix = mv_tabix + 1.
+    read table mi_json->mt_json_tree
+      index mv_tabix using key array_index
+      reference into mr_cursor.
+    mv_has_next = boolc( sy-subrc = 0 and mr_cursor->path = mv_array_path ).
+
+  endmethod.
+
+endclass.

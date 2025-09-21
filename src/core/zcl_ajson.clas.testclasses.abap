@@ -4137,6 +4137,7 @@ class ltcl_integrated definition
     methods chaining for testing raising zcx_ajson_error.
     methods push_json for testing raising zcx_ajson_error.
     methods is_empty for testing raising zcx_ajson_error.
+    methods iterate_array for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -4459,6 +4460,82 @@ class ltcl_integrated implementation.
     cl_abap_unit_assert=>assert_equals(
       exp = abap_false
       act = li_cut->is_empty( ) ).
+
+  endmethod.
+
+  method iterate_array.
+
+    data li_cut type ref to zif_ajson.
+    data li_iterator type ref to zif_ajson_iterator.
+    data lx type ref to zcx_ajson_error.
+
+    li_cut = zcl_ajson=>create_empty( ).
+    li_cut->touch_array( '/a' ).
+    li_cut->touch_array( '/b' ).
+    li_cut->touch_array( '/c' ).
+    li_cut->touch_array( '/empty' ).
+    li_cut->push(
+      iv_path = '/a'
+      iv_val  = 1 ).
+    li_cut->push(
+      iv_path = '/a'
+      iv_val  = 2 ).
+    li_cut->push(
+      iv_path = '/b'
+      iv_val  = 3 ).
+    li_cut->push(
+      iv_path = '/b'
+      iv_val  = 4 ).
+    li_cut->push(
+      iv_path = '/c'
+      iv_val  = 5 ).
+    li_cut->push(
+      iv_path = '/c'
+      iv_val  = 6 ).
+
+    data lt_data type table of string.
+    data li_json_item type ref to zif_ajson.
+
+    li_iterator = li_cut->iterate_array( '/b' ).
+    while li_iterator->has_next( ) = abap_true.
+      li_json_item = li_iterator->next( ).
+      append li_json_item->get( '/' ) to lt_data.
+    endwhile.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lt_data )
+      exp = 2 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = concat_lines_of( table = lt_data sep = ',' )
+      exp = '3,4' ).
+
+    clear lt_data.
+    li_iterator = li_cut->iterate_array( '/empty' ).
+    while li_iterator->has_next( ) = abap_true.
+      li_json_item = li_iterator->next( ).
+      append li_json_item->get( '/' ) to lt_data.
+    endwhile.
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lt_data )
+      exp = 0 ).
+
+    try.
+      li_cut->iterate_array( '/notexisting' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_char_cp(
+        act = lx->get_text( )
+        exp = 'Path not found*' ).
+    endtry.
+
+    try.
+      li_cut->iterate_array( '/' ).
+      cl_abap_unit_assert=>fail( ).
+    catch zcx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_char_cp(
+        act = lx->get_text( )
+        exp = 'Array expected*' ).
+    endtry.
 
   endmethod.
 
