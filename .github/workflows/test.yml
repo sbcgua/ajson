@@ -9,13 +9,12 @@ on:
 
 jobs:
   unit_test:
+    timeout-minutes: 5
     name: Run unit tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
       - name: Run unit tests
         run: |
           npm -g install @abaplint/transpiler-cli
