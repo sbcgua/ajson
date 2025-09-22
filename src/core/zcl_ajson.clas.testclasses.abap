@@ -95,6 +95,8 @@ class ltcl_parser_test definition final
     methods special_characters_in_path for testing raising zcx_ajson_error.
     methods special_characters_in_value for testing raising zcx_ajson_error.
     methods unicode_characters for testing raising zcx_ajson_error.
+    methods parse_empty_object for testing raising zcx_ajson_error.
+    methods parse_empty_string for testing raising zcx_ajson_error.
 
 endclass.
 
@@ -629,6 +631,35 @@ class ltcl_parser_test implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = mo_nodes->mt_nodes ).
+
+  endmethod.
+
+  method parse_empty_object.
+
+    data lo_cut type ref to lcl_json_parser.
+    data lt_act type zif_ajson_types=>ty_nodes_tt.
+
+    mo_nodes->add( '                 |         |object |                        |  |0' ).
+
+    create object lo_cut.
+    lt_act = lo_cut->parse( `{}` ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+
+  endmethod.
+
+  method parse_empty_string.
+
+    data lo_cut type ref to lcl_json_parser.
+
+    create object lo_cut.
+
+    try.
+      lo_cut->parse( `` ).
+      cl_abap_unit_assert=>fail( `empty string should raise an exception` ).
+    catch zcx_ajson_error.
+    endtry.
 
   endmethod.
 
