@@ -658,7 +658,7 @@ class ltcl_parser_test implementation.
     try.
       lo_cut->parse( `` ).
       cl_abap_unit_assert=>fail( `empty string should raise an exception` ).
-      catch zcx_ajson_error.
+    catch zcx_ajson_error.
     endtry.
 
   endmethod.
