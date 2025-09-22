@@ -1,10 +1,10 @@
 class zcl_ajson definition
   public
-  create public .
+  create public.
 
   public section.
 
-    interfaces zif_ajson .
+    interfaces zif_ajson.
 
     aliases:
       is_empty for zif_ajson~is_empty,
@@ -19,8 +19,7 @@ class zcl_ajson definition
       get_string for zif_ajson~get_string,
       slice for zif_ajson~slice,
       to_abap for zif_ajson~to_abap,
-      array_to_string_table for zif_ajson~array_to_string_table,
-      iterate_array for zif_ajson~iterate_array.
+      array_to_string_table for zif_ajson~array_to_string_table.
 
     aliases:
       clear for zif_ajson~clear,
@@ -58,7 +57,7 @@ class zcl_ajson definition
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
 
     class-methods create_empty " Might be deprecated, prefer using new( ) or create object
       importing
@@ -78,13 +77,14 @@ class zcl_ajson definition
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
 
     methods constructor
       importing
         iv_keep_item_order type abap_bool default abap_false
         iv_format_datetime type abap_bool default abap_true
         iv_to_abap_corresponding_only type abap_bool default abap_false.
+
     class-methods new
       importing
         iv_keep_item_order type abap_bool default abap_false
@@ -92,6 +92,12 @@ class zcl_ajson definition
         iv_to_abap_corresponding_only type abap_bool default abap_false
       returning
         value(ro_instance) type ref to zcl_ajson.
+
+    class-methods normalize_path
+      importing
+        iv_path type string
+      returning
+        value(rv_path) type string.
 
   protected section.
 
@@ -236,6 +242,11 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
         iv_format_datetime = iv_format_datetime
         iv_keep_item_order = iv_keep_item_order.
+  endmethod.
+
+
+  method normalize_path.
+    rv_path = lcl_utils=>normalize_path( iv_path ).
   endmethod.
 
 
@@ -533,16 +544,6 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method zif_ajson~is_empty.
     rv_yes = boolc( lines( mt_json_tree ) = 0 ).
-  endmethod.
-
-
-  method zif_ajson~iterate_array.
-
-    create object ri_iterator type lcl_array_iterator
-      exporting
-        io_json = me
-        iv_path = iv_path.
-
   endmethod.
 
 

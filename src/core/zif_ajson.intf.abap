@@ -154,14 +154,6 @@ interface zif_ajson
     raising
       zcx_ajson_error.
 
-  methods iterate_array " !!! Beta, use with awareness
-    importing
-      iv_path type string
-    returning
-      value(ri_iterator) type ref to zif_ajson_iterator
-    raising
-      zcx_ajson_error.
-
   " METHODS ex.writer
 
   methods clear

@@ -31,8 +31,6 @@ interface zif_ajson_types
       with unique key path name
       with non-unique sorted key array_index components path index
       with non-unique sorted key item_order components path order.
-  types:
-    ty_nodes_ts_ref type ref to ty_nodes_ts.
 
   types:
     begin of ty_path_name,
