@@ -1,10 +1,10 @@
 class zcl_ajson definition
   public
-  create public .
+  create public.
 
   public section.
 
-    interfaces zif_ajson .
+    interfaces zif_ajson.
 
     aliases:
       is_empty for zif_ajson~is_empty,
@@ -57,7 +57,7 @@ class zcl_ajson definition
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
 
     class-methods create_empty " Might be deprecated, prefer using new( ) or create object
       importing
@@ -77,13 +77,14 @@ class zcl_ajson definition
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
 
     methods constructor
       importing
         iv_keep_item_order type abap_bool default abap_false
         iv_format_datetime type abap_bool default abap_true
         iv_to_abap_corresponding_only type abap_bool default abap_false.
+
     class-methods new
       importing
         iv_keep_item_order type abap_bool default abap_false
@@ -91,6 +92,12 @@ class zcl_ajson definition
         iv_to_abap_corresponding_only type abap_bool default abap_false
       returning
         value(ro_instance) type ref to zcl_ajson.
+
+    class-methods normalize_path
+      importing
+        iv_path type string
+      returning
+        value(rv_path) type string.
 
   protected section.
 
@@ -127,7 +134,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_ajson IMPLEMENTATION.
+CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method constructor.
@@ -217,18 +224,14 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method get_item.
 
-    field-symbols <item> like line of mt_json_tree.
     data ls_path_name type zif_ajson_types=>ty_path_name.
     ls_path_name = lcl_utils=>split_path( iv_path ).
 
     read table mt_json_tree
-      assigning <item>
+      reference into rv_item
       with key
         path = ls_path_name-path
         name = ls_path_name-name.
-    if sy-subrc = 0.
-      get reference of <item> into rv_item.
-    endif.
 
   endmethod.
 
@@ -239,6 +242,11 @@ CLASS zcl_ajson IMPLEMENTATION.
         iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
         iv_format_datetime = iv_format_datetime
         iv_keep_item_order = iv_keep_item_order.
+  endmethod.
+
+
+  method normalize_path.
+    rv_path = lcl_utils=>normalize_path( iv_path ).
   endmethod.
 
 
@@ -876,6 +884,11 @@ CLASS zcl_ajson IMPLEMENTATION.
 
 
   method zif_ajson~slice.
+
+    " TODO: idea
+    " read only mode (for read only jsons or a param)
+    " which would reuse the original tree, so copy a reference of the tree, presuming that it is not changed
+    " this will be faster, in particular for array iterations
 
     data lo_section         type ref to zcl_ajson.
     data ls_item            like line of mt_json_tree.

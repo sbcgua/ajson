@@ -1,6 +1,6 @@
 class zcl_ajson_utilities definition
   public
-  create public .
+  create public.
 
   public section.
 
@@ -19,7 +19,7 @@ class zcl_ajson_utilities definition
         !eo_delete            type ref to zif_ajson
         !eo_change            type ref to zif_ajson
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
     methods merge
       importing
         !iv_json_a            type string optional
@@ -30,7 +30,7 @@ class zcl_ajson_utilities definition
       returning
         value(ro_json)        type ref to zif_ajson
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
     methods sort
       importing
         !iv_json         type string optional
@@ -38,7 +38,7 @@ class zcl_ajson_utilities definition
       returning
         value(rv_sorted) type string
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
     methods is_equal
       importing
         !iv_json_a            type string optional
@@ -48,17 +48,33 @@ class zcl_ajson_utilities definition
       returning
         value(rv_yes) type abap_bool
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
+    class-methods iterate_array
+      importing
+        ii_json type ref to zif_ajson
+        iv_path type string
+      returning
+        value(ri_iterator) type ref to zif_ajson_iterator
+      raising
+        zcx_ajson_error.
+    class-methods iterate_object
+      importing
+        ii_json type ref to zif_ajson
+        iv_path type string
+      returning
+        value(ri_iterator) type ref to zif_ajson_iterator
+      raising
+        zcx_ajson_error.
 
   protected section.
 
   private section.
 
-    data mo_json_a type ref to zif_ajson .
-    data mo_json_b type ref to zif_ajson .
-    data mo_insert type ref to zif_ajson .
-    data mo_delete type ref to zif_ajson .
-    data mo_change type ref to zif_ajson .
+    data mo_json_a type ref to zif_ajson.
+    data mo_json_b type ref to zif_ajson.
+    data mo_insert type ref to zif_ajson.
+    data mo_delete type ref to zif_ajson.
+    data mo_change type ref to zif_ajson.
 
     methods normalize_input
       importing
@@ -67,24 +83,25 @@ class zcl_ajson_utilities definition
       returning
         value(ro_json) type ref to zif_ajson
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
     methods diff_a_b
       importing
         !iv_path type string
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
     methods diff_b_a
       importing
         !iv_path  type string
         !iv_array type abap_bool default abap_false
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
     methods delete_empty_nodes
       importing
         !io_json              type ref to zif_ajson
         !iv_keep_empty_arrays type abap_bool
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
+
 ENDCLASS.
 
 
@@ -312,6 +329,28 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
       li_ins->is_empty( ) = abap_true and
       li_del->is_empty( ) = abap_true and
       li_mod->is_empty( ) = abap_true ).
+
+  endmethod.
+
+
+  method iterate_array.
+
+    create object ri_iterator type lcl_node_iterator
+      exporting
+        iv_node_type = zif_ajson_types=>node_type-array
+        ii_json = ii_json
+        iv_path = iv_path.
+
+  endmethod.
+
+
+  method iterate_object.
+
+    create object ri_iterator type lcl_node_iterator
+      exporting
+        iv_node_type = zif_ajson_types=>node_type-object
+        ii_json = ii_json
+        iv_path = iv_path.
 
   endmethod.
 
