@@ -109,7 +109,7 @@ data:
 payload->to_abap( importing ev_container = ls_payload ).
 ```
 
-`to_abap` supports transferring "corresponding only" fields. This will ignore JSON attributes that do not have a matching ABAP field name (see [Mapping](`70-mapping`)).
+`to_abap` supports transferring "corresponding only" fields. This will ignore JSON attributes that do not have a matching ABAP field name (see [Mapping](70-mapping)).
 
 ```abap
 payload->to_abap( 
