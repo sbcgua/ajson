@@ -12,12 +12,8 @@ sidebar_position: 30
 
 - All functional methods and types are defined in `zif_ajson` interface.
   - Methods have aliases in the `zcl_ajson` class, however please restrain from using them directly as they may be *deprecated* in future.
-- Json attributes are addressed by path in form `/obj1/obj2/value` of e.g. `->get( '/a/b/c' )` addresses `{ "a": { "b": { "c": "this value !" } } }`
+- JSON attributes are addressed by path in form `/obj1/obj2/value` of e.g. `get( '/a/b/c' )` addresses `{ "a": { "b": { "c": "this value !" } } }`. If an attribute contains slashes, for example in `{ "a/b/c": 10 }`, you have to replace the slashes with tabs (`\t`) to access the value e.g., `get( |/a\tb\tc| )`.
 - Array items addressed with index starting from 1: `/tab/2/val` -> `{ "tab": [ {...}, { "val": "this value !" } ] }`
-
-## Support for '/' in attribute names
-
-*TBD*
 
 ## Chaining
 
