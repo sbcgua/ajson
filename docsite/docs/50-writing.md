@@ -267,7 +267,7 @@ It is possible to set an instance of ajson immutable (read only). It is done on 
 
 ## Keep item order
 
-Sometimes you may want to keep order of json items in the same order as it was in abap structure (assuming you `set` structures or table of structures). To do this: set `iv_keep_item_order` flag when creating an instance or call `keep_item_order` after creation of instance, before any `set`.
+Sometimes you may want to keep order of JSON items in the same order as it was in ABAP structure (assuming you `set` structures or table of structures). To do this: set `iv_keep_item_order` flag when creating an instance or call `keep_item_order` after creation of instance, before any `set`.
 
 ```abap
   data:

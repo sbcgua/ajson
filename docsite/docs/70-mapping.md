@@ -6,7 +6,7 @@ sidebar_position: 70
 
 ## How it works
 
-You can rename json attribute (node) names with a mapper. Typical example for this is making all attribute names upper/lower case or converting camel-snake naming styles (e.g. `helloWorld -> hello_world`).
+You can rename JSON attribute (node) names with a mapper. Typical example for this is making all attribute names upper/lower case or converting camel-snake naming styles (e.g. `helloWorld -> hello_world`).
 
 ```abap
   lo_orig_json = zcl_ajson=>parse( '{"ab":1,"bc":2}' ).
@@ -26,7 +26,7 @@ Ajson implements a couple of frequent convertors in `zcl_ajson_mapping` class, i
 - to camel case (`camelCase`)
 - to snake case (`snake_case`)
 
-You can also implement you custom mapper. To do this you have to implement `zif_ajson_mapping->rename_node()`. It accepts the json nodes item-by-item and may change name via `cv_name` parameter. E.g.
+You can also implement you custom mapper. To do this you have to implement `zif_ajson_mapping->rename_node()`. It accepts the JSON nodes item-by-item and may change name via `cv_name` parameter. E.g.
 
 ```abap
   method zif_ajson_mapping~rename_field.
@@ -36,7 +36,7 @@ You can also implement you custom mapper. To do this you have to implement `zif_
   endmethod.
 ```
 
-A realistic use case would be converting an external API result, which are often camel-cased (as this is very common in java-script world), and then converting it into abap structure:
+A realistic use case would be converting an external API result, which are often camel-cased (as this is very common in java-script world), and then converting it into ABAP structure:
 
 ```abap
   data:

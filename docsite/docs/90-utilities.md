@@ -6,11 +6,11 @@ sidebar_position: 90
 
 Class `zcl_ajson_utilities` provides the following methods:
 
-- `new` - static method to create an instance (the shortcut for pre 7.4 abap releases)
+- `new` - static method to create an instance (the shortcut for pre 7.4 ABAP releases)
 - `diff` - returns all inserts, deletions, and changes between two JSON objects
 - `sort` - returns JSON string with nodes sorted alphabetically
-- `is_equal` - returns true if 2 jsons (or json string) are deeply equal
-- `merge` - merges 2 jsons together
+- `is_equal` - returns true if 2 JSONs (or JSON string) are deeply equal
+- `merge` - merges 2 JSONs together
 - `iterate_array` - iterates through nodes of an array
 - `iterate_object` - iterates through nodes of an object
 
@@ -102,7 +102,7 @@ Sometimes you need to iterate through the object or array items. The "native" wa
     iv_path = '/path-to-array' ).
   while li_iterator->has_next( ) = abap_true.
     li_array_item = li_iterator->next( ).
-    " returns slice of the original json
+    " returns slice of the original JSON
     " similar to li_json->slice( '/path-to-array/1' )
 
     " do what you need with the array item

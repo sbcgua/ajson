@@ -4,7 +4,7 @@
 
 # abap json (ajson)
 
-Yet another json parser/serializer for ABAP. It works with release 7.02 or higher.
+Yet another JSON parser/serializer for ABAP. It works with release 7.02 or higher.
 
 - [Documentation](https://sbcgua.github.io/ajson) (or also [directly in the repo](./docsite/docs))
 - [Blog articles](https://sbcgua.github.io/ajson/blog)
@@ -27,10 +27,10 @@ Since v1.2.0:
   - also `setx` for text-based value setting like `setx( '/a/b:123' )` (useful e.g. for constants in APIs or in unit-tests)
 - seralization to string
 - freezing (read only) instance content
-- filtering. Create a json skipping empty values, predefined paths, or your custom filter.
+- filtering. Create a JSON skipping empty values, predefined paths, or your custom filter.
 - mapping - rule-based changing node names (e.g. snake case to camel case, upper/lower case)
 - iterating through the array items or object members
-- utility to calculate difference between 2 jsons
+- utility to calculate difference between 2 JSONs
 
 Installed using [abapGit](https://github.com/abapGit/abapGit), see also [Installation](https://sbcgua.github.io/ajson/docs/installation) section of the documentation.
 

@@ -4,10 +4,9 @@ sidebar_position: 40
 
 # Reading JSON values
 
-The methods of interface allows accessing attributes and converting to abap structure.
+The methods of interface allows accessing attributes and converting to ABAP structure.
 
-Examples below assume original json was:
-
+Examples below assume original JSON
 ```json
 {
   "success": 1,
@@ -64,7 +63,7 @@ data payload type ref to zif_ajson.
 payload = r->slice( '/payload' ). 
 ```
 
-Performance tip: note, that slice creates a copy of the json tree, and so increases memory consumtion which may be an issue in some cases.
+Performance tip: note, that slice creates a copy of the JSON tree, and so increases memory consumtion which may be an issue in some cases.
 
 ## Getting node type
 
@@ -75,7 +74,7 @@ r->get_node_type( '/payload/false' ).         " returns "bool"
 r->get_node_type( '/payload/text' ).          " returns "str"
 ```
 
-## Converting to abap structure
+## Converting to ABAP structure
 
 ```abap
 data:

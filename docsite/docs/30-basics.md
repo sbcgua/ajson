@@ -4,8 +4,8 @@ sidebar_position: 30
 
 # Basics
 
-- To **parse** existing json data - call `zcl_ajson=>parse( lv_json_string )`
-- To create a new **empty** json instance (to set values and serialize) - call `zcl_ajson=>new( )` or `new zcl_ajson( )` in newer abap syntax
+- To **parse** existing JSON data - call `zcl_ajson=>parse( lv_json_string )`
+- To create a new **empty** JSON instance (to set values and serialize) - call `zcl_ajson=>new( )` or `new zcl_ajson( )` in newer ABAP syntax
 - You can **clone** an ajson instance to get a new independent copy with `lo_orig_json->clone( )`
 
 ## General rules
