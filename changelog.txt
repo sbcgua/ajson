@@ -19,7 +19,7 @@ v1.1.13, 2025-09-19
 + Add set_timestampl() that supports full ISO date time format (#202, @mbtools)
 + Add support for data references initialization (#201, @mbtools)
 + Long timestamps support (data element timestampl) (#207, #209, @mbtools)
-+ Add quick check before parsing that the content is a json (#208, @mbtools)
++ Add quick check before parsing that the content is a JSON (#208, @mbtools)
 
 v1.1.12, 2025-06-11
 -------------------
@@ -50,7 +50,7 @@ v1.1.9, 2023-08-09
 + iv_corresponding flag in to_abap (#161, #162, @christianguenter2)
 + to_abap_corresponding_only opt flag (#161)
 + Keep item order when parsing #166
-+ improvements in CI, unit tests in github actions thanks to abap transpiler by @larshp
++ improvements in CI, unit tests in github actions thanks to ABAP transpiler by @larshp
 * Improve included types processing, reuse cl_abap_structdescr=>get_included_view (#168, @mathieulawnik)
 
 v1.1.8, 2023-02-16
@@ -70,7 +70,7 @@ v1.1.7, 2023-01-08
 + Support ENUM types (#116, @christianguenter2)
 + Added zif_ajson->opts methods, to get current instance behavior parameters
 + Added possibility to filter path by pattern (cp-like)
-+ Added possibility to acqure only corresponding fields to abap structure (#125, #8, @postavka)
++ Added possibility to acqure only corresponding fields to ABAP structure (#125, #8, @postavka)
 * fixes in UTs to be compatible with 7.02 (#134, @schneidermic0)
 * code cleanups (usage of syst #135, avoid built-in names #136, @mbtools)
 + added "new" method. As a replacement for "create_empty" (which might be DEPRECATED!)
@@ -81,8 +81,8 @@ v1.1.7, 2023-01-08
 v1.1.6, 2022-07-15
 ------------------
 * fixed camel case convertion issue @jrodriguez-rc (#110)
-+ added is_empty method, returns true if json has no content
-+ added is_equal utility, returns true if 2 jsons (or json strings) are equal
++ added is_empty method, returns true if JSON has no content
++ added is_equal utility, returns true if 2 JSONs (or JSON strings) are equal
 
 v1.1.5, 2022-05-09
 ------------------
@@ -91,7 +91,7 @@ v1.1.5, 2022-05-09
 v1.1.4, 2022-05-09
 ------------------
 ! Changed the default datetime formatting to ISO (YYYY-MM-DD) instead of ABAP (YYYYMMDD) #101
-* better handling of incorrect JSON, as the native SAP parser does not properly signal if the content is json or xml (#97)
+* better handling of incorrect JSON, as the native SAP parser does not properly signal if the content is JSON or XML (#97)
 * Fix dump in case of components with initial references @mbtools (#99)
 * Fix `ITAB_DUPLICATE_KEY` (nested tables path) and CamelCase @mbtools (#100)
 * Fix issue with pushing ajson instances to an array
@@ -107,7 +107,7 @@ v1.1.2, 2021-12-24
 
 v1.1.1, 2021-12-03
 ------------------
-+ json filtering #71, #72 - empty values, predefined paths, generic filtering possibility
++ JSON filtering #71, #72 - empty values, predefined paths, generic filtering possibility
 + more boolean types autodetection @larshp
 + better parser error location reporting @mbtools
 + simple performance test: zajson_perf_test
@@ -121,7 +121,7 @@ v1.1.0, 2021-09-08
 v1.0.4, 2021-06-22
 ------------------
 ! BREAKING: Move types, constants to zif_ajson, also alias methods of reader/writer
-+ keep_item_order feature: stringify object elements in the order it appears in abap structure
++ keep_item_order feature: stringify object elements in the order it appears in ABAP structure
 + custom field name mappers (zif_ajson_mapping), thanks to @jrodriguez-rc
 + timestamps support (get and set), @jrodriguez-rc
 - removed direct reference to zif_ajson_reader/writer from the main class @mbtools

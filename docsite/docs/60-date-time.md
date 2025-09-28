@@ -6,7 +6,7 @@ sidebar_position: 60
 
 ## Auto format date/time
 
-By default date, time and timestamp dates are not formatted and are written in abap format as 'YYYYMMDD', 'HHMMSS'. This can be changed by calling `format_datetime` method after creation. After that the date/time will be auto-formatted as 'YYYY-MM-DD' and 'HH:MM:SS' respectively. **Important: this may become the default behavior in future version**
+By default date, time and timestamp dates are not formatted and are written in ABAP format as 'YYYYMMDD', 'HHMMSS'. This can be changed by calling `format_datetime` method after creation. After that the date/time will be auto-formatted as 'YYYY-MM-DD' and 'HH:MM:SS' respectively. **Important: this may become the default behavior in future version**
 
 ```abap
   data:
@@ -35,12 +35,12 @@ Conversion from JSON to ABAP can determine automatically if the value is a times
   - mm = two digits of minute (00 through 59)
   - ss = two digits of second (00 through 59)
   - TZD = time zone designator (Z or +hh:mm or -hh:mm)
-- abap base type of field is P (Packed)
-- if the abap field has data element `timestampl`, then fractions of seconds are supported
+- ABAP base type of field is P (Packed)
+- if the ABAP field has data element `timestampl`, then fractions of seconds are supported
 
 ### Examples
 
-Using a json with possible formats:
+Using a JSON with possible formats:
 
 ```json
 {

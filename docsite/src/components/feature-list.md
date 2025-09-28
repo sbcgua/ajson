@@ -1,7 +1,7 @@
 # Features
 
-- Parse json content into a flexible form, not fixed to any predefined data structure, allowing to modify the parsed data, selectively access its parts and slice subsections of it.
-- Allows conversion to fixed abap structures/tables (`to_abap`) - strict or "corresponding".
+- Parse JSON content into a flexible form, not fixed to any predefined data structure, allowing to modify the parsed data, selectively access its parts and slice subsections of it.
+- Allows conversion to fixed ABAP structures/tables (`to_abap`) - strict or "corresponding".
 - Supports timestamps
 - Supports reference instantiation
 - Supports checking node types
@@ -16,8 +16,8 @@
   - node deletion
 - Seralization to string (indented and not).
 - Freezing (read only) instance content.
-- Filtering - create a json skipping empty values, predefined paths, or your custom filter.
+- Filtering - create a JSON skipping empty values, predefined paths, or your custom filter.
 - Mapping - rule-based changing node names (e.g. snake case to camel case, upper/lower case)
 - Iterating (conveniently) through the array items or object members
-- Utility to calculate difference between 2 jsons
+- Utility to calculate difference between 2 JSONs
 - See **[documentation](./docs/intro)** for more details ...
