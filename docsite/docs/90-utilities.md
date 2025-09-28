@@ -11,8 +11,10 @@ Class `zcl_ajson_utilities` provides the following methods:
 - `sort` - returns JSON string with nodes sorted alphabetically
 - `is_equal` - returns true if 2 jsons (or json string) are deeply equal
 - `merge` - merges 2 jsons together
+- `iterate_array` - iterates through nodes of an array
+- `iterate_object` - iterates through nodes of an object
 
-### Difference between JSON
+## Difference between JSON
 
 The delta between two JSON objects or strings is returned as three JSON objects containing nodes that where inserted, deleted, or changed.
 
@@ -55,7 +57,7 @@ Notes:
 
 You can see a more complex example in the test class of `zcl_ajson_utilities`.
 
-### Sorting of JSON object or string
+## Sorting of JSON object or string
 
 ```abap
   data:
@@ -78,7 +80,7 @@ You can see a more complex example in the test class of `zcl_ajson_utilities`.
   " }
 ```
 
-### Testing equality
+## Testing equality
 
 ```abap
   zcl_ajson_utilities=>new( )->is_equal(
@@ -89,3 +91,22 @@ You can see a more complex example in the test class of `zcl_ajson_utilities`.
     iv_json_b = '{"a":1,"b":2,"c":3}' ). " Return abap_false
 ```
 
+## Iterating through arrays and objects
+
+Sometimes you need to iterate through the object or array items. The "native" way to do it is to call `members()` on the node and then `loop` through the members concatenating original path and each memeber name (for array, the members would be array indexes - 1,2,3 ...). However, the utilities offer a more elegant approach.
+
+```abap
+  data li_iterator type ref to zif_ajson_iterator.
+  li_iterator = zcl_ajson_utilities=>iterate_array(
+    ii_json = li_json
+    iv_path = '/path-to-array' ).
+  while li_iterator->has_next( ) = abap_true.
+    li_array_item = li_iterator->next( ).
+    " returns slice of the original json
+    " similar to li_json->slice( '/path-to-array/1' )
+
+    " do what you need with the array item
+  endwhile.
+```
+
+Similaryly, `iterate_object()` would iterate through the member nodes (in alphabetical order).

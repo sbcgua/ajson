@@ -49,7 +49,7 @@ The code is open-sourced, heavily covered with unit tests and published under MI
 
 ### JSON reader
 
-The reading is done via `zif_ajson_reader` interface, or aliases of the main class. The methods of interface allows accessing attributes and converting to abap structure.
+The reading is done via `zif_ajson_reader` interface, or aliases of the main class. The methods of interface allows accessing attributes and converting to abap structure. (_**Update**: `zif_ajson_reader` and `zif_ajson_writer` were unified into one interface `zif_ajson`_)
 
 Examples below assume original json was:
 
@@ -122,7 +122,7 @@ payload->to_abap( importing ev_container = ls_payload ).
 
 ### JSON writer
 
-Modification of JSON is accessible via `zif_ajson_writer` interface of directly via aliases in the main class. The methods of interface allows setting attributes, objects, arrays.
+Modification of JSON is accessible via `zif_ajson_writer` interface of directly via aliases in the main class. The methods of interface allows setting attributes, objects, arrays. (_**Update**: `zif_ajson_reader` and `zif_ajson_writer` were unified into one interface `zif_ajson`_)
 
 #### Individual nodes
 

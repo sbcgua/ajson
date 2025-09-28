@@ -18,5 +18,6 @@
 - Freezing (read only) instance content.
 - Filtering - create a json skipping empty values, predefined paths, or your custom filter.
 - Mapping - rule-based changing node names (e.g. snake case to camel case, upper/lower case)
+- Iterating (conveniently) through the array items or object members
 - Utility to calculate difference between 2 jsons
 - See **[documentation](./docs/intro)** for more details ...

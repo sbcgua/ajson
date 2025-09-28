@@ -27,7 +27,7 @@ Examples below assume original json was:
 }
 ```
 
-#### Individual value reading
+## Individual value reading
 
 ```abap
 data r type ref to zif_ajson.
@@ -55,7 +55,7 @@ r->get_date( '/payload/date' ).     " returns "20200728" (type d)
 r->members( '/' ).                  " returns table of "success", "error", "payload"
 ```
 
-#### Segment slicing
+## Segment slicing
 
 ```abap
 " Slice returns zif_ajson instance but "payload" becomes root
@@ -64,7 +64,9 @@ data payload type ref to zif_ajson.
 payload = r->slice( '/payload' ). 
 ```
 
-#### Getting node type
+Performance tip: note, that slice creates a copy of the json tree, and so increases memory consumtion which may be an issue in some cases.
+
+## Getting node type
 
 In some case you might want to know node type prior to accessing it first. Type can be 'str', 'num', 'null', 'bool', 'object', 'array'.
 
@@ -73,7 +75,7 @@ r->get_node_type( '/payload/false' ).         " returns "bool"
 r->get_node_type( '/payload/text' ).          " returns "str"
 ```
 
-#### Converting to abap structure
+## Converting to abap structure
 
 ```abap
 data:
@@ -99,3 +101,5 @@ payload->to_abap(
 " Or via an instance flag (persists after setting!)
 payload->to_abap_corresponding_only( )->to_abap( importing ev_container = ls_payload ).
 ```
+
+`to_abap` supports creating data references. **TBD**

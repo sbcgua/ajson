@@ -17,8 +17,10 @@ AJson is a json parser/serializer for ABAP designed with the convenience for dev
 - Freezing (read only) instance content
 - Filtering - create a json skipping empty values, predefined paths, or your custom filter.
 - Mapping - rule-based changing node names (e.g. snake case to camel case, upper/lower case)
+- Iterating (conveniently) through the array items or object members
 - Utility to calculate difference between 2 jsons
-- Supports: timestamps, reference initialization
+- Supports: timestamps
+- Supports: data reference initialization
 
 ## Example of usage
 

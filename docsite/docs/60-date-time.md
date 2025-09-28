@@ -2,7 +2,9 @@
 sidebar_position: 60
 ---
 
-#### Auto format date/time
+# Formatting date/time values
+
+## Auto format date/time
 
 By default date, time and timestamp dates are not formatted and are written in abap format as 'YYYYMMDD', 'HHMMSS'. This can be changed by calling `format_datetime` method after creation. After that the date/time will be auto-formatted as 'YYYY-MM-DD' and 'HH:MM:SS' respectively. **Important: this may become the default behavior in future version**
 
@@ -66,4 +68,3 @@ Can be mapped to following structure:
 
   lo_ajson->to_abap( IMPORTING ev_container = json_timestamp ).
 ```
-

@@ -4,20 +4,23 @@ sidebar_position: 70
 
 # Mapping (field renaming)
 
+## How it works
+
 You can rename json attribute (node) names with a mapper. Typical example for this is making all attribute names upper/lower case or converting camel-snake naming styles (e.g. `helloWorld -> hello_world`).
 
 ```abap
   lo_orig_json = zcl_ajson=>parse( '{"ab":1,"bc":2}' ).
   lo_new_json = lo_orig_json->map( li_mapper ). -> " E.g. '{"AB":1,"BC":2}'
-  " OR ... (but prefer the former)
+
+  " OR ... (but prefer the former, this one is deprected)
   lo_new_json = zcl_ajson=>create_from(
     ii_source_json = lo_orig_json
     ii_mapper      = li_mapper ). 
 ```
 
-where `li_mapper` would be an instance of `zif_ajson_mapping`.
+... where `li_mapper` would be an instance of `zif_ajson_mapping`.
 
-AJSON implements a couple of frequent convertors in `zcl_ajson_mapping` class, in particular:
+Ajson implements a couple of frequent convertors in `zcl_ajson_mapping` class, in particular:
 
 - upper/lower case
 - to camel case (`camelCase`)
@@ -33,7 +36,7 @@ You can also implement you custom mapper. To do this you have to implement `zif_
   endmethod.
 ```
 
-A realistic use case would be converting an external API result, which are often camel-cased (as this is very common in java script world), and then converting it into abap structure:
+A realistic use case would be converting an external API result, which are often camel-cased (as this is very common in java-script world), and then converting it into abap structure:
 
 ```abap
   data:
@@ -43,9 +46,7 @@ A realistic use case would be converting an external API result, which are often
     end of ls_api_response.
 
   lo_orig_json = zcl_ajson=>parse( lv_api_response_string ). " { "errorCode": 0, ... }
-  lo_new_json = zcl_ajson=>create_from(
-    ii_source_json = lo_orig_json
-    ii_mapper      = zcl_ajson_mapping=>camel_to_snake( ) ).
+  lo_new_json = lo_orig_json->map( zcl_ajson_mapping=>camel_to_snake( ) ).
   lo_new_json->to_abap( importing ev_container = ls_api_response )
 ```
 
@@ -60,7 +61,7 @@ A realistic use case would be converting an external API result, which are often
     )->to_abap( importing ev_container = ls_api_response ).
 ```
 
-### "Boxed-in" mappers
+## "Boxed-in" mappers
 
 Several typical mappers were implemented within `zcl_ajson_mapping` class:
 

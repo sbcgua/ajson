@@ -2,13 +2,13 @@
 sidebar_position: 30
 ---
 
-# Instantiating and basics
+# Basics
 
 - To **parse** existing json data - call `zcl_ajson=>parse( lv_json_string )`
 - To create a new **empty** json instance (to set values and serialize) - call `zcl_ajson=>new( )` or `new zcl_ajson( )` in newer abap syntax
 - You can **clone** an ajson instance to get a new independent copy with `lo_orig_json->clone( )`
 
-## Basics
+## General rules
 
 - All functional methods and types are defined in `zif_ajson` interface.
   - Methods have aliases in the `zcl_ajson` class, however please restrain from using them directly as they may be *deprecated* in future.

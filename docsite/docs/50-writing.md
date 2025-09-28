@@ -6,7 +6,7 @@ sidebar_position: 50
 
 The methods of interface allows setting attributes, objects, arrays.
 
-#### Individual value writing
+## Individual value writing
 
 ```abap
 data w type ref to zif_ajson.
@@ -52,7 +52,7 @@ w->set(
 
 ```
 
-#### Individual TYPED values
+## Individual TYPED values
 
 ```abap
 " Set typed value
@@ -105,7 +105,7 @@ w->set_null(
 
 ```
 
-#### Text-based set
+## Text-based set
 
 The method `setx` is a shortcut for full-scale `set`, it attempts to parse a string and detect both path and value from it. Although it is less performant (!) but it is more readable which can be beneficial for some cases where it is not critical e.g. setting constants in APIs or unit tests.  
 **Format**: path and value are separated by `':'`, space around path and around value is trimmed.  
@@ -124,7 +124,8 @@ j->setx( '/a: false' ). " { "a": false }
 j->setx( '/a/b/c: 1' ).
 
 " and also arrays and objects
-" Note, the object must be in complete json format, with ""
+" Note, the object must be in complete json format, with "",
+"   as such a value triggers full-scale parsing under the hood
 j->setx( '/a: { "b": "abc" }' ). 
 j->setx( '/a: [1,2,3]' ). 
 
@@ -132,7 +133,7 @@ j->setx( '/a: [1,2,3]' ).
 j->setx( '/a: 1' )->setx( '/b: 2' ).
 ```
 
-#### Deletion and overwriting
+## Deletion and overwriting
 
 ```abap
 " Importantly, values and whole branches are rewritten
@@ -148,7 +149,7 @@ w->delete( '/a/b' ). " => { "a": { } }
 w->clear( ).
 ```
 
-#### Settings objects
+## Settings objects
 
 ```abap
 " Set object
@@ -168,7 +169,7 @@ w->set(
   iv_val  = lo_another_ajson ).
 ```
 
-#### Settings arrays/tables
+## Settings arrays/tables
 
 ```abap
 " Set arrays
@@ -200,23 +201,30 @@ w->touch_array( '/array2' ).
 " => { "array": ..., "array2": [] }
 ```
 
-#### Setting data refs
+### Known issues
+
+- removing an array item in the middle of array will not renumber the items
+
+## Setting data refs
+
+*TBD*
 
 Currently not supported, but maybe in future. Except initial data ref which is equivalent to `set_null`.
+
 - set null
 - typed refs
 - any data refs
 - object refs
 
-#### Chaining
+## Chaining
 
 Set (and some other) methods also return `me` to support chaining: `li_json->set(...)->set(...)->touch_array(...)->push(...)`.
 
-#### Freezing JSON (read only)
+## Freezing JSON (read only)
 
 It is possible to set an instance of ajson immutable (read only). It is done on object level with method `freeze` or at parse time with `iv_freeze = abap_true` param. This is one way only change. After this `set`, `delete`, `clear` and other modification methods will raise exceptions if used. Useful to freeze some kind of settings or service responses.
 
-### Rendering to JSON string
+## Rendering to JSON string
 
 `zcl_ajson` instance content can be rendered to JSON string using `zif_ajson~stringify` method (also has alias at class level). It also supports optional indentation.
 
@@ -257,7 +265,7 @@ It is possible to set an instance of ajson immutable (read only). It is done on 
     " }
 ```
 
-#### Keep item order
+## Keep item order
 
 Sometimes you may want to keep order of json items in the same order as it was in abap structure (assuming you `set` structures or table of structures). To do this: set `iv_keep_item_order` flag when creating an instance or call `keep_item_order` after creation of instance, before any `set`.
 
@@ -295,7 +303,3 @@ The same parameter exists for parsing
 ### Checking current instance behavior options
 
 Behavior options like `read_only` or `keep_item_order` are accessible via `opts()` method (returns `zif_ajson=>ty_opts`).
-
-## Known issues
-
-- removing an array item in the middle of array will not renumber the items
