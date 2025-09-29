@@ -13,6 +13,7 @@ v1.?.?, ?
 + Add unit tests for empty string/object (#212, @christianguenter2)
 + Array (and object) iterator (#210)
 + Docusaurus docs (#203)
++ Improvement to docs (#214,#215,#216, @mbtools)
 
 v1.1.13, 2025-09-19
 -------------------
