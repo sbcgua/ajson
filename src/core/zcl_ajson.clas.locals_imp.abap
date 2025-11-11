@@ -305,7 +305,7 @@ class lcl_utils implementation.
     " A lightweight check covering the top-level JSON value would look like this
     " ^\s*(\{.*\}|\[.*\]|"(?:\\.|[^"\\])*"|true|false|null|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*$
     " Unfortunately, this is quite slow so we use a trivial check of the beginning of the JSON data
-    find regex '^\s*(true|false|null|-?\d|"|\{|\[)' in iv_data.
+    find regex '^\s*(true|false|null|-?\d|"|\{|\[)' in iv_data ##REGEX_POSIX.
     if sy-subrc <> 0.
       zcx_ajson_error=>raise(
         iv_msg      = |Json parsing error: Not JSON|
@@ -1211,7 +1211,7 @@ class lcl_json_to_abap implementation.
 
     find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
       in iv_value
-      submatches lv_y lv_m lv_d.
+      submatches lv_y lv_m lv_d ##REGEX_POSIX.
     if sy-subrc <> 0.
       zcx_ajson_error=>raise( 'Unexpected date format' ).
     endif.
@@ -1269,7 +1269,7 @@ class lcl_json_to_abap implementation.
       in iv_value submatches
         ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
         ls_timestamp-hour ls_timestamp-minute ls_timestamp-second
-        ls_timestamp-local_sign ls_timestamp-local_hour ls_timestamp-local_minute.
+        ls_timestamp-local_sign ls_timestamp-local_hour ls_timestamp-local_minute ##REGEX_POSIX.
 
     if sy-subrc = 0.
 
@@ -1280,7 +1280,7 @@ class lcl_json_to_abap implementation.
       find first occurrence of regex lc_regex_ts_utc
         in iv_value submatches
           ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
-          ls_timestamp-hour ls_timestamp-minute ls_timestamp-second ls_timestamp-frac.
+          ls_timestamp-hour ls_timestamp-minute ls_timestamp-second ls_timestamp-frac ##REGEX_POSIX.
 
       if sy-subrc <> 0.
         zcx_ajson_error=>raise( 'Unexpected timestamp format' ).
@@ -1334,7 +1334,7 @@ class lcl_json_to_abap implementation.
 
     find first occurrence of regex '^(\d{2}):(\d{2}):(\d{2})(T|$)' "#EC NOTEXT
       in iv_value
-      submatches lv_h lv_m lv_s.
+      submatches lv_h lv_m lv_s ##REGEX_POSIX.
     if sy-subrc <> 0.
       zcx_ajson_error=>raise( 'Unexpected time format' ).
     endif.
