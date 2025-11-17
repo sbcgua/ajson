@@ -447,7 +447,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     if lr_item is not initial and lr_item->type = zif_ajson_types=>node_type-string.
       find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
         in lr_item->value
-        submatches lv_y lv_m lv_d.
+        submatches lv_y lv_m lv_d ##REGEX_POSIX.
       concatenate lv_y lv_m lv_d into rv_value.
     endif.
 
@@ -736,7 +736,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     endif.
 
     if go_float_regex is not bound.
-      create object go_float_regex exporting pattern = '^([1-9][0-9]*|0)\.[0-9]+$'.
+      create object go_float_regex exporting pattern = '^([1-9][0-9]*|0)\.[0-9]+$' ##REGEX_POSIX.
       " expects fractional, because ints are detected separately
     endif.
 

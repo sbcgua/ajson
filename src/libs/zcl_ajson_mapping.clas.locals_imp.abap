@@ -191,7 +191,7 @@ class lcl_mapping_camel implementation. "DEPRECATED
 
     rv_result = iv_name.
 
-    replace all occurrences of regex `([a-z])([A-Z])` in rv_result with `$1_$2`. "#EC NOTEXT
+    replace all occurrences of regex `([a-z])([A-Z])` in rv_result with `$1_$2` ##REGEX_POSIX. "#EC NOTEXT
 
   endmethod.
 
@@ -276,7 +276,7 @@ class lcl_to_snake implementation.
 
   method zif_ajson_mapping~rename_node.
 
-    replace all occurrences of regex `([a-z])([A-Z])` in cv_name with `$1_$2`. "#EC NOTEXT
+    replace all occurrences of regex `([a-z])([A-Z])` in cv_name with `$1_$2` ##REGEX_POSIX. "#EC NOTEXT
     cv_name = to_lower( cv_name ).
 
   endmethod.
