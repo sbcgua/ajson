@@ -202,7 +202,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
       return. " Not found ? nothing to delete !
     endif.
 
-    delete mt_json_tree index sy-tabix. " where path = iv_path and name = iv_name.
+    delete mt_json_tree index sy-tabix. "#EC CI_SORTSEQ where path = iv_path and name = iv_name.
 
     if rs_top_node-children > 0. " only for objects and arrays
       lv_parent_path = iv_path && iv_name && '/*'.
@@ -915,7 +915,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     lv_path_pattern = lv_normalized_path && `*`.
 
-    loop at mt_json_tree into ls_item where path cp lv_path_pattern.
+    loop at mt_json_tree into ls_item where path cp lv_path_pattern. "#EC CI_SORTSEQ
 
       ls_item-path = substring( val = ls_item-path off = lv_path_len - 1 ). " less closing '/'
       insert ls_item into table lo_section->mt_json_tree.
