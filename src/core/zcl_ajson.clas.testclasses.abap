@@ -1456,11 +1456,11 @@ class ltcl_reader_test implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->get_number( '/number' )
-      exp = +'123.0' ).
+      exp = '123.0' ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->get_number( '/float' )
-      exp = +'123.45' ).
+      exp = '123.45' ).
 
   endmethod.
 
