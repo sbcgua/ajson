@@ -36,6 +36,13 @@ class ltcl_filters_test implementation.
       iv_ignore_empty = abap_false
       iv_path = '/d'
       iv_val  = 0 ).
+    li_json->set_boolean(
+      iv_path = '/e'
+      iv_val  = abap_false ).
+    li_json->set_boolean(
+      iv_path = '/f'
+      iv_val  = abap_true ).
+    li_json->set_null( '/g' ).
 
     li_json_filtered = zcl_ajson=>create_from(
       ii_source_json = li_json
@@ -43,7 +50,7 @@ class ltcl_filters_test implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = li_json_filtered->stringify( )
-      exp = '{"a":"1","c":"3"}' ).
+      exp = '{"a":"1","c":"3","e":false,"f":true,"g":null}' ).
 
   endmethod.
 
