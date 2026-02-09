@@ -26,12 +26,14 @@ class ltcl_filters_test implementation.
       iv_path = '/a'
       iv_val  = '1' ).
     li_json->set(
+      iv_ignore_empty = abap_false
       iv_path = '/b'
       iv_val  = '' ).
     li_json->set(
       iv_path = '/c'
       iv_val  = '3' ).
     li_json->set(
+      iv_ignore_empty = abap_false
       iv_path = '/d'
       iv_val  = 0 ).
 
@@ -55,12 +57,15 @@ class ltcl_filters_test implementation.
       iv_path = '/a'
       iv_val  = '1' ).
     li_json->set(
+      iv_ignore_empty = abap_false
       iv_path = '/b/c'
       iv_val  = '' ).
     li_json->set(
+      iv_ignore_empty = abap_false
       iv_path = '/b/d'
       iv_val  = 0 ).
     li_json->set(
+      iv_ignore_empty = abap_false
       iv_path = '/d/e'
       iv_val  = 0 ).
 
@@ -209,12 +214,14 @@ class ltcl_filters_test implementation.
       iv_path = '/a'
       iv_val  = '1' ).
     li_json->set(
+      iv_ignore_empty = abap_false
       iv_path = '/b'
       iv_val  = '' ).
     li_json->set(
       iv_path = '/c'
       iv_val  = '3' ).
     li_json->set(
+      iv_ignore_empty = abap_false
       iv_path = '/d'
       iv_val  = 0 ).
 
