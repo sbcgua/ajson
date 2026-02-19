@@ -17,6 +17,7 @@ v1.?.?, ?
 * Refactor regex usage to include ##REGEX_POSIX pragma (#217, @mbtools)
 * Suppress low perfromance warnings with pseudo comment (#219, @oblomov-dev)
 * UT compatibility with HANA (#221, @larshp)
+* Fix filter of initial numeric values (#222, @mbtools)
 
 v1.1.13, 2025-09-19
 -------------------
