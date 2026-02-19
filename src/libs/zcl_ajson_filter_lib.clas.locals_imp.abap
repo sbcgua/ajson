@@ -11,8 +11,11 @@ class lcl_empty_filter implementation.
   method zif_ajson_filter~keep_node.
 
     rv_keep = boolc(
-      ( iv_visit = zif_ajson_filter=>visit_type-value and is_node-value is not initial ) or
-      ( iv_visit <> zif_ajson_filter=>visit_type-value and is_node-children > 0 ) ).
+      ( iv_visit = zif_ajson_filter=>visit_type-value and
+        is_node-type <> zif_ajson_types=>node_type-number and is_node-value is not initial ) or " string & bool & null
+      ( iv_visit = zif_ajson_filter=>visit_type-value and
+        is_node-type = zif_ajson_types=>node_type-number and is_node-value <> '0' ) or " num
+      ( iv_visit <> zif_ajson_filter=>visit_type-value and is_node-children > 0 ) ). " array & object
     " children = 0 on open for initially empty nodes and on close for filtered ones
 
   endmethod.
