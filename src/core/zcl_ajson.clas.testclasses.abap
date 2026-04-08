@@ -602,7 +602,7 @@ class ltcl_parser_test implementation.
     data lv_uchar type c.
 
     try.
-      data lv_fm_name type string.
+      data lv_fm_name type sobj_name.
       lv_fm_name = `CL_ABAP_CONV_IN_CE`.
       call method (lv_fm_name)=>uccpi
         exporting
