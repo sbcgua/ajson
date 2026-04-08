@@ -18,6 +18,7 @@ v1.?.?, ?
 * Suppress low perfromance warnings with pseudo comment (#219, @oblomov-dev)
 * UT compatibility with HANA (#221, @larshp)
 * Fix filter of initial numeric values (#222, @mbtools)
+* Fix syntax error in ABAP Cloud (#224, @oblomov-dev)
 
 v1.1.13, 2025-09-19
 -------------------
