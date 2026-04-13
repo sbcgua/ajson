@@ -1,0 +1,15 @@
+# minimumReleaseAge: 10080
+minimumReleaseAge: 5040
+
+blockExoticSubdeps: true
+
+strictDepBuilds: true
+allowBuilds:
+  '@swc/core': true
+  core-js-pure: true
+  core-js: true
+
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - 'detect-port@1.6.1'
+  - 'semver@6.3.1'
