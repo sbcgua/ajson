@@ -7,7 +7,7 @@ tags: [old]
 
 What do you do if you need to add configuration possibilities to your program? In most cases, you will probably create a DB table for those settings and a maintenance view for it. Maintenance views is a quite powerful and relatively simple tool. Yet they are not without downsides and complexity when your configuration has a hierarchical structure or/and when the structure is not yet final and changes frequently e.g. when you're developing a new product. How to achieve the flexibility you need in such a case?
 
-<!-- truncate -->
+{/*truncate*/}
 
 One of the modern development patterns is to use JSON for configuration. Indeed, it is very flexible, not constrained. Any part of JSON can be easily addressed. Why not try using JSON in ABAP? I and my team are developing a tool for electronic document exchange services integration (like Docusign, SharePoint, and some others), the product is in active development and the configuration must stay flexible. Maybe it will be converted to maintenance views in the later stages, but for now, we need the flexibility. We don't want constant modifications of data dictionary and maintenance view regeneration to stop our pace. Here is what we came up with.
 

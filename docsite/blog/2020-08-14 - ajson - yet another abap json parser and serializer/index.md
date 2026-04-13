@@ -9,7 +9,7 @@ Once I read a comment by Paul Hardy (if I remember well) to a blog post that "Ev
 
 Why re-invent an abap json parser? There are plenty of other parsers already, but I didn't find exactly what I wanted. Let's list some of widely known approaches.
 
-<!-- truncate -->
+{/*truncate*/}
 
 - default transformation 7.4 (_standard, but far from convenience_)
 - /ui2/cl_json
