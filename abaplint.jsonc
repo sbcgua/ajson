@@ -324,7 +324,7 @@
     },
     "prefix_is_current_class": {
       "exclude": [],
-      "omitMeInstanceCalls": true
+      "omitMeInstanceCalls": false
     },
     "release_idoc": true,
     "remove_descriptions": {
