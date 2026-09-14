@@ -14,6 +14,10 @@ Yet another JSON parser/serializer for ABAP. It works with release 7.02 or highe
 
 Since v1.2.0:
 
+**TODO CHECK changelog !**
+
+Since v1.1.7:
+
 - there are changes in mapper interface, see "Mapping (field renaming)" section in the docs. In essence, implement `rename_node` method if needed, `to_json` and `to_abap` will be deprecated. As well as `create_field_mapping` and `create_camel_case` mappers
 - potentially `create_empty` static method may be deprecated. It is considered to use `new` instead (and/or direct creation `create object`). Under consideration, post an issue if you have an opinion on this subject.
 - also `create_from` is potentially suboptimal, so prefer `clone`, `filter` and `map` instead.

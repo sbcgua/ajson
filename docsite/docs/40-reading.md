@@ -85,7 +85,7 @@ Instead of reading individual values, you can use `to_abap` for converting the J
 | str      | timestamp (p 15,0)  | "YYYY-MM-DDTHH:MM:SSZ" or "YYYY-MM-DDTHH:MM:SS+XX:YY" (with timezone) |
 | str      | timestampl (p 21,7) | "YYYY-MM-DDTHH:MM:SS.FFFFFFFZ" or "YYYY-MM-DDTHH:MM:SS.FFFFFFF+XX:YY" (with timezone) |
 | str      | utclong             | "YYYY-MM-DDTHH:MM:SS.FFFFFFFZ" or "YYYY-MM-DDTHH:MM:SS.FFFFFFF+XX:YY" (with timezone) |
-| str      | other               | Standard ABAP value mapping | 
+| str      | other               | Standard ABAP value mapping |
 | num      | any                 | Standard ABAP value mapping |
 | bool     | abap_bool (c 1)     | true, false                 |
 | null     | -                   | null (ignored)              |
