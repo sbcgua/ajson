@@ -1,4 +1,4 @@
-class zcl_ajson_mapping definition
+class zcl_ajson_mapper_lib definition
   public
   final
   create public.
@@ -15,37 +15,37 @@ class zcl_ajson_mapping definition
 
     class-methods create_upper_case
       returning
-        value(ri_mapping) type ref to zif_ajson_mapping.
+        value(ri_mapping) type ref to zif_ajson_mapper.
 
     class-methods create_lower_case
       returning
-        value(ri_mapping) type ref to zif_ajson_mapping.
+        value(ri_mapping) type ref to zif_ajson_mapper.
 
     class-methods create_rename
       importing
-        it_rename_map type zif_ajson_mapping=>tty_rename_map
+        it_rename_map type zif_ajson_mapper=>tty_rename_map
         iv_rename_by type i default rename_by-attr_name
       returning
-        value(ri_mapping) type ref to zif_ajson_mapping.
+        value(ri_mapping) type ref to zif_ajson_mapper.
 
     class-methods create_compound_mapper
       importing
-        ii_mapper1 type ref to zif_ajson_mapping optional
-        ii_mapper2 type ref to zif_ajson_mapping optional
-        ii_mapper3 type ref to zif_ajson_mapping optional
-        it_more type zif_ajson_mapping=>ty_table_of optional
+        ii_mapper1 type ref to zif_ajson_mapper optional
+        ii_mapper2 type ref to zif_ajson_mapper optional
+        ii_mapper3 type ref to zif_ajson_mapper optional
+        it_more type zif_ajson_mapper=>ty_table_of optional
       returning
-        value(ri_mapping) type ref to zif_ajson_mapping.
+        value(ri_mapping) type ref to zif_ajson_mapper.
 
     class-methods create_to_snake_case
       returning
-        value(ri_mapping) type ref to zif_ajson_mapping.
+        value(ri_mapping) type ref to zif_ajson_mapper.
 
     class-methods create_to_camel_case
       importing
         iv_first_json_upper type abap_bool default abap_false
       returning
-        value(ri_mapping) type ref to zif_ajson_mapping.
+        value(ri_mapping) type ref to zif_ajson_mapper.
 
   protected section.
 
@@ -55,12 +55,12 @@ ENDCLASS.
 
 
 
-CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
+CLASS ZCL_AJSON_MAPPER_LIB IMPLEMENTATION.
 
 
   method create_compound_mapper.
 
-    data lt_queue type zif_ajson_mapping=>ty_table_of.
+    data lt_queue type zif_ajson_mapper=>ty_table_of.
 
     append ii_mapper1 to lt_queue.
     append ii_mapper2 to lt_queue.

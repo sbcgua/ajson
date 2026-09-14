@@ -2097,15 +2097,15 @@ class lcl_mapper_runner definition final.
     interfaces lif_mutator_runner.
     class-methods new
       importing
-        ii_mapper type ref to zif_ajson_mapping
+        ii_mapper type ref to zif_ajson_mapper
       returning
         value(ro_instance) type ref to lcl_mapper_runner.
     methods constructor
       importing
-        ii_mapper type ref to zif_ajson_mapping.
+        ii_mapper type ref to zif_ajson_mapper.
 
   private section.
-    data mi_mapper type ref to zif_ajson_mapping.
+    data mi_mapper type ref to zif_ajson_mapper.
     data mr_source_tree type ref to zif_ajson_types=>ty_nodes_ts.
     data mr_dest_tree type ref to zif_ajson_types=>ty_nodes_ts.
 

@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOINTERF>
-    <CLSNAME>ZIF_AJSON_MAPPING</CLSNAME>
+    <CLSNAME>ZIF_AJSON_MAPPER</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>AJSON Mapping</DESCRIPT>
+    <DESCRIPT>AJSON Mapper</DESCRIPT>
     <EXPOSURE>2</EXPOSURE>
     <STATE>1</STATE>
     <UNICODE>X</UNICODE>

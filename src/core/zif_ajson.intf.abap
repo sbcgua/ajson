@@ -35,7 +35,7 @@ interface zif_ajson
       zcx_ajson_error.
   methods map
     importing
-      ii_mapper type ref to zif_ajson_mapping
+      ii_mapper type ref to zif_ajson_mapper
     returning
       value(ri_json) type ref to zif_ajson
     raising

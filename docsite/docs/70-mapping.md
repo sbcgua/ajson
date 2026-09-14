@@ -18,18 +18,18 @@ You can rename JSON attribute (node) names with a mapper. Typical example for th
     ii_mapper      = li_mapper ). 
 ```
 
-... where `li_mapper` would be an instance of `zif_ajson_mapping`.
+... where `li_mapper` would be an instance of `zif_ajson_mapper`.
 
-Ajson implements a couple of frequent convertors in `zcl_ajson_mapping` class, in particular:
+Ajson implements a couple of frequent convertors in `zcl_ajson_mapper_lib` class, in particular:
 
 - upper/lower case
 - to camel case (`camelCase`)
 - to snake case (`snake_case`)
 
-You can also implement you custom mapper. To do this you have to implement `zif_ajson_mapping->rename_node()`. It accepts the JSON nodes item-by-item and may change name via `cv_name` parameter. E.g.
+You can also implement you custom mapper. To do this you have to implement `zif_ajson_mapper->rename_node()`. It accepts the JSON nodes item-by-item and may change name via `cv_name` parameter. E.g.
 
 ```abap
-  method zif_ajson_mapping~rename_field.
+  method zif_ajson_mapper~rename_field.
     if cv_name+0(1) = 'a'. " Upper case all fields that start with "a"
       cv_name = to_upper( cv_name ).
     endif.
@@ -46,7 +46,7 @@ A realistic use case would be converting an external API result, which are often
     end of ls_api_response.
 
   lo_orig_json = zcl_ajson=>parse( lv_api_response_string ). " { "errorCode": 0, ... }
-  lo_new_json = lo_orig_json->map( zcl_ajson_mapping=>camel_to_snake( ) ).
+  lo_new_json = lo_orig_json->map( zcl_ajson_mapper_lib=>camel_to_snake( ) ).
   lo_new_json->to_abap( importing ev_container = ls_api_response )
 ```
 
@@ -57,19 +57,19 @@ A realistic use case would be converting an external API result, which are often
     )->filter( zcl_ajson_filter_lib=>create_path_filter(
       iv_skip_paths = '*/@*' " remove meta attributes
       iv_pattern_search = abap_true ) )
-    )->map( zcl_ajson_mapping=>camel_to_snake( )
+    )->map( zcl_ajson_mapper_lib=>camel_to_snake( )
     )->to_abap( importing ev_container = ls_api_response ).
 ```
 
 ## "Boxed-in" mappers
 
-Several typical mappers were implemented within `zcl_ajson_mapping` class:
+Several typical mappers were implemented within `zcl_ajson_mapper_lib` class:
 
 - upper case node names
 
 ```abap
 zcl_ajson=>parse( '{"a":1,"b":{"c":2}}'
-  )->map( zcl_ajson_mapping=>create_upper_case( ) ).
+  )->map( zcl_ajson_mapper_lib=>create_upper_case( ) ).
   " {"A":1,"B":{"C":2}}
 ```
 
@@ -77,7 +77,7 @@ zcl_ajson=>parse( '{"a":1,"b":{"c":2}}'
 
 ```abap
 zcl_ajson=>parse( '{"A":1,"B":{"C":2}}'
-  )->map( zcl_ajson_mapping=>create_lower_case( ) ).
+  )->map( zcl_ajson_mapper_lib=>create_lower_case( ) ).
   " {"a":1,"b":{"c":2}}
 ```
 
@@ -86,7 +86,7 @@ zcl_ajson=>parse( '{"A":1,"B":{"C":2}}'
 ```abap
 " Purely by name
 zcl_ajson=>parse( '{"a":1,"b":{"c":2},"d":{"e":3}}'
-  )->map( zcl_ajson_mapping=>create_rename( value #(
+  )->map( zcl_ajson_mapper_lib=>create_rename( value #(
     ( from = 'a' to = 'x' )
     ( from = 'c' to = 'y' )
     ( from = 'd' to = 'z' ) )
@@ -95,17 +95,17 @@ zcl_ajson=>parse( '{"a":1,"b":{"c":2},"d":{"e":3}}'
 
 " Or by full path
 zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}'
-  )->map( zcl_ajson_mapping=>create_rename(
+  )->map( zcl_ajson_mapper_lib=>create_rename(
     it_rename_map = value #( ( from = '/b/a' to = 'x' ) )
-    iv_rename_by  = zcl_ajson_mapping=>rename_by-full_path
+    iv_rename_by  = zcl_ajson_mapper_lib=>rename_by-full_path
   ) ).
   " {"a":1,"b":{"x":2},"c":{"a":3}}
 
 " Or by pattern
 zcl_ajson=>parse( '{"andthisnot":1,"b":{"thisone":2},"c":{"a":3}}'
-  )->map( zcl_ajson_mapping=>create_rename(
+  )->map( zcl_ajson_mapper_lib=>create_rename(
     it_rename_map = value #( ( from = '/*/this*' to = 'x' ) )
-    iv_rename_by  = zcl_ajson_mapping=>rename_by-pattern
+    iv_rename_by  = zcl_ajson_mapper_lib=>rename_by-pattern
   ) ).
   " {"andthisnot":1,"b":{"x":2},"c":{"a":3}}
 ```
@@ -114,11 +114,11 @@ zcl_ajson=>parse( '{"andthisnot":1,"b":{"thisone":2},"c":{"a":3}}'
 
 ```abap
 zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}'
-  )->map( zcl_ajson_mapping=>create_compound_mapper(
-    ii_mapper1 = zcl_ajson_mapping=>create_rename(
+  )->map( zcl_ajson_mapper_lib=>create_compound_mapper(
+    ii_mapper1 = zcl_ajson_mapper_lib=>create_rename(
       it_rename_map = value #( ( from = '/b/a' to = 'x' ) )
-      iv_rename_by  = zcl_ajson_mapping=>rename_by-full_path )
-    ii_mapper2 = zcl_ajson_mapping=>create_upper_case( ) )
+      iv_rename_by  = zcl_ajson_mapper_lib=>rename_by-full_path )
+    ii_mapper2 = zcl_ajson_mapper_lib=>create_upper_case( ) )
   ).
   " {"A":1,"B":{"X":2},"C":{"A":3}}'
 ```
@@ -127,7 +127,7 @@ zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}'
 
 ```abap
 zcl_ajson=>parse( '{"aB":1,"BbC":2,"cD":{"xY":3},"ZZ":4}'
-  )->map( zcl_ajson_mapping=>create_to_snake_case( ) ).
+  )->map( zcl_ajson_mapper_lib=>create_to_snake_case( ) ).
   " {"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}
 ```
 
@@ -135,12 +135,12 @@ zcl_ajson=>parse( '{"aB":1,"BbC":2,"cD":{"xY":3},"ZZ":4}'
 
 ```abap
 zcl_ajson=>parse( '{"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}'
-  )->map( zcl_ajson_mapping=>create_to_camel_case( ) ).
+  )->map( zcl_ajson_mapper_lib=>create_to_camel_case( ) ).
   " {"aB":1,"bbC":2,"cD":{"xY":3},"zz":4}
 
 " Optionally upper case first letter too
 zcl_ajson=>parse( '{"aj_bc":1}'
-  )->map( zcl_ajson_mapping=>create_to_camel_case(
+  )->map( zcl_ajson_mapper_lib=>create_to_camel_case(
     iv_first_json_upper = abap_true ) ).
   " {"AjBc":1}
 ```
@@ -150,7 +150,7 @@ All the above examples will also work with static `create_from()` method (but do
 ```abap
 zcl_ajson=>create_from(
   ii_source_json = zcl_ajson=>parse( '{"aj_bc":1}' )
-  ii_mapper = zcl_ajson_mapping=>create_to_camel_case( )
+  ii_mapper = zcl_ajson_mapper_lib=>create_to_camel_case( )
 ).
   " {"ajBc":1}
 ```
@@ -159,7 +159,7 @@ zcl_ajson=>create_from(
 
 **This approach is depreciated and will be removed in future versions, please use `rename_field` approach described above**
 
-The interface `zif_ajson_mapping` allows to create custom mapping for ABAP and JSON fields via implementing `to_abap` and `to_json` methods.
+The interface `zif_ajson_mapper` allows to create custom mapping for ABAP and JSON fields via implementing `to_abap` and `to_json` methods.
 
 Some mappings are provided by default:
 
@@ -180,8 +180,8 @@ Example code snippet
 ```abap
   data:
     lo_ajson          type ref to zcl_ajson,
-    li_mapping        type ref to zif_ajson_mapping,
-    lt_mapping_fields type zif_ajson_mapping=>ty_mapping_fields,
+    li_mapping        type ref to zif_ajson_mapper,
+    lt_mapping_fields type zif_ajson_mapper=>ty_mapping_fields,
     ls_mapping_field  like line of lt_mapping_fields.
   data:
     begin of ls_result,
@@ -194,7 +194,7 @@ Example code snippet
   ls_mapping_field-json = 'json.field'.
   insert ls_mapping_field into table lt_mapping_fields.
 
-  li_mapping = zcl_ajson_mapping=>create_field_mapping( lt_mapping_fields ).
+  li_mapping = zcl_ajson_mapper_lib=>create_field_mapping( lt_mapping_fields ).
 
   lo_ajson =
       zcl_ajson=>parse( iv_json = '{"field":"value","json.field":"field_value"}' ii_custom_mapping = li_mapping ).
@@ -209,8 +209,8 @@ Example code snippet
 ```abap
   data:
     lo_ajson          type ref to zcl_ajson,
-    li_mapping        type ref to zif_ajson_mapping,
-    lt_mapping_fields type zif_ajson_mapping=>ty_mapping_fields,
+    li_mapping        type ref to zif_ajson_mapper,
+    lt_mapping_fields type zif_ajson_mapper=>ty_mapping_fields,
     ls_mapping_field  like line of lt_mapping_fields.
   data:
     begin of ls_result,
@@ -223,7 +223,7 @@ Example code snippet
   ls_mapping_field-json = 'json.field'.
   insert ls_mapping_field into table lt_mapping_fields.
 
-  li_mapping = zcl_ajson_mapping=>create_field_mapping( lt_mapping_fields ).
+  li_mapping = zcl_ajson_mapper_lib=>create_field_mapping( lt_mapping_fields ).
 
   ls_result-abap_field = 'field_value'.
   ls_result-field      = 'value'.
@@ -246,13 +246,13 @@ Example code snippet
 ```abap
   data:
     lo_ajson   type ref to zcl_ajson,
-    li_mapping type ref to zif_ajson_mapping.
+    li_mapping type ref to zif_ajson_mapper.
   data:
     begin of ls_result,
       field_data type string,
     end of ls_result.
 
-  li_mapping = zcl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ).
+  li_mapping = zcl_ajson_mapper_lib=>create_camel_case( iv_first_json_upper = abap_false ).
 
   ls_result-field_data = 'field_value'.
 
@@ -274,13 +274,13 @@ Example code snippet
 ```abap
   data:
     lo_ajson   type ref to zcl_ajson,
-    li_mapping type ref to zif_ajson_mapping.
+    li_mapping type ref to zif_ajson_mapper.
   data:
     begin of ls_result,
       field_data type string,
     end of ls_result.
 
-  li_mapping = zcl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_true ).
+  li_mapping = zcl_ajson_mapper_lib=>create_camel_case( iv_first_json_upper = abap_true ).
 
   ls_result-field_data = 'field_value'.
 
@@ -308,13 +308,13 @@ Example code snippet
 ```abap
   data:
     lo_ajson   type ref to zcl_ajson,
-    li_mapping type ref to zif_ajson_mapping.
+    li_mapping type ref to zif_ajson_mapper.
   data:
     begin of ls_result,
       field_data type string,
     end of ls_result.
 
-  li_mapping = zcl_ajson_mapping=>create_camel_case( ).
+  li_mapping = zcl_ajson_mapper_lib=>create_camel_case( ).
 
   lo_ajson = zcl_ajson=>parse( iv_json = '{"FieldData":"field_value"}' ii_custom_mapping = li_mapping ).
 
@@ -328,13 +328,13 @@ Example code snippet
 ```abap
   data:
     lo_ajson   type ref to zcl_ajson,
-    li_mapping type ref to zif_ajson_mapping.
+    li_mapping type ref to zif_ajson_mapper.
   data:
     begin of ls_result,
       field_data type string,
     end of ls_result.
 
-  li_mapping = zcl_ajson_mapping=>create_lower_case( ).
+  li_mapping = zcl_ajson_mapper_lib=>create_lower_case( ).
 
   ls_result-field_data = 'field_value'.
 
@@ -356,13 +356,13 @@ Example code snippet
 ```abap
   data:
     lo_ajson   type ref to zcl_ajson,
-    li_mapping type ref to zif_ajson_mapping.
+    li_mapping type ref to zif_ajson_mapper.
   data:
     begin of ls_result,
       field_data type string,
     end of ls_result.
 
-  li_mapping = zcl_ajson_mapping=>create_upper_case( ).
+  li_mapping = zcl_ajson_mapper_lib=>create_upper_case( ).
 
   ls_result-field_data = 'field_value'.
 

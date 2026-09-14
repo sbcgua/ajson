@@ -24,7 +24,7 @@ class ltcl_test_mappers implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>parse( '{"a":1,"b":{"c":2}}'
-        )->map( zcl_ajson_mapping=>create_upper_case( )
+        )->map( zcl_ajson_mapper_lib=>create_upper_case( )
         )->stringify( )
       exp = '{"A":1,"B":{"C":2}}' ).
 
@@ -34,7 +34,7 @@ class ltcl_test_mappers implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>parse( '{"A":1,"B":{"C":2}}'
-        )->map( zcl_ajson_mapping=>create_lower_case( )
+        )->map( zcl_ajson_mapper_lib=>create_lower_case( )
         )->stringify( )
       exp = '{"a":1,"b":{"c":2}}' ).
 
@@ -42,7 +42,7 @@ class ltcl_test_mappers implementation.
 
   method rename_by_attr.
 
-    data lt_map type zif_ajson_mapping=>tty_rename_map.
+    data lt_map type zif_ajson_mapper=>tty_rename_map.
     field-symbols <i> like line of lt_map.
 
     append initial line to lt_map assigning <i>.
@@ -57,14 +57,14 @@ class ltcl_test_mappers implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>parse( '{"a":1,"b":{"c":2},"d":{"e":3}}' )->map(
-        zcl_ajson_mapping=>create_rename( lt_map ) )->stringify( )
+        zcl_ajson_mapper_lib=>create_rename( lt_map ) )->stringify( )
       exp = '{"b":{"y":2},"x":1,"z":{"e":3}}' ).
 
   endmethod.
 
   method rename_by_path.
 
-    data lt_map type zif_ajson_mapping=>tty_rename_map.
+    data lt_map type zif_ajson_mapper=>tty_rename_map.
     field-symbols <i> like line of lt_map.
 
     append initial line to lt_map assigning <i>.
@@ -73,9 +73,9 @@ class ltcl_test_mappers implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}' )->map(
-        zcl_ajson_mapping=>create_rename(
+        zcl_ajson_mapper_lib=>create_rename(
           it_rename_map = lt_map
-          iv_rename_by  = zcl_ajson_mapping=>rename_by-full_path
+          iv_rename_by  = zcl_ajson_mapper_lib=>rename_by-full_path
         ) )->stringify( )
       exp = '{"a":1,"b":{"x":2},"c":{"a":3}}' ).
 
@@ -83,7 +83,7 @@ class ltcl_test_mappers implementation.
 
   method rename_by_pattern.
 
-    data lt_map type zif_ajson_mapping=>tty_rename_map.
+    data lt_map type zif_ajson_mapper=>tty_rename_map.
     field-symbols <i> like line of lt_map.
 
     append initial line to lt_map assigning <i>.
@@ -92,9 +92,9 @@ class ltcl_test_mappers implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>parse( '{"andthisnot":1,"b":{"thisone":2},"c":{"a":3}}' )->map(
-        zcl_ajson_mapping=>create_rename(
+        zcl_ajson_mapper_lib=>create_rename(
           it_rename_map = lt_map
-          iv_rename_by  = zcl_ajson_mapping=>rename_by-pattern
+          iv_rename_by  = zcl_ajson_mapper_lib=>rename_by-pattern
         ) )->stringify( )
       exp = '{"andthisnot":1,"b":{"x":2},"c":{"a":3}}' ).
 
@@ -102,7 +102,7 @@ class ltcl_test_mappers implementation.
 
   method compound_mapper.
 
-    data lt_map type zif_ajson_mapping=>tty_rename_map.
+    data lt_map type zif_ajson_mapper=>tty_rename_map.
     field-symbols <i> like line of lt_map.
 
     append initial line to lt_map assigning <i>.
@@ -111,11 +111,11 @@ class ltcl_test_mappers implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>parse( '{"a":1,"b":{"a":2},"c":{"a":3}}' )->map(
-        zcl_ajson_mapping=>create_compound_mapper(
-          ii_mapper1 = zcl_ajson_mapping=>create_rename(
+        zcl_ajson_mapper_lib=>create_compound_mapper(
+          ii_mapper1 = zcl_ajson_mapper_lib=>create_rename(
             it_rename_map = lt_map
-            iv_rename_by  = zcl_ajson_mapping=>rename_by-full_path )
-          ii_mapper2 = zcl_ajson_mapping=>create_upper_case( ) )
+            iv_rename_by  = zcl_ajson_mapper_lib=>rename_by-full_path )
+          ii_mapper2 = zcl_ajson_mapper_lib=>create_upper_case( ) )
         )->stringify( )
       exp = '{"A":1,"B":{"X":2},"C":{"A":3}}' ).
 
@@ -125,7 +125,7 @@ class ltcl_test_mappers implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>parse( '{"aB":1,"BbC":2,"cD":{"xY":3},"ZZ":4}' )->map(
-        zcl_ajson_mapping=>create_to_snake_case( )
+        zcl_ajson_mapper_lib=>create_to_snake_case( )
         )->stringify( )
       exp = '{"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}' ).
 
@@ -135,14 +135,14 @@ class ltcl_test_mappers implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>parse( '{"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}' )->map(
-        zcl_ajson_mapping=>create_to_camel_case( )
+        zcl_ajson_mapper_lib=>create_to_camel_case( )
         )->stringify( )
       exp = '{"aB":1,"bbC":2,"cD":{"xY":3},"zz":4}' ).
 
     " Forced underscore
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>parse( '{"a__b":1}' )->map(
-        zcl_ajson_mapping=>create_to_camel_case( )
+        zcl_ajson_mapper_lib=>create_to_camel_case( )
         )->stringify( )
       exp = '{"a_b":1}' ).
 
@@ -152,7 +152,7 @@ class ltcl_test_mappers implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_ajson=>parse( '{"aj_bc":1,"bb_c":2,"c_d":{"xq_yq":3},"zz":4}' )->map(
-        zcl_ajson_mapping=>create_to_camel_case( iv_first_json_upper = abap_true )
+        zcl_ajson_mapper_lib=>create_to_camel_case( iv_first_json_upper = abap_true )
         )->stringify( )
       exp = '{"AjBc":1,"BbC":2,"CD":{"XqYq":3},"Zz":4}' ).
 

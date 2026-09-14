@@ -1,4 +1,4 @@
-interface zif_ajson_mapping
+interface zif_ajson_mapper
   public.
 
   types:
@@ -10,7 +10,7 @@ interface zif_ajson_mapping
       with unique sorted key by_name components from.
 
   types:
-    ty_table_of type standard table of ref to zif_ajson_mapping.
+    ty_table_of type standard table of ref to zif_ajson_mapper.
 
   methods rename_node
     importing

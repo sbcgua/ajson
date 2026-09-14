@@ -21,7 +21,7 @@ sidebar_position: 30
 
 ## Mapping and filtering libraries
 
-- Mapping and formatting are enabled by interface `zif_ajson_mapping`. Predefined patterns for field mapping (ABAP ⇆ JSON), Camel Case, UPPER/lower case can be found in class `zcl_ajson_mapping`
+- Mapping and formatting are enabled by interface `zif_ajson_mapper`. Predefined patterns for field mapping (ABAP ⇆ JSON), Camel Case, UPPER/lower case can be found in class `zcl_ajson_mapper_lib`
 - Predefined filters are available in `zcl_ajson_filter_lib` class
 
 ## Creating from (deprecated?)

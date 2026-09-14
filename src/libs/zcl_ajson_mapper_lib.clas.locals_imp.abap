@@ -5,21 +5,21 @@ class lcl_rename implementation.
     mv_rename_by = iv_rename_by.
   endmethod.
 
-  method zif_ajson_mapping~rename_node.
+  method zif_ajson_mapper~rename_node.
 
     data lv_full_path type string.
     data lv_pair_found type abap_bool.
     field-symbols <r> like line of mt_rename_map.
 
     case mv_rename_by.
-      when zcl_ajson_mapping=>rename_by-attr_name.
+      when zcl_ajson_mapper_lib=>rename_by-attr_name.
         read table mt_rename_map assigning <r> with table key by_name components from = cv_name.
         lv_pair_found = boolc( sy-subrc = 0 ).
-      when zcl_ajson_mapping=>rename_by-full_path.
+      when zcl_ajson_mapper_lib=>rename_by-full_path.
         lv_full_path = is_node-path && cv_name.
         read table mt_rename_map assigning <r> with table key by_name components from = lv_full_path.
         lv_pair_found = boolc( sy-subrc = 0 ).
-      when zcl_ajson_mapping=>rename_by-pattern.
+      when zcl_ajson_mapper_lib=>rename_by-pattern.
         lv_full_path = is_node-path && cv_name.
         loop at mt_rename_map assigning <r>.
           if lv_full_path cp <r>-from.
@@ -41,7 +41,7 @@ endclass.
 
 class lcl_mapping_to_upper implementation.
 
-  method zif_ajson_mapping~rename_node.
+  method zif_ajson_mapper~rename_node.
     cv_name = to_upper( cv_name ).
   endmethod.
 
@@ -50,7 +50,7 @@ endclass.
 
 class lcl_mapping_to_lower implementation.
 
-  method zif_ajson_mapping~rename_node.
+  method zif_ajson_mapper~rename_node.
     cv_name = to_lower( cv_name ).
   endmethod.
 
@@ -63,7 +63,7 @@ class lcl_compound_mapper implementation.
     mt_queue = it_queue.
   endmethod.
 
-  method zif_ajson_mapping~rename_node.
+  method zif_ajson_mapper~rename_node.
 
     data ls_node like is_node.
     data li_mapper like line of mt_queue.
@@ -85,7 +85,7 @@ endclass.
 
 class lcl_to_snake implementation.
 
-  method zif_ajson_mapping~rename_node.
+  method zif_ajson_mapper~rename_node.
 
     replace all occurrences of regex `([a-z])([A-Z])` in cv_name with `$1_$2` ##REGEX_POSIX. "#EC NOTEXT
     cv_name = to_lower( cv_name ).
@@ -100,7 +100,7 @@ class lcl_to_camel implementation.
     mv_first_json_upper = iv_first_json_upper.
   endmethod.
 
-  method zif_ajson_mapping~rename_node.
+  method zif_ajson_mapper~rename_node.
 
     types lty_token type c length 255.
     constants lc_forced_underscore_marker type c length 1 value cl_abap_char_utilities=>horizontal_tab.

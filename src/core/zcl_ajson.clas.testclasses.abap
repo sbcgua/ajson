@@ -5108,7 +5108,7 @@ class ltcl_mapper_test definition final
   risk level harmless.
 
   public section.
-    interfaces zif_ajson_mapping.
+    interfaces zif_ajson_mapper.
 
   private section.
 
@@ -5122,7 +5122,7 @@ endclass.
 
 class ltcl_mapper_test implementation.
 
-  method zif_ajson_mapping~rename_node.
+  method zif_ajson_mapper~rename_node.
     if cv_name+0(1) = 'a'.
       cv_name = to_upper( cv_name ).
     endif.
@@ -5297,7 +5297,7 @@ class ltcl_cloning_test definition final
   risk level harmless.
 
   public section.
-    interfaces zif_ajson_mapping.
+    interfaces zif_ajson_mapper.
     interfaces zif_ajson_filter.
 
   private section.
@@ -5406,7 +5406,7 @@ class ltcl_cloning_test implementation.
 
   endmethod.
 
-  method zif_ajson_mapping~rename_node.
+  method zif_ajson_mapper~rename_node.
     if cv_name+0(1) = 'a'.
       cv_name = to_upper( cv_name ).
     endif.
