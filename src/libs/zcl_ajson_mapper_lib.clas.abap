@@ -15,18 +15,18 @@ class zcl_ajson_mapper_lib definition
 
     class-methods create_upper_case
       returning
-        value(ri_mapping) type ref to zif_ajson_mapper.
+        value(ri_mapper) type ref to zif_ajson_mapper.
 
     class-methods create_lower_case
       returning
-        value(ri_mapping) type ref to zif_ajson_mapper.
+        value(ri_mapper) type ref to zif_ajson_mapper.
 
     class-methods create_rename
       importing
         it_rename_map type zif_ajson_mapper=>tty_rename_map
         iv_rename_by type i default rename_by-attr_name
       returning
-        value(ri_mapping) type ref to zif_ajson_mapper.
+        value(ri_mapper) type ref to zif_ajson_mapper.
 
     class-methods create_compound_mapper
       importing
@@ -35,17 +35,17 @@ class zcl_ajson_mapper_lib definition
         ii_mapper3 type ref to zif_ajson_mapper optional
         it_more type zif_ajson_mapper=>ty_table_of optional
       returning
-        value(ri_mapping) type ref to zif_ajson_mapper.
+        value(ri_mapper) type ref to zif_ajson_mapper.
 
     class-methods create_to_snake_case
       returning
-        value(ri_mapping) type ref to zif_ajson_mapper.
+        value(ri_mapper) type ref to zif_ajson_mapper.
 
     class-methods create_to_camel_case
       importing
         iv_first_json_upper type abap_bool default abap_false
       returning
-        value(ri_mapping) type ref to zif_ajson_mapper.
+        value(ri_mapper) type ref to zif_ajson_mapper.
 
   protected section.
 
@@ -68,7 +68,7 @@ CLASS ZCL_AJSON_MAPPER_LIB IMPLEMENTATION.
     append lines of it_more to lt_queue.
     delete lt_queue where table_line is initial.
 
-    create object ri_mapping type lcl_compound_mapper
+    create object ri_mapper type lcl_compound_mapper
       exporting
         it_queue = lt_queue.
 
@@ -77,14 +77,14 @@ CLASS ZCL_AJSON_MAPPER_LIB IMPLEMENTATION.
 
   method create_lower_case.
 
-    create object ri_mapping type lcl_mapping_to_lower.
+    create object ri_mapper type lcl_mapping_to_lower.
 
   endmethod.
 
 
   method create_rename.
 
-    create object ri_mapping type lcl_rename
+    create object ri_mapper type lcl_rename
       exporting
         it_rename_map = it_rename_map
         iv_rename_by = iv_rename_by.
@@ -94,7 +94,7 @@ CLASS ZCL_AJSON_MAPPER_LIB IMPLEMENTATION.
 
   method create_to_camel_case.
 
-    create object ri_mapping type lcl_to_camel
+    create object ri_mapper type lcl_to_camel
       exporting
         iv_first_json_upper = iv_first_json_upper.
 
@@ -103,14 +103,14 @@ CLASS ZCL_AJSON_MAPPER_LIB IMPLEMENTATION.
 
   method create_to_snake_case.
 
-    create object ri_mapping type lcl_to_snake.
+    create object ri_mapper type lcl_to_snake.
 
   endmethod.
 
 
   method create_upper_case.
 
-    create object ri_mapping type lcl_mapping_to_upper.
+    create object ri_mapper type lcl_mapping_to_upper.
 
   endmethod.
 ENDCLASS.
