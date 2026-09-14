@@ -555,7 +555,7 @@ class ltcl_json_utils implementation.
     data li_iterator type ref to zif_ajson_iterator.
     data lx type ref to zcx_ajson_error.
 
-    li_cut = zcl_ajson=>create_empty( ).
+    li_cut = zcl_ajson=>new( ).
     li_cut->touch_array( '/a' ).
     li_cut->touch_array( '/b' ).
     li_cut->touch_array( '/c' ).
@@ -639,7 +639,7 @@ class ltcl_json_utils implementation.
     data li_iterator type ref to zif_ajson_iterator.
     data lx type ref to zcx_ajson_error.
 
-    li_cut = zcl_ajson=>create_empty( ).
+    li_cut = zcl_ajson=>new( ).
     li_cut->touch_array( '/array' ).
     li_cut->set(
       iv_path = '/b/b'

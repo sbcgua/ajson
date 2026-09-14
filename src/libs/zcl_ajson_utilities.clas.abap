@@ -157,9 +157,9 @@ CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
       iv_json = iv_json_b
       io_json = io_json_b ).
 
-    mo_insert = zcl_ajson=>create_empty( ).
-    mo_delete = zcl_ajson=>create_empty( ).
-    mo_change = zcl_ajson=>create_empty( ).
+    mo_insert = zcl_ajson=>new( ).
+    mo_delete = zcl_ajson=>new( ).
+    mo_change = zcl_ajson=>new( ).
 
     diff_a_b( '/' ).
     diff_b_a( '/' ).

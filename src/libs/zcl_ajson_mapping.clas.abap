@@ -13,28 +13,11 @@ class zcl_ajson_mapping definition
         " regex type i value 3, " TODO add if needed in future
       end of rename_by.
 
-    class-methods create_camel_case " DEPRECATED
-      importing
-        it_mapping_fields   type zif_ajson_mapping=>ty_mapping_fields optional
-        iv_first_json_upper type abap_bool default abap_true
-      returning
-        value(ri_mapping)   type ref to zif_ajson_mapping.
-
     class-methods create_upper_case
-      importing
-        it_mapping_fields type zif_ajson_mapping=>ty_mapping_fields optional
       returning
         value(ri_mapping) type ref to zif_ajson_mapping.
 
     class-methods create_lower_case
-      importing
-        it_mapping_fields type zif_ajson_mapping=>ty_mapping_fields optional
-      returning
-        value(ri_mapping) type ref to zif_ajson_mapping.
-
-    class-methods create_field_mapping " DEPRECATED
-      importing
-        it_mapping_fields type zif_ajson_mapping=>ty_mapping_fields
       returning
         value(ri_mapping) type ref to zif_ajson_mapping.
 
@@ -75,16 +58,6 @@ ENDCLASS.
 CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
 
 
-  method create_camel_case.
-
-    create object ri_mapping type lcl_mapping_camel
-      exporting
-        it_mapping_fields   = it_mapping_fields
-        iv_first_json_upper = iv_first_json_upper.
-
-  endmethod.
-
-
   method create_compound_mapper.
 
     data lt_queue type zif_ajson_mapping=>ty_table_of.
@@ -102,20 +75,9 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
   endmethod.
 
 
-  method create_field_mapping.
-
-    create object ri_mapping type lcl_mapping_fields
-      exporting
-        it_mapping_fields = it_mapping_fields.
-
-  endmethod.
-
-
   method create_lower_case.
 
-    create object ri_mapping type lcl_mapping_to_lower
-      exporting
-        it_mapping_fields = it_mapping_fields.
+    create object ri_mapping type lcl_mapping_to_lower.
 
   endmethod.
 
@@ -148,9 +110,7 @@ CLASS ZCL_AJSON_MAPPING IMPLEMENTATION.
 
   method create_upper_case.
 
-    create object ri_mapping type lcl_mapping_to_upper
-      exporting
-        it_mapping_fields = it_mapping_fields.
+    create object ri_mapping type lcl_mapping_to_upper.
 
   endmethod.
 ENDCLASS.

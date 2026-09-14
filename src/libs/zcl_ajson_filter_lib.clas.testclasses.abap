@@ -21,7 +21,7 @@ class ltcl_filters_test implementation.
     data li_json type ref to zif_ajson.
     data li_json_filtered type ref to zif_ajson.
 
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
     li_json->set(
       iv_path = '/a'
       iv_val  = '1' ).
@@ -44,9 +44,7 @@ class ltcl_filters_test implementation.
       iv_val  = abap_true ).
     li_json->set_null( '/g' ).
 
-    li_json_filtered = zcl_ajson=>create_from(
-      ii_source_json = li_json
-      ii_filter = zcl_ajson_filter_lib=>create_empty_filter( ) ).
+    li_json_filtered = li_json->filter( zcl_ajson_filter_lib=>create_empty_filter( ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = li_json_filtered->stringify( )
@@ -59,7 +57,7 @@ class ltcl_filters_test implementation.
     data li_json type ref to zif_ajson.
     data li_json_filtered type ref to zif_ajson.
 
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
     li_json->set(
       iv_path = '/a'
       iv_val  = '1' ).
@@ -76,9 +74,7 @@ class ltcl_filters_test implementation.
       iv_path = '/d/e'
       iv_val  = 0 ).
 
-    li_json_filtered = zcl_ajson=>create_from(
-      ii_source_json = li_json
-      ii_filter = zcl_ajson_filter_lib=>create_empty_filter( ) ).
+    li_json_filtered = li_json->filter( zcl_ajson_filter_lib=>create_empty_filter( ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = li_json_filtered->stringify( )
@@ -94,7 +90,7 @@ class ltcl_filters_test implementation.
 
     append '/b/c' to lt_paths.
 
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
     li_json->set(
       iv_path = '/a'
       iv_val  = '1' ).
@@ -105,9 +101,7 @@ class ltcl_filters_test implementation.
       iv_path = '/c/d'
       iv_val  = '3' ).
 
-    li_json_filtered = zcl_ajson=>create_from(
-      ii_source_json = li_json
-      ii_filter = zcl_ajson_filter_lib=>create_path_filter( it_skip_paths = lt_paths ) ).
+    li_json_filtered = li_json->filter( zcl_ajson_filter_lib=>create_path_filter( it_skip_paths = lt_paths ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = li_json_filtered->stringify( )
@@ -120,7 +114,7 @@ class ltcl_filters_test implementation.
     data li_json type ref to zif_ajson.
     data li_json_filtered type ref to zif_ajson.
 
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
     li_json->set(
       iv_path = '/a'
       iv_val  = '1' ).
@@ -131,9 +125,7 @@ class ltcl_filters_test implementation.
       iv_path = '/c/d'
       iv_val  = '3' ).
 
-    li_json_filtered = zcl_ajson=>create_from(
-      ii_source_json = li_json
-      ii_filter = zcl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/b/c,/c/d' ) ).
+    li_json_filtered = li_json->filter( zcl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/b/c,/c/d' ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = li_json_filtered->stringify( )
@@ -146,7 +138,7 @@ class ltcl_filters_test implementation.
     data li_json type ref to zif_ajson.
     data li_json_filtered type ref to zif_ajson.
 
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
     li_json->set(
       iv_path = '/@meta'
       iv_val  = 'meta' ).
@@ -163,11 +155,9 @@ class ltcl_filters_test implementation.
       iv_path = '/c/@meta2'
       iv_val  = 'meta2' ).
 
-    li_json_filtered = zcl_ajson=>create_from(
-      ii_source_json = li_json
-      ii_filter = zcl_ajson_filter_lib=>create_path_filter(
-        iv_skip_paths = '/*/c,*/@*'
-        iv_pattern_search = abap_true ) ).
+    li_json_filtered = li_json->filter( zcl_ajson_filter_lib=>create_path_filter(
+      iv_skip_paths = '/*/c,*/@*'
+      iv_pattern_search = abap_true ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = li_json_filtered->stringify( )
@@ -183,7 +173,7 @@ class ltcl_filters_test implementation.
 
     append '/b' to lt_paths.
 
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
     li_json->set(
       iv_path = '/a'
       iv_val  = '1' ).
@@ -197,9 +187,7 @@ class ltcl_filters_test implementation.
       iv_path = '/c/d'
       iv_val  = '3' ).
 
-    li_json_filtered = zcl_ajson=>create_from(
-      ii_source_json = li_json
-      ii_filter = zcl_ajson_filter_lib=>create_path_filter( it_skip_paths = lt_paths ) ).
+    li_json_filtered = li_json->filter( zcl_ajson_filter_lib=>create_path_filter( it_skip_paths = lt_paths ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = li_json_filtered->stringify( )
@@ -216,7 +204,7 @@ class ltcl_filters_test implementation.
     append zcl_ajson_filter_lib=>create_empty_filter( ) to lt_filters.
     append zcl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/c' ) to lt_filters.
 
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
     li_json->set(
       iv_path = '/a'
       iv_val  = '1' ).
@@ -232,9 +220,7 @@ class ltcl_filters_test implementation.
       iv_path = '/d'
       iv_val  = 0 ).
 
-    li_json_filtered = zcl_ajson=>create_from(
-      ii_source_json = li_json
-      ii_filter = zcl_ajson_filter_lib=>create_and_filter( lt_filters ) ).
+    li_json_filtered = li_json->filter( zcl_ajson_filter_lib=>create_and_filter( lt_filters ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = li_json_filtered->stringify( )
@@ -247,7 +233,7 @@ class ltcl_filters_test implementation.
     data li_json type ref to zif_ajson.
     data li_json_filtered type ref to zif_ajson.
 
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
     li_json->set(
       iv_path = '/a'
       iv_val  = '1' ).
@@ -264,9 +250,7 @@ class ltcl_filters_test implementation.
       iv_path = '/d'
       iv_val  = 5 ).
 
-    li_json_filtered = zcl_ajson=>create_from(
-      ii_source_json = li_json
-      ii_filter = zcl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/bB,/CC' ) ).
+    li_json_filtered = li_json->filter( zcl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/bB,/CC' ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = li_json_filtered->stringify( )

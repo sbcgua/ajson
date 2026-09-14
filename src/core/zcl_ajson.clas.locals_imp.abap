@@ -787,7 +787,6 @@ class lcl_json_to_abap definition final.
     methods constructor
       importing
         !iv_corresponding  type abap_bool default abap_false
-        !ii_custom_mapping type ref to zif_ajson_mapping optional
         !ii_refs_initiator type ref to zif_ajson_ref_initializer optional.
 
     methods to_abap
@@ -843,7 +842,6 @@ class lcl_json_to_abap definition final.
     data mt_node_type_cache type hashed table of ty_type_cache with unique key type_path.
 
     data mr_nodes type ref to zif_ajson_types=>ty_nodes_ts.
-    data mi_custom_mapping type ref to zif_ajson_mapping.
     data mi_refs_initiator type ref to zif_ajson_ref_initializer.
     data mv_corresponding type abap_bool.
 
@@ -887,7 +885,6 @@ endclass.
 class lcl_json_to_abap implementation.
 
   method constructor.
-    mi_custom_mapping = ii_custom_mapping.
     mi_refs_initiator = ii_refs_initiator.
     mv_corresponding  = iv_corresponding.
   endmethod.
@@ -932,17 +929,7 @@ class lcl_json_to_abap implementation.
     if sy-subrc <> 0.
 
       rs_node_type-type_path         = lv_node_type_path.
-
-      if mi_custom_mapping is bound.
-        rs_node_type-target_field_name = to_upper( mi_custom_mapping->to_abap(
-          iv_path = is_node-path
-          iv_name = is_node-name ) ).
-        if rs_node_type-target_field_name is initial.
-          rs_node_type-target_field_name = to_upper( is_node-name ).
-        endif.
-      else.
-        rs_node_type-target_field_name = to_upper( is_node-name ).
-      endif.
+      rs_node_type-target_field_name = to_upper( is_node-name ).
 
       case is_parent_type-type_kind.
         when lif_kind=>table.
@@ -1356,7 +1343,6 @@ class lcl_abap_to_json definition final.
         iv_data            type any
         is_prefix          type zif_ajson_types=>ty_path_name optional
         iv_array_index     type i default 0
-        ii_custom_mapping  type ref to zif_ajson_mapping optional
         is_opts            type zif_ajson=>ty_opts optional
         iv_item_order      type i default 0
       returning
@@ -1370,7 +1356,6 @@ class lcl_abap_to_json definition final.
         iv_type            type zif_ajson_types=>ty_node_type
         is_prefix          type zif_ajson_types=>ty_path_name optional
         iv_array_index     type i default 0
-        ii_custom_mapping  type ref to zif_ajson_mapping optional
         is_opts            type zif_ajson=>ty_opts optional
         iv_item_order      type i default 0
       returning
@@ -1404,7 +1389,6 @@ class lcl_abap_to_json definition final.
   private section.
 
     class-data gv_ajson_absolute_type_name type string.
-    data mi_custom_mapping type ref to zif_ajson_mapping.
     data mv_keep_item_order type abap_bool.
     data mv_format_datetime type abap_bool.
 
@@ -1512,7 +1496,6 @@ class lcl_abap_to_json implementation.
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
     create object lo_converter.
-    lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = is_opts-keep_item_order.
     lo_converter->mv_format_datetime = is_opts-format_datetime.
 
@@ -1770,12 +1753,6 @@ class lcl_abap_to_json implementation.
     ls_node-index = iv_index.
     ls_node-order = iv_item_order.
 
-    if mi_custom_mapping is bound.
-      ls_node-name = mi_custom_mapping->to_json(
-        iv_path = is_prefix-path
-        iv_name = is_prefix-name ).
-    endif.
-
     if ls_node-name is initial.
       ls_node-name  = is_prefix-name.
     endif.
@@ -1806,7 +1783,6 @@ class lcl_abap_to_json implementation.
     data lo_struc type ref to cl_abap_structdescr.
     data lt_comps type cl_abap_structdescr=>included_view.
     data ls_next_prefix like is_prefix.
-    data lv_mapping_prefix_name like is_prefix-name.
     data lv_item_order type i.
     data ls_root like line of ct_nodes.
 
@@ -1820,12 +1796,6 @@ class lcl_abap_to_json implementation.
     ls_root-name  = is_prefix-name.
     ls_root-type  = zif_ajson_types=>node_type-object.
     ls_root-index = iv_index.
-
-    if mi_custom_mapping is bound.
-      ls_root-name = mi_custom_mapping->to_json(
-        iv_path = is_prefix-path
-        iv_name = is_prefix-name ).
-    endif.
 
     if ls_root-name is initial.
       ls_root-name  = is_prefix-name.
@@ -1848,21 +1818,11 @@ class lcl_abap_to_json implementation.
     ls_next_prefix-path = is_prefix-path && <root>-name && '/'.
 
     loop at lt_comps assigning <c>.
-      clear lv_mapping_prefix_name.
 
       <root>-children = <root>-children + 1.
       ls_next_prefix-name = to_lower( <c>-name ).
       assign component <c>-name of structure iv_data to <val>.
       assert sy-subrc = 0.
-
-      if mi_custom_mapping is bound and <c>-type->kind = cl_abap_typedescr=>kind_elem.
-        lv_mapping_prefix_name = mi_custom_mapping->to_json( iv_path = ls_next_prefix-path
-                                                             iv_name = ls_next_prefix-name ).
-      endif.
-
-      if lv_mapping_prefix_name is not initial.
-        ls_next_prefix-name = lv_mapping_prefix_name.
-      endif.
 
       if mv_keep_item_order = abap_true.
         lv_item_order = <root>-children.
@@ -1900,12 +1860,6 @@ class lcl_abap_to_json implementation.
     ls_root-type  = zif_ajson_types=>node_type-array.
     ls_root-index = iv_index.
     ls_root-order = iv_item_order.
-
-    if mi_custom_mapping is bound.
-      ls_root-name = mi_custom_mapping->to_json(
-        iv_path = is_prefix-path
-        iv_name = is_prefix-name ).
-    endif.
 
     if ls_root-name is initial.
       ls_root-name  = is_prefix-name.
@@ -1948,7 +1902,6 @@ class lcl_abap_to_json implementation.
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
     create object lo_converter.
-    lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = is_opts-keep_item_order.
     lo_converter->mv_format_datetime = is_opts-format_datetime.
 
@@ -1998,12 +1951,6 @@ class lcl_abap_to_json implementation.
     ls_node-value = iv_data.
     ls_node-type  = iv_type.
     ls_node-order = iv_item_order.
-
-    if mi_custom_mapping is bound.
-      ls_node-name = mi_custom_mapping->to_json(
-        iv_path = is_prefix-path
-        iv_name = is_prefix-name ).
-    endif.
 
     if ls_node-name is initial.
       ls_node-name  = is_prefix-name.

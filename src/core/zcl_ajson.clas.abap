@@ -6,76 +6,13 @@ class zcl_ajson definition
 
     interfaces zif_ajson.
 
-    aliases:
-      is_empty for zif_ajson~is_empty,
-      exists for zif_ajson~exists,
-      members for zif_ajson~members,
-      get for zif_ajson~get,
-      get_boolean for zif_ajson~get_boolean,
-      get_integer for zif_ajson~get_integer,
-      get_number for zif_ajson~get_number,
-      get_date for zif_ajson~get_date,
-      get_timestamp for zif_ajson~get_timestamp,
-      get_string for zif_ajson~get_string,
-      slice for zif_ajson~slice,
-      to_abap for zif_ajson~to_abap,
-      array_to_string_table for zif_ajson~array_to_string_table.
-
-    aliases:
-      clear for zif_ajson~clear,
-      set for zif_ajson~set,
-      setx for zif_ajson~setx,
-      set_boolean for zif_ajson~set_boolean,
-      set_string for zif_ajson~set_string,
-      set_integer for zif_ajson~set_integer,
-      set_date for zif_ajson~set_date,
-      set_timestamp for zif_ajson~set_timestamp,
-      set_null for zif_ajson~set_null,
-      delete for zif_ajson~delete,
-      touch_array for zif_ajson~touch_array,
-      push for zif_ajson~push,
-      stringify for zif_ajson~stringify.
-
-    aliases:
-      clone for zif_ajson~clone,
-      filter for zif_ajson~filter,
-      map for zif_ajson~map.
-
-    aliases:
-      mt_json_tree for zif_ajson~mt_json_tree,
-      keep_item_order for zif_ajson~keep_item_order,
-      format_datetime for zif_ajson~format_datetime,
-      to_abap_corresponding_only for zif_ajson~to_abap_corresponding_only,
-      freeze for zif_ajson~freeze.
-
     class-methods parse
       importing
         !iv_json            type any
         !iv_freeze          type abap_bool default abap_false
-        !ii_custom_mapping  type ref to zif_ajson_mapping optional
         !iv_keep_item_order type abap_bool default abap_false
       returning
-        value(ro_instance) type ref to zcl_ajson
-      raising
-        zcx_ajson_error.
-
-    class-methods create_empty " Might be deprecated, prefer using new( ) or create object
-      importing
-        !ii_custom_mapping type ref to zif_ajson_mapping optional
-        iv_keep_item_order type abap_bool default abap_false
-        iv_format_datetime type abap_bool default abap_true
-        iv_to_abap_corresponding_only type abap_bool default abap_false
-      returning
-        value(ro_instance) type ref to zcl_ajson.
-
-    " Experimental ! May change
-    class-methods create_from " TODO, rename to 'from' ?
-      importing
-        !ii_source_json type ref to zif_ajson
-        !ii_filter type ref to zif_ajson_filter optional " Might be deprecated, use filter() instead
-        !ii_mapper type ref to zif_ajson_mapping optional " Might be deprecated, use map() instead
-      returning
-        value(ro_instance) type ref to zcl_ajson
+        value(ri_instance) type ref to zif_ajson
       raising
         zcx_ajson_error.
 
@@ -91,7 +28,7 @@ class zcl_ajson definition
         iv_format_datetime type abap_bool default abap_true
         iv_to_abap_corresponding_only type abap_bool default abap_false
       returning
-        value(ro_instance) type ref to zcl_ajson.
+        value(ri_instance) type ref to zif_ajson.
 
     class-methods normalize_path
       importing
@@ -103,10 +40,12 @@ class zcl_ajson definition
 
   private section.
 
+    aliases:
+      mt_json_tree for zif_ajson~mt_json_tree.
+
     class-data go_float_regex type ref to cl_abap_regex.
 
     data ms_opts type zif_ajson=>ty_opts.
-    data mi_custom_mapping type ref to zif_ajson_mapping. " DEPRECATED, will be removed
 
     methods get_item
       importing
@@ -140,52 +79,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
   method constructor.
     ms_opts-keep_item_order = iv_keep_item_order.
     ms_opts-to_abap_corresponding_only = iv_to_abap_corresponding_only.
-    format_datetime( iv_format_datetime ).
-  endmethod.
-
-
-  method create_empty.
-    create object ro_instance
-      exporting
-        iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
-        iv_format_datetime = iv_format_datetime
-        iv_keep_item_order = iv_keep_item_order.
-    ro_instance->mi_custom_mapping = ii_custom_mapping.
-  endmethod.
-
-
-  method create_from.
-
-    data lo_mutator_queue type ref to lcl_mutator_queue.
-
-    if ii_source_json is not bound.
-      zcx_ajson_error=>raise( 'Source not bound' ).
-    endif.
-
-    create object ro_instance
-      exporting
-        iv_to_abap_corresponding_only = ii_source_json->opts( )-to_abap_corresponding_only
-        iv_format_datetime = ii_source_json->opts( )-format_datetime
-        iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
-
-    if ii_filter is not bound and ii_mapper is not bound.
-      ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
-    else.
-      create object lo_mutator_queue.
-      if ii_mapper is bound.
-        " Mapping goes first. But maybe it should be a freely definable queue of processors ?
-        lo_mutator_queue->add( lcl_mapper_runner=>new( ii_mapper ) ).
-      endif.
-      if ii_filter is bound.
-        lo_mutator_queue->add( lcl_filter_runner=>new( ii_filter ) ).
-      endif.
-      lo_mutator_queue->lif_mutator_runner~run(
-        exporting
-          it_source_tree = ii_source_json->mt_json_tree
-        importing
-          et_dest_tree = ro_instance->mt_json_tree ).
-    endif.
-
+    zif_ajson~format_datetime( iv_format_datetime ).
   endmethod.
 
 
@@ -237,7 +131,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method new.
-    create object ro_instance
+    create object ri_instance type zcl_ajson
       exporting
         iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
         iv_format_datetime = iv_format_datetime
@@ -252,18 +146,20 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
   method parse.
 
+    data lo_instance type ref to zcl_ajson.
     data lo_parser type ref to lcl_json_parser.
 
-    create object ro_instance.
+    create object lo_instance
+      exporting
+        iv_keep_item_order = iv_keep_item_order.
     create object lo_parser.
-    ro_instance->mt_json_tree = lo_parser->parse(
+    lo_instance->mt_json_tree = lo_parser->parse(
       iv_json            = iv_json
       iv_keep_item_order = iv_keep_item_order ).
-    ro_instance->mi_custom_mapping = ii_custom_mapping.
-    ro_instance->ms_opts-keep_item_order = iv_keep_item_order.
 
+    ri_instance = lo_instance.
     if iv_freeze = abap_true.
-      ro_instance->freeze( ).
+      ri_instance->freeze( ).
     endif.
 
   endmethod.
@@ -366,7 +262,18 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method zif_ajson~clone.
-    ri_json = create_from( me ).
+
+    data lo_new_instance type ref to zcl_ajson.
+
+    create object lo_new_instance
+      exporting
+        iv_to_abap_corresponding_only = me->zif_ajson~opts( )-to_abap_corresponding_only
+        iv_format_datetime            = me->zif_ajson~opts( )-format_datetime
+        iv_keep_item_order            = me->zif_ajson~opts( )-keep_item_order.
+
+    lo_new_instance->mt_json_tree = me->mt_json_tree.
+    ri_json = lo_new_instance.
+
   endmethod.
 
 
@@ -392,9 +299,30 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method zif_ajson~filter.
-    ri_json = create_from(
-      ii_source_json = me
-      ii_filter      = ii_filter ).
+
+    if ii_filter is not bound.
+      zcx_ajson_error=>raise( 'Filter not bound' ).
+    endif.
+
+    data lo_new_instance type ref to zcl_ajson.
+    data lo_mutator_queue type ref to lcl_mutator_queue.
+
+    create object lo_new_instance
+      exporting
+        iv_to_abap_corresponding_only = me->zif_ajson~opts( )-to_abap_corresponding_only
+        iv_format_datetime            = me->zif_ajson~opts( )-format_datetime
+        iv_keep_item_order            = me->zif_ajson~opts( )-keep_item_order.
+
+    create object lo_mutator_queue.
+    lo_mutator_queue->add( lcl_filter_runner=>new( ii_filter ) ).
+    lo_mutator_queue->lif_mutator_runner~run(
+      exporting
+        it_source_tree = me->mt_json_tree
+      importing
+        et_dest_tree = lo_new_instance->mt_json_tree ).
+
+    ri_json = lo_new_instance.
+
   endmethod.
 
 
@@ -554,9 +482,30 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
 
   method zif_ajson~map.
-    ri_json = create_from(
-      ii_source_json = me
-      ii_mapper      = ii_mapper ).
+
+    if ii_mapper is not bound.
+      zcx_ajson_error=>raise( 'Mapper not bound' ).
+    endif.
+
+    data lo_new_instance type ref to zcl_ajson.
+    data lo_mutator_queue type ref to lcl_mutator_queue.
+
+    create object lo_new_instance
+      exporting
+        iv_to_abap_corresponding_only = me->zif_ajson~opts( )-to_abap_corresponding_only
+        iv_format_datetime            = me->zif_ajson~opts( )-format_datetime
+        iv_keep_item_order            = me->zif_ajson~opts( )-keep_item_order.
+
+    create object lo_mutator_queue.
+    lo_mutator_queue->add( lcl_mapper_runner=>new( ii_mapper ) ).
+    lo_mutator_queue->lif_mutator_runner~run(
+      exporting
+        it_source_tree = me->mt_json_tree
+      importing
+        et_dest_tree = lo_new_instance->mt_json_tree ).
+
+    ri_json = lo_new_instance.
+
   endmethod.
 
 
@@ -649,14 +598,12 @@ CLASS ZCL_AJSON IMPLEMENTATION.
           is_opts            = ms_opts
           iv_data            = iv_val
           iv_type            = iv_node_type
-          is_prefix          = ls_split_path
-          ii_custom_mapping  = mi_custom_mapping ).
+          is_prefix          = ls_split_path ).
       else.
         mt_json_tree = lcl_abap_to_json=>convert(
           is_opts            = ms_opts
           iv_data            = iv_val
-          is_prefix          = ls_split_path
-          ii_custom_mapping  = mi_custom_mapping ).
+          is_prefix          = ls_split_path ).
       endif.
       return.
     endif.
@@ -692,16 +639,14 @@ CLASS ZCL_AJSON IMPLEMENTATION.
         iv_data            = iv_val
         iv_type            = iv_node_type
         iv_array_index     = lv_array_index
-        is_prefix          = ls_split_path
-        ii_custom_mapping  = mi_custom_mapping ).
+        is_prefix          = ls_split_path ).
     else.
       lt_new_nodes = lcl_abap_to_json=>convert(
         is_opts            = ms_opts
         iv_item_order      = lv_item_order
         iv_data            = iv_val
         iv_array_index     = lv_array_index
-        is_prefix          = ls_split_path
-        ii_custom_mapping  = mi_custom_mapping ).
+        is_prefix          = ls_split_path ).
     endif.
 
     " update nodes
@@ -898,7 +843,6 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lv_path_pattern    type string.
 
     create object lo_section.
-    lo_section->mi_custom_mapping = mi_custom_mapping.
 
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lv_path_len        = strlen( lv_normalized_path ).
@@ -1002,7 +946,6 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     create object lo_to_abap
       exporting
         iv_corresponding  = boolc( iv_corresponding = abap_true or ms_opts-to_abap_corresponding_only = abap_true )
-        ii_custom_mapping = mi_custom_mapping
         ii_refs_initiator = ii_refs_initiator.
 
     lo_to_abap->to_abap(
