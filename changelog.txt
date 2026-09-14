@@ -8,6 +8,18 @@ Legend
 + : added
 - : removed
 
+v1.2.0, ?
+-------------------
+- [BREAKING] removed deprecated logic:
+  - remove aliases
+  - remove `create_empty` method (use `new`)
+  - remove `create_from` method (use `clone`)
+  - remove `custom_mapping` params everywhere (use `map`)
+  - all factory methods return `zif_ajson` rather than `zcl_ajson`
+! [BREAKING] renamed `zif_ajson_mapping` to `zif_ajson_mapper`
+! [BREAKING] renamed `zcl_ajson_mapping` to `zcl_ajson_mapper_lib`
+* cleanup UTs (remove old `li_writer` vars)
+
 v1.?.?, ?
 -------------------
 + Add unit tests for empty string/object (#212, @christianguenter2)
