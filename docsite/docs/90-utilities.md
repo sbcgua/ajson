@@ -93,20 +93,89 @@ You can see a more complex example in the test class of `zcl_ajson_utilities`.
 
 ## Iterating through arrays and objects
 
-Sometimes you need to iterate through the object or array items. The "native" way to do it is to call `members()` on the node and then `loop` through the members concatenating original path and each memeber name (for array, the members would be array indexes - 1,2,3 ...). However, the utilities offer a more elegant approach.
+Use `iterate_array()` or `iterate_object()` to visit the immediate children of a JSON node. Both methods take a JSON instance (`ii_json`) and the path to the container (`iv_path`), and return a `zif_ajson_iterator`. Use `/` to iterate through a root array or object.
+
+Call `has_next()` before `next()`. Each call to `next()` returns the next child as a separate JSON slice, with that child at its root. Paths used on the returned item are relative to this new root.
+
+### Arrays
+
+Array items are visited in numeric index order (1, 2, 3, ...), including when an array has more than nine items. This example reads a field from each object in an array:
 
 ```abap
+  data li_json type ref to zif_ajson.
   data li_iterator type ref to zif_ajson_iterator.
+  data li_item type ref to zif_ajson.
+  data lt_names type string_table.
+
+  li_json = zcl_ajson=>parse(
+    '{"users":[{"name":"Ada"},{"name":"Grace"}]}' ).
   li_iterator = zcl_ajson_utilities=>iterate_array(
     ii_json = li_json
-    iv_path = '/path-to-array' ).
-  while li_iterator->has_next( ) = abap_true.
-    li_array_item = li_iterator->next( ).
-    " returns slice of the original JSON
-    " similar to li_json->slice( '/path-to-array/1' )
+    iv_path = '/users' ).
 
-    " do what you need with the array item
+  while li_iterator->has_next( ) = abap_true.
+    li_item = li_iterator->next( ).
+    append li_item->get( '/name' ) to lt_names.
   endwhile.
+
+  " lt_names contains Ada, Grace
 ```
 
-Similaryly, `iterate_object()` would iterate through the member nodes (in alphabetical order).
+For an array of scalar values, read each returned item at `/`:
+
+```abap
+  data li_json type ref to zif_ajson.
+  data li_iterator type ref to zif_ajson_iterator.
+  data li_item type ref to zif_ajson.
+  data lt_values type string_table.
+
+  li_json = zcl_ajson=>parse( '[10,20,30]' ).
+  li_iterator = zcl_ajson_utilities=>iterate_array(
+    ii_json = li_json
+    iv_path = '/' ).
+
+  while li_iterator->has_next( ) = abap_true.
+    li_item = li_iterator->next( ).
+    append li_item->get( '/' ) to lt_values.
+  endwhile.
+
+  " lt_values contains 10, 20, 30 as strings
+```
+
+### Objects
+
+Object members are visited in alphabetical order by name, rather than their order in the input JSON. The iterator returns each member's value as a slice; it does not return the member name.
+
+```abap
+  data li_json type ref to zif_ajson.
+  data li_iterator type ref to zif_ajson_iterator.
+  data li_item type ref to zif_ajson.
+  data lt_values type string_table.
+
+  li_json = zcl_ajson=>parse( '{"settings":{"b":2,"a":1}}' ).
+  li_iterator = zcl_ajson_utilities=>iterate_object(
+    ii_json = li_json
+    iv_path = '/settings' ).
+
+  while li_iterator->has_next( ) = abap_true.
+    li_item = li_iterator->next( ).
+    append li_item->get( '/' ) to lt_values.
+  endwhile.
+
+  " lt_values contains 1, 2 as strings (a before b)
+```
+
+If you also need the member names, use `members()` and read the corresponding paths on the original JSON instead.
+
+### Empty containers and errors
+
+- For an empty array or object, `has_next()` immediately returns `abap_false`.
+- After the last item, `has_next()` returns `abap_false`; calling `next()` then returns an initial (unbound) reference.
+- A missing path or the wrong container type raises `zcx_ajson_error` when creating the iterator. For example, `iterate_array()` rejects an object, and `iterate_object()` rejects an array. Handle this exception in the caller or declare it in the caller's `RAISING` clause, as with `parse()` in the examples above.
+- An iterator moves forward only. Create a new iterator to visit the items again.
+
+### Slices and changes to the source
+
+Each returned item is a copy made by `slice()`, not a reference into the original JSON tree. Changes to the returned item do not update the source JSON.
+
+The iterator itself traverses the source tree. Keep the source unchanged while iterating; if you need to modify it, collect the changes first and apply them after the loop. Iteration visits immediate children only: use another iterator on a returned slice to visit a nested array or object.
