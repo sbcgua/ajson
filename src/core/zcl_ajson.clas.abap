@@ -599,9 +599,19 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     data lt_new_nodes type zif_ajson_types=>ty_nodes_tt.
     data ls_new_path type zif_ajson_types=>ty_path_name.
     data lv_new_index type i.
+    data lr_last_node type ref to zif_ajson_types=>ty_node.
+    constants lc_max_index type i value 2147483647.
 
-    lv_new_index     = lr_parent->children + 1.
     ls_new_path-path = lcl_utils=>normalize_path( iv_path ).
+    lv_new_index = lr_parent->children + 1.
+    " Deletion can leave gaps, so the child count is not necessarily the last index.
+    loop at mt_json_tree reference into lr_last_node using key array_index
+      where path = ls_new_path-path and index >= lv_new_index.
+      if lr_last_node->index = lc_max_index.
+        zcx_ajson_error=>raise( |Array index limit reached at [{ iv_path }]| ).
+      endif.
+      lv_new_index = lr_last_node->index + 1.
+    endloop.
     ls_new_path-name = |{ lv_new_index }|.
 
     lt_new_nodes = lcl_abap_to_json=>convert(
@@ -613,7 +623,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
     lr_new_node->index = lv_new_index.
 
     " update data
-    lr_parent->children = lv_new_index.
+    lr_parent->children = lr_parent->children + 1.
     insert lines of lt_new_nodes into table mt_json_tree.
 
     ri_json = me.

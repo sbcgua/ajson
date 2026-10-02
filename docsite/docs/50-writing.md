@@ -205,6 +205,19 @@ w->touch_array( '/array2' ).
 
 - removing an array item in the middle of array will not renumber the items
 
+The remaining items keep their existing paths. For example, after deleting `/2` from `[1,2,3]`,
+the value `3` is still at `/3`, while `stringify()` returns `[1,3]`.
+`push()` appends after the highest remaining numeric index, so the following example returns `[1,3,4]`:
+
+```abap
+data lo_json type ref to zcl_ajson.
+lo_json = zcl_ajson=>parse( '[1,2,3]' ).
+lo_json->delete( '/2' ).
+lo_json->push( iv_path = '/' iv_val = 4 ).
+" lo_json->get( '/3' ) returns 3; lo_json->get( '/4' ) returns 4
+" lo_json->stringify( ) returns [1,3,4]
+```
+
 ## Setting data refs
 
 *TBD*

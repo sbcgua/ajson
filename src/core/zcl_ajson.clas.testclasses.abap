@@ -4169,6 +4169,10 @@ class ltcl_integrated definition
     methods item_order_integrated for testing raising zcx_ajson_error.
     methods chaining for testing raising zcx_ajson_error.
     methods push_json for testing raising zcx_ajson_error.
+    methods push_after_delete for testing raising zcx_ajson_error.
+    methods push_sparse_array for testing raising zcx_ajson_error.
+    methods push_nested_after_delete for testing raising zcx_ajson_error.
+    methods push_array_index_limit for testing raising zcx_ajson_error.
     methods is_empty for testing raising zcx_ajson_error.
 
 endclass.
@@ -4472,6 +4476,100 @@ class ltcl_integrated implementation.
     cl_abap_unit_assert=>assert_equals(
       act = lv_act
       exp = lv_exp ).
+
+  endmethod.
+
+  method push_after_delete.
+
+    data lo_json type ref to zcl_ajson.
+    data ls_root type zif_ajson_types=>ty_node.
+    data li_iterator type ref to zif_ajson_iterator.
+    data li_item type ref to zif_ajson.
+    data lt_values type string_table.
+
+    lo_json = zcl_ajson=>parse( '[1,2,3]' ).
+    lo_json->delete( '/2' ).
+    cl_abap_unit_assert=>assert_equals( act = lo_json->stringify( ) exp = '[1,3]' ).
+    lo_json->push( iv_path = '/' iv_val = 4 ).
+    cl_abap_unit_assert=>assert_equals( act = lo_json->stringify( ) exp = '[1,3,4]' ).
+    cl_abap_unit_assert=>assert_equals( act = lo_json->get( '/3' ) exp = '3' ).
+    cl_abap_unit_assert=>assert_equals( act = lo_json->get( '/4' ) exp = '4' ).
+
+    read table lo_json->mt_json_tree into ls_root with table key path = '' name = ''.
+    cl_abap_unit_assert=>assert_equals( act = ls_root-children exp = 3 ).
+    li_iterator = zcl_ajson_utilities=>iterate_array( ii_json = lo_json iv_path = '/' ).
+    while li_iterator->has_next( ) = abap_true.
+      li_item = li_iterator->next( ).
+      append li_item->get( '/' ) to lt_values.
+    endwhile.
+    cl_abap_unit_assert=>assert_equals(
+      act = concat_lines_of( table = lt_values sep = ',' ) exp = '1,3,4' ).
+
+    lo_json->delete( '/4' ).
+    lo_json->push( iv_path = '/' iv_val = 5 ).
+    cl_abap_unit_assert=>assert_equals( act = lo_json->stringify( ) exp = '[1,3,5]' ).
+    lo_json->delete( '/1' )->delete( '/3' )->delete( '/4' ).
+    lo_json->push( iv_path = '/' iv_val = 6 ).
+    cl_abap_unit_assert=>assert_equals( act = lo_json->stringify( ) exp = '[6]' ).
+    cl_abap_unit_assert=>assert_equals( act = lo_json->get( '/1' ) exp = '6' ).
+
+  endmethod.
+
+  method push_sparse_array.
+
+    data lo_json type ref to zcl_ajson.
+    data ls_parent type zif_ajson_types=>ty_node.
+
+    lo_json = zcl_ajson=>parse( '{"a":[],"z":[]}' ).
+    lo_json->set( iv_path = '/a/2' iv_val = 2 ).
+    lo_json->set( iv_path = '/a/10' iv_val = 10 ).
+    lo_json->push( iv_path = '/a' iv_val = 11 ).
+    lo_json->push( iv_path = '/a' iv_val = 12 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_json->stringify( ) exp = '{"a":[2,10,11,12],"z":[]}' ).
+    cl_abap_unit_assert=>assert_equals( act = lo_json->get( '/a/11' ) exp = '11' ).
+    read table lo_json->mt_json_tree into ls_parent with table key path = '/' name = 'a'.
+    cl_abap_unit_assert=>assert_equals( act = ls_parent-children exp = 4 ).
+    lo_json->push( iv_path = '/z' iv_val = 1 ).
+    cl_abap_unit_assert=>assert_equals( act = lo_json->get( '/z/1' ) exp = '1' ).
+
+  endmethod.
+
+  method push_nested_after_delete.
+
+    data lo_json type ref to zcl_ajson.
+    data lo_new_item type ref to zcl_ajson.
+    data li_slice type ref to zif_ajson.
+    data lt_values type string_table.
+
+    lo_json = zcl_ajson=>parse( '{"items":[{"a":[1]},{"a":[2]},{"a":[3]}],"z":0}' ).
+    lo_new_item = zcl_ajson=>parse( '{"a":[4]}' ).
+    lo_json->delete( '/items/2' ).
+    lo_json->push( iv_path = '/items/' iv_val = lo_new_item ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_json->stringify( ) exp = '{"items":[{"a":[1]},{"a":[3]},{"a":[4]}],"z":0}' ).
+    cl_abap_unit_assert=>assert_equals( act = lo_json->get( '/items/3/a/1' ) exp = '3' ).
+    cl_abap_unit_assert=>assert_equals( act = lo_json->get( '/items/4/a/1' ) exp = '4' ).
+    li_slice = lo_json->slice( '/items/4/a' ).
+    li_slice->to_abap( importing ev_container = lt_values ).
+    cl_abap_unit_assert=>assert_equals( act = concat_lines_of( lt_values ) exp = '4' ).
+
+  endmethod.
+
+  method push_array_index_limit.
+
+    data lo_json type ref to zcl_ajson.
+    data lx_error type ref to zcx_ajson_error.
+
+    lo_json = zcl_ajson=>parse( '[]' ).
+    lo_json->set( iv_path = '/2147483647' iv_val = 1 ).
+    try.
+      lo_json->push( iv_path = '/' iv_val = 2 ).
+      cl_abap_unit_assert=>fail( 'Push must reject an exhausted array index' ).
+    catch zcx_ajson_error into lx_error.
+      cl_abap_unit_assert=>assert_char_cp( act = lx_error->get_text( ) exp = '*Array index limit reached*' ).
+    endtry.
+    cl_abap_unit_assert=>assert_equals( act = lo_json->stringify( ) exp = '[1]' ).
 
   endmethod.
 
