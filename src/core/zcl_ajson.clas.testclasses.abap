@@ -91,6 +91,8 @@ class ltcl_parser_test definition final
     methods parse_input_error for testing raising zcx_ajson_error.
     methods duplicate_key for testing raising zcx_ajson_error.
     methods non_json for testing raising zcx_ajson_error.
+    methods non_json_xstring for testing raising zcx_ajson_error.
+    methods json_xstring_values for testing raising zcx_ajson_error.
     methods special_characters_in_name for testing raising zcx_ajson_error.
     methods special_characters_in_path for testing raising zcx_ajson_error.
     methods special_characters_in_value for testing raising zcx_ajson_error.
@@ -518,6 +520,79 @@ class ltcl_parser_test implementation.
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_not_initial( lx ).
     endtry.
+
+  endmethod.
+
+  method non_json_xstring.
+
+    data lt_inputs type string_table.
+    data lv_input type string.
+    data lv_binary type xstring.
+    data lx type ref to zcx_ajson_error.
+    constants lc_utf8_bom type x length 3 value 'EFBBBF'.
+
+    append '<html><head><title>X</title></head><body><h1>Y</h1></body></html>' to lt_inputs.
+    append '<html/>' to lt_inputs.
+    append '<object/>' to lt_inputs.
+    lv_input = | \t\r\n<object/>|.
+    append lv_input to lt_inputs.
+    append '<' to lt_inputs.
+    append 'plain text' to lt_inputs.
+    lv_input = | \t\r\n|.
+    append lv_input to lt_inputs.
+
+    loop at lt_inputs into lv_input.
+      lv_binary = lcl_utils=>string_to_xstring_utf8( lv_input ).
+      do 2 times.
+        try.
+          mo_cut->parse( lv_binary ).
+          cl_abap_unit_assert=>fail( 'Binary non-JSON must be rejected' ).
+        catch zcx_ajson_error into lx.
+          cl_abap_unit_assert=>assert_char_cp(
+            act = lx->get_text( )
+            exp = '*Not JSON*' ).
+          cl_abap_unit_assert=>assert_equals(
+            act = lx->location
+            exp = 'Line 1, Offset 1' ).
+        endtry.
+        concatenate lc_utf8_bom lv_binary into lv_binary in byte mode.
+      enddo.
+    endloop.
+
+  endmethod.
+
+  method json_xstring_values.
+
+    data lt_inputs type string_table.
+    data lv_input type string.
+    data lv_binary type xstring.
+    data lt_actual type zif_ajson_types=>ty_nodes_tt.
+    data lt_expected type zif_ajson_types=>ty_nodes_tt.
+
+    append '{}' to lt_inputs.
+    append '[]' to lt_inputs.
+    append '"<html/>"' to lt_inputs.
+    append 'true' to lt_inputs.
+    append 'false' to lt_inputs.
+    append 'null' to lt_inputs.
+    append '-1.25e+2' to lt_inputs.
+    append '0' to lt_inputs.
+    append '9' to lt_inputs.
+    lv_input = | \t\r\n\{ "text": "<html/>" \}|.
+    append lv_input to lt_inputs.
+
+    loop at lt_inputs into lv_input.
+      lv_binary = lcl_utils=>string_to_xstring_utf8( lv_input ).
+      lt_expected = mo_cut->parse( lv_input ).
+      lt_actual = mo_cut->parse( lv_binary ).
+      cl_abap_unit_assert=>assert_equals(
+        act = lt_actual
+        exp = lt_expected ).
+    endloop.
+
+    clear lv_binary.
+    lt_actual = mo_cut->parse( lv_binary ).
+    cl_abap_unit_assert=>assert_initial( lt_actual ).
 
   endmethod.
 
