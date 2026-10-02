@@ -91,6 +91,9 @@ class ltcl_parser_test definition final
     methods parse_input_error for testing raising zcx_ajson_error.
     methods duplicate_key for testing raising zcx_ajson_error.
     methods non_json for testing raising zcx_ajson_error.
+    methods non_json_xstring for testing raising zcx_ajson_error.
+    methods json_xstring_values for testing raising zcx_ajson_error.
+    methods utf16_binary_prefix for testing raising zcx_ajson_error.
     methods special_characters_in_name for testing raising zcx_ajson_error.
     methods special_characters_in_path for testing raising zcx_ajson_error.
     methods special_characters_in_value for testing raising zcx_ajson_error.
@@ -518,6 +521,166 @@ class ltcl_parser_test implementation.
     catch zcx_ajson_error into lx.
       cl_abap_unit_assert=>assert_not_initial( lx ).
     endtry.
+
+  endmethod.
+
+  method non_json_xstring.
+
+    data lt_inputs type string_table.
+    data lv_input type string.
+    data lv_binary type xstring.
+    data lx type ref to zcx_ajson_error.
+    constants lc_utf8_bom type x length 3 value 'EFBBBF'.
+
+    append '<html><head><title>X</title></head><body><h1>Y</h1></body></html>' to lt_inputs.
+    append '<html/>' to lt_inputs.
+    append '<object/>' to lt_inputs.
+    lv_input = | \t\r\n<object/>|.
+    append lv_input to lt_inputs.
+    append '<' to lt_inputs.
+    append 'plain text' to lt_inputs.
+    lv_input = | \t\r\n|.
+    append lv_input to lt_inputs.
+
+    loop at lt_inputs into lv_input.
+      lv_binary = lcl_utils=>string_to_xstring_utf8( lv_input ).
+      do 2 times.
+        try.
+          mo_cut->parse( lv_binary ).
+          cl_abap_unit_assert=>fail( 'Binary non-JSON must be rejected' ).
+        catch zcx_ajson_error into lx.
+          cl_abap_unit_assert=>assert_char_cp(
+            act = lx->get_text( )
+            exp = '*Not JSON*' ).
+          cl_abap_unit_assert=>assert_equals(
+            act = lx->location
+            exp = 'Line 1, Offset 1' ).
+        endtry.
+        concatenate lc_utf8_bom lv_binary into lv_binary in byte mode.
+      enddo.
+    endloop.
+
+  endmethod.
+
+  method utf16_binary_prefix.
+
+    data lt_tokens type standard table of xstring.
+    data lv_token type xstring.
+    data lv_binary type xstring.
+    data lv_byte type x length 1.
+    data lv_zero type x length 1.
+    data lv_offset type i.
+    data lv_endian type i.
+    data lv_valid type abap_bool.
+    data lv_result type xstring.
+    data lx type ref to zcx_ajson_error.
+
+    " ASCII fixtures encoded below as UTF-16 in both byte orders.
+    append '7B7D' to lt_tokens. " {}
+    append '5B5D' to lt_tokens. " []
+    append '223C68746D6C2F3E22' to lt_tokens. " "<html/>"
+    append '74727565' to lt_tokens.
+    append '66616C7365' to lt_tokens.
+    append '6E756C6C' to lt_tokens.
+    append '2D31' to lt_tokens.
+    append '30' to lt_tokens.
+    append '39' to lt_tokens.
+    append '3C68746D6C2F3E' to lt_tokens.
+    append '3C6F626A6563742F3E' to lt_tokens.
+    append '706C61696E' to lt_tokens.
+    append '' to lt_tokens.
+
+    do 2 times.
+      lv_endian = sy-index.
+      loop at lt_tokens into lv_token.
+        lv_valid = boolc( sy-tabix <= 9 ).
+        if lv_endian = 1.
+          lv_binary = 'FFFE200009000D000A00'.
+        else.
+          lv_binary = 'FEFF00200009000D000A'.
+        endif.
+        lv_offset = 0.
+        while lv_offset < xstrlen( lv_token ).
+          lv_byte = lv_token+lv_offset(1).
+          if lv_endian = 1.
+            concatenate lv_binary lv_byte lv_zero into lv_binary in byte mode.
+          else.
+            concatenate lv_binary lv_zero lv_byte into lv_binary in byte mode.
+          endif.
+          lv_offset = lv_offset + 1.
+        endwhile.
+        try.
+          lv_result = lcl_utils=>any_to_xstring( lv_binary ).
+          cl_abap_unit_assert=>assert_equals(
+            act = lv_valid
+            exp = abap_true ).
+          cl_abap_unit_assert=>assert_equals(
+            act = lv_result
+            exp = lv_binary ).
+        catch zcx_ajson_error into lx.
+          cl_abap_unit_assert=>assert_equals(
+            act = lv_valid
+            exp = abap_false ).
+          cl_abap_unit_assert=>assert_char_cp(
+            act = lx->get_text( )
+            exp = '*Not JSON*' ).
+        endtry.
+      endloop.
+    enddo.
+
+    " BOM only, truncated code units and non-ASCII lookalikes are invalid prefixes.
+    clear lt_tokens.
+    append 'FFFE' to lt_tokens.
+    append 'FEFF' to lt_tokens.
+    append 'FFFE7B' to lt_tokens.
+    append 'FEFF00' to lt_tokens.
+    append 'FFFE7B01' to lt_tokens.
+    append 'FEFF017B' to lt_tokens.
+    loop at lt_tokens into lv_binary.
+      try.
+        lcl_utils=>sanity_check_binary( lv_binary ).
+        cl_abap_unit_assert=>fail( 'Invalid UTF-16 prefix must be rejected' ).
+      catch zcx_ajson_error into lx.
+        cl_abap_unit_assert=>assert_char_cp(
+          act = lx->get_text( )
+          exp = '*Not JSON*' ).
+      endtry.
+    endloop.
+
+  endmethod.
+
+  method json_xstring_values.
+
+    data lt_inputs type string_table.
+    data lv_input type string.
+    data lv_binary type xstring.
+    data lt_actual type zif_ajson_types=>ty_nodes_tt.
+    data lt_expected type zif_ajson_types=>ty_nodes_tt.
+
+    append '{}' to lt_inputs.
+    append '[]' to lt_inputs.
+    append '"<html/>"' to lt_inputs.
+    append 'true' to lt_inputs.
+    append 'false' to lt_inputs.
+    append 'null' to lt_inputs.
+    append '-1.25e+2' to lt_inputs.
+    append '0' to lt_inputs.
+    append '9' to lt_inputs.
+    lv_input = | \t\r\n\{ "text": "<html/>" \}|.
+    append lv_input to lt_inputs.
+
+    loop at lt_inputs into lv_input.
+      lv_binary = lcl_utils=>string_to_xstring_utf8( lv_input ).
+      lt_expected = mo_cut->parse( lv_input ).
+      lt_actual = mo_cut->parse( lv_binary ).
+      cl_abap_unit_assert=>assert_equals(
+        act = lt_actual
+        exp = lt_expected ).
+    endloop.
+
+    clear lv_binary.
+    lt_actual = mo_cut->parse( lv_binary ).
+    cl_abap_unit_assert=>assert_initial( lt_actual ).
 
   endmethod.
 
