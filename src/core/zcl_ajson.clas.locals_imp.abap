@@ -309,6 +309,9 @@ class lcl_utils implementation.
 
     data lv_offset type i.
     data lv_byte type x length 1.
+    data lv_step type i value 1.
+    data lv_little_endian type abap_bool.
+    data lv_unit type x length 2.
 
     " Preserve empty binary input; check only the prefix, without decoding the payload.
     if iv_data is initial.
@@ -317,13 +320,42 @@ class lcl_utils implementation.
     " A UTF-8 byte order mark can precede the JSON data.
     if xstrlen( iv_data ) >= 3 and iv_data(3) = 'EFBBBF'.
       lv_offset = 3.
+    elseif xstrlen( iv_data ) >= 2.
+      case iv_data(2).
+        when 'FFFE'.
+          lv_offset = 2.
+          lv_step = 2.
+          lv_little_endian = abap_true.
+        when 'FEFF'.
+          lv_offset = 2.
+          lv_step = 2.
+      endcase.
     endif.
 
     while lv_offset < xstrlen( iv_data ).
-      lv_byte = iv_data+lv_offset(1).
+      if lv_step = 2.
+        " JSON whitespace and opening tokens are ASCII UTF-16 code units.
+        if lv_offset + 2 > xstrlen( iv_data ).
+          exit.
+        endif.
+        lv_unit = iv_data+lv_offset(2).
+        if lv_little_endian = abap_true.
+          if lv_unit+1(1) <> '00'.
+            exit.
+          endif.
+          lv_byte = lv_unit(1).
+        else.
+          if lv_unit(1) <> '00'.
+            exit.
+          endif.
+          lv_byte = lv_unit+1(1).
+        endif.
+      else.
+        lv_byte = iv_data+lv_offset(1).
+      endif.
       case lv_byte.
         when '20' or '09' or '0A' or '0D'. " JSON whitespace
-          lv_offset = lv_offset + 1.
+          lv_offset = lv_offset + lv_step.
         when '7B' or '5B' or '22' or '74' or '66' or '6E' or '2D'
           or '30' or '31' or '32' or '33' or '34' or '35' or '36' or '37' or '38' or '39'.
           return. " object, array, string, true, false, null, or number
