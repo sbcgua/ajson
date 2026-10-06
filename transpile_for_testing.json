@@ -2,7 +2,8 @@
   "input_folder": "src",
   "input_filter": [
     "core/*",
-    "libs/*"
+    "libs/*",
+    "tests/*"
   ],
   "output_folder": "transpiled",
   "libs": [
