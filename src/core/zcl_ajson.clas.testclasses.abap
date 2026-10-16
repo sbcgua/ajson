@@ -694,6 +694,7 @@ class ltcl_serializer_test definition final
     methods simple_indented for testing raising zcx_ajson_error.
     methods empty_set for testing raising zcx_ajson_error.
     methods escape_string for testing raising zcx_ajson_error.
+    methods escape_control_chars for testing raising zcx_ajson_error.
     methods empty for testing raising zcx_ajson_error.
 
 endclass.
@@ -986,6 +987,28 @@ class ltcl_serializer_test implementation.
 
     lv_act = lcl_json_serializer=>stringify( lo_nodes->sorted( ) ).
     lv_exp = '"a\"\\\t\r\n"'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+  endmethod.
+
+  method escape_control_chars.
+
+    data lv_act type string.
+    data lv_exp type string.
+    data lv_val type string.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    " a, then backspace, form feed, NUL, SOH, ESC and US: JSON allows no raw control character
+    lv_val = lcl_utils=>xstring_to_string_utf8( '61080C00011B1F' ).
+
+    create object lo_nodes.
+    lo_nodes->add( | \| \|str \|{ lv_val }\| \|0| ).
+
+    lv_act = lcl_json_serializer=>stringify( lo_nodes->sorted( ) ).
+    lv_exp = '"a\b\f\u0000\u0001\u001b\u001f"'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_act
