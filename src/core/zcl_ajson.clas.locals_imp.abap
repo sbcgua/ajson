@@ -165,9 +165,9 @@ class lcl_utils implementation.
           conv = lo_conv.
       call method lo_conv->('CONVERT')
         exporting
-          data = iv_xstr
+          input = iv_xstr
         importing
-          buffer = rv_str.
+          data = rv_str.
     endtry.
 
   endmethod.
