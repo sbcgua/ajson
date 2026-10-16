@@ -1,4 +1,5 @@
 abaplint-deps
+.abaplint
 transpiled
 node_modules
 /package.json

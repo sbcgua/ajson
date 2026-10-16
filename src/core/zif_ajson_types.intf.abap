@@ -1,6 +1,11 @@
 interface zif_ajson_types
   public.
 
+  " Types remain in a separate interface, not in zif_ajson,
+  " because otherwise they create cyclic dependencies
+  " e.g. ZIF_AJSON_FILTER -> ZIF_AJSON -> ZIF_AJSON_FILTER and etc.
+  " So sadly not sure how to centralize the type definitions :(
+
   types:
     ty_node_type type string.
 

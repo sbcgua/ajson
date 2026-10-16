@@ -4,7 +4,7 @@
   },
   "dependencies": [{
     "url": "https://github.com/abaplint/deps",
-    "folder": "/abaplint-deps",
+    "folder": "/.abaplint/deps",
     "files": "/src/**/*.*"
   }],
   "syntax": {
@@ -74,7 +74,7 @@
     "no_aliases": false,
     "no_chained_assignment": true,
     "7bit_ascii": {
-      "exclude": ["zcl_ajson.clas.testclasses.abap"]
+      "exclude": ["zcl_ajson.clas.testclasses.abap", "zcl_test.clas.abap"]
     },
     "abapdoc": false,
     "allowed_object_naming": true,
@@ -324,7 +324,7 @@
     },
     "prefix_is_current_class": {
       "exclude": [],
-      "omitMeInstanceCalls": true
+      "omitMeInstanceCalls": false
     },
     "release_idoc": true,
     "remove_descriptions": {

@@ -14,11 +14,6 @@ This feature allows creating a JSON from existing one skipping some nodes. E.g. 
   " li_json_source: { "a":1, "b":0, "c":{ "d":"" } }
   li_json_filtered = li_json_source->filter( zcl_ajson_filter_lib=>create_empty_filter( ) ).
   " li_json_filtered: { "a":1 }
-
-  " OR ... (but prefer the former, this will be deprecated)
-  li_json_filtered = zcl_ajson=>create_from(
-    ii_source_json = li_json_source
-    ii_filter = zcl_ajson_filter_lib=>create_empty_filter( ) ).
 ```
 
 - Remove predefined paths

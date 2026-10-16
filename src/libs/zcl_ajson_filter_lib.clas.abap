@@ -1,7 +1,7 @@
-class ZCL_AJSON_FILTER_LIB definition
+class zcl_ajson_filter_lib definition
   public
   final
-  create public .
+  create public.
 
   public section.
 
@@ -9,7 +9,7 @@ class ZCL_AJSON_FILTER_LIB definition
       returning
         value(ri_filter) type ref to zif_ajson_filter
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
     class-methods create_path_filter
       importing
         !it_skip_paths type string_table optional
@@ -18,14 +18,14 @@ class ZCL_AJSON_FILTER_LIB definition
       returning
         value(ri_filter) type ref to zif_ajson_filter
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
     class-methods create_and_filter
       importing
         !it_filters type zif_ajson_filter=>ty_filter_tab
       returning
         value(ri_filter) type ref to zif_ajson_filter
       raising
-        zcx_ajson_error .
+        zcx_ajson_error.
 
   protected section.
   private section.

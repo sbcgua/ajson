@@ -10,7 +10,7 @@ The methods of interface allows setting attributes, objects, arrays.
 
 ```abap
 data w type ref to zif_ajson.
-w = zcl_ajson=>create_empty( ).
+w = zcl_ajson=>new( ).
 
 " Set value
 " Results in { "a": { "b": { "num": 123, "str": "hello", "bool": true } } }
@@ -233,7 +233,7 @@ It is possible to set an instance of ajson immutable (read only). It is done on 
     data lo_json type ref to zcl_ajson.
     data li_json type ref to zif_ajson.
 
-    lo_json   = zcl_ajson=>create_empty( ).
+    lo_json   = zcl_ajson=>new( ).
     li_json = lo_json.
 
     li_json->set(

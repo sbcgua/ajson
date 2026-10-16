@@ -43,7 +43,7 @@ The code is open-sourced, heavily covered with unit tests and published under MI
 ### Basics
 
 - To parse existing json data - call `zcl_ajson=>parse( lv_json_string )`
-- To create a new empty json instance (to set values and serialize) - call `zcl_ajson=>create_empty( )`
+- To create a new empty json instance (to set values and serialize) - call `zcl_ajson=>new( )`
 - Json attributes are addressed by path in form `/obj1/obj2/value` of e.g. `/a/b/c` addresses `{ a: { b: { c: "this value !" } } }`
 - Array items addressed with index starting from 1: `/tab/2/val` -> `{ tab: \[ {...}, { val: "this value !" } \] }`
 
@@ -129,7 +129,7 @@ Modification of JSON is accessible via `zif_ajson_writer` interface of directly 
 ```abap
 data w type ref to zif_ajson_writer.
 
-w = zcl_ajson=>create_empty( ).
+w = zcl_ajson=>new( ).
 
 " Set value
 " Results in { a: { b: { num: 123, str: "hello", bool: true } } }
@@ -311,7 +311,7 @@ It is possible to set an instance of ajson immutable (read only). It is done on 
 data lo_json type ref to zcl_ajson.
 data li_writer type ref to zif_ajson_writer.
 
-lo_json   = zcl_ajson=>create_empty( ).
+lo_json   = zcl_ajson=>new( ).
 li_writer = lo_json.
 
 li_writer->set(

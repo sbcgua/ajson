@@ -5,6 +5,8 @@ interface zif_ajson
   constants origin type string value 'https://github.com/sbcgua/ajson'. "#EC NOTEXT
   constants license type string value 'MIT'. "#EC NOTEXT
 
+  " TYPES
+
   types:
     begin of ty_opts,
       read_only type abap_bool,
@@ -33,7 +35,7 @@ interface zif_ajson
       zcx_ajson_error.
   methods map
     importing
-      ii_mapper type ref to zif_ajson_mapping
+      ii_mapper type ref to zif_ajson_mapper
     returning
       value(ri_json) type ref to zif_ajson
     raising

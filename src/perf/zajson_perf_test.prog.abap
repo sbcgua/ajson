@@ -487,7 +487,7 @@ class lcl_app implementation.
   method set_same_level.
 
     data li_json type ref to zif_ajson.
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
 
     do 10 times.
       li_json->set(
@@ -501,7 +501,7 @@ class lcl_app implementation.
 
     data li_json type ref to zif_ajson.
     data lv_path type string.
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
 
     do 10 times.
       lv_path = lv_path && |/a{ sy-index }|.
@@ -517,7 +517,7 @@ class lcl_app implementation.
     data li_json type ref to zif_ajson.
     data lv_path type string.
 
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
 
     do 10 times.
       lv_path = lv_path && |/a{ sy-index }|.
@@ -538,7 +538,7 @@ class lcl_app implementation.
   method delete_tree.
 
     data li_json type ref to zif_ajson.
-    li_json = zcl_ajson=>create_empty( ).
+    li_json = zcl_ajson=>new( ).
 
     li_json->set(
       iv_path = |/x{ mv_deep_path }|
