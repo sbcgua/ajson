@@ -206,7 +206,7 @@ CLASS ZCL_AJSON IMPLEMENTATION.
 
     if rs_top_node-children > 0. " only for objects and arrays
       lv_parent_path = iv_path && iv_name && '/*'.
-      delete mt_json_tree where path cp lv_parent_path.
+      delete mt_json_tree where path cp lv_parent_path. "#EC CI_SORTSEQ
     endif.
 
     " decrement parent children
